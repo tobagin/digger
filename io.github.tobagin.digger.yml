@@ -63,6 +63,8 @@ modules:
       - --disable-dnstap
       - --disable-doh
       - --enable-full-report
+      - --without-openssl
+      - --disable-dnssec-tools
     build-commands:
       # Build only the utilities we need
       - make -C bin/dig
@@ -147,4 +149,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/Digger.git
         tag: 0.1.0
-        commit: 7ee90c18aaa467c7a1c72916f9214567d3541f16
+        commit: d8c2a37a83fa02f9acc7adbcad05d00102e0a1bc

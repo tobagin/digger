@@ -33,10 +33,8 @@ class DigExecutor:
                 check=False
             )
             # dig -v returns non-zero exit code but still works if available
-            print(f"DEBUG: dig -v result: returncode={result.returncode}, stdout={result.stdout}, stderr={result.stderr}")
             self._dig_available = True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-            print(f"DEBUG: dig check failed with exception: {e}")
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
             self._dig_available = False
 
         return self._dig_available
@@ -98,7 +96,6 @@ class DigExecutor:
 
             # Build and execute command
             cmd = self._build_command(domain, record_type, nameserver)
-            print(f"DEBUG: Executing command: {cmd}")
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -106,10 +103,6 @@ class DigExecutor:
                 timeout=30,  # 30 second timeout
                 check=False,  # Don't raise exception on non-zero exit code
             )
-
-            print(f"DEBUG: Command result: returncode={result.returncode}, stdout_len={len(result.stdout)}, stderr_len={len(result.stderr)}")
-            if result.stderr:
-                print(f"DEBUG: stderr content: {result.stderr}")
 
             # Handle the result
             if result.returncode == 0:
