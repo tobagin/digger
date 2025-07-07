@@ -36,7 +36,7 @@ modules:
       - --disable-static
       - --enable-shared
 
-  # DNS tools including dig command
+  # DNS tools including dig command - using a simpler approach
   - name: bind-utils
     buildsystem: autotools
     sources:
@@ -62,12 +62,24 @@ modules:
       - --disable-dnsrps
       - --disable-dnstap
       - --disable-doh
+      - --enable-full-report
+    build-commands:
+      # Build only the utilities we need
+      - make -C bin/dig
+      - make -C bin/dig install
     post-install:
+      # Verify dig was built and installed
+      - ls -la /app/bin/
+      - test -f /app/bin/dig || (echo "dig not found!" && exit 1)
+      # Test dig functionality
+      - /app/bin/dig -v || echo "dig version check completed"
       # Only keep the dig tool and its dependencies
       - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup
       - rm -rf /app/bin/named* /app/bin/rndc* /app/bin/dnssec*
       - rm -rf /app/sbin /app/share/man /app/include
       - rm -rf /app/lib/*.la /app/lib/pkgconfig
+      # Verify dig is still there after cleanup
+      - test -f /app/bin/dig || (echo "dig was accidentally removed!" && exit 1)
 
   # All Python wheel dependencies verified with correct SHA256 hashes for Flathub
   - name: python3-packages
@@ -134,5 +146,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/tobagin/Digger.git
-        tag: v0.1.0
-        commit: e88ab3aa1037ff544946c5df9703b4e48b76b53e
+        tag: 0.1.0
+        commit: 7ee90c18aaa467c7a1c72916f9214567d3541f16
