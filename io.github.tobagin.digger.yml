@@ -12,6 +12,9 @@ finish-args:
   # Wayland and X11 display
   - --socket=wayland
   - --socket=fallback-x11
+  
+  # Allow access to system DNS utilities
+  - --filesystem=/usr/bin:ro
 
 cleanup:
   - /include
@@ -36,51 +39,13 @@ modules:
       - --disable-static
       - --enable-shared
 
-  # Build BIND dig with minimal configuration to avoid crypto issues
-  - name: bind-utils
-    buildsystem: autotools
-    sources:
-      - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.18.32/bind-9.18.32.tar.xz
-        sha256: dc840cdf9d54578d98400f2edf7008b1b33a1721be6e490eb1e42d0d11d9cff4
-    config-opts:
-      - --disable-static
-      - --enable-shared
-      - --disable-dnssec-tools
-      - --disable-dnssec-validation
-      - --without-openssl
-      - --without-gssapi
-      - --without-readline
-      - --without-libedit
-      - --without-libxml2
-      - --without-libjson
-      - --without-zlib
-      - --without-lmdb
-      - --without-libnghttp2
-      - --disable-dnsrps
-      - --disable-dnstap
-      - --disable-doh
-      - --disable-backtrace
-      - --disable-symtable
-      - --disable-linux-caps
-      - --without-python
-      - --prefix=/app
+  # Use system dig command (no build needed)
+  - name: system-dig-access
+    buildsystem: simple
     build-commands:
-      # Build only what we need
-      - make -C lib/isc
-      - make -C lib/dns  
-      - make -C lib/bind9
-      - make -C bin/dig
-    install-commands:
-      # Install only dig
-      - make -C lib/isc install
-      - make -C lib/dns install
-      - make -C lib/bind9 install
-      - make -C bin/dig install
-    post-install:
-      # Clean up and verify
-      - rm -rf /app/include /app/lib/pkgconfig /app/lib/*.la
-      - test -f /app/bin/dig || (echo "dig not found!" && exit 1)
+      # Create a symlink to system dig
+      - mkdir -p /app/bin
+      - ln -sf /usr/bin/dig /app/bin/dig
 
   # All Python wheel dependencies verified with correct SHA256 hashes for Flathub
   - name: python3-packages
@@ -148,4 +113,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/Digger.git
         tag: 0.1.0
-        commit: 7974772c6c4556e810324e0189815fad3325038c
+        commit: 820aa6c920a427bb5816aad1a35542b8f512f00d
