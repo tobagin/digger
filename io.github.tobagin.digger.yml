@@ -96,14 +96,7 @@ modules:
       - install -Dm644 data/io.github.tobagin.digger.metainfo.xml /app/share/metainfo/io.github.tobagin.digger.metainfo.xml
       
     sources:
-      - type: dir
-        path: .
-        skip:
-          - .git
-          - .pytest_cache
-          - __pycache__
-          - '*.pyc'
-          - venv_linux
-          - build
-          - dist
-          - '*.egg-info'
+      - type: git
+        url: https://github.com/tobagin/Digger.git
+        tag: v0.1.0
+        commit: 76848319db6ea6d2699ee1f67569b2b994d92408
