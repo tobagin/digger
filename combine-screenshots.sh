@@ -15,24 +15,29 @@ combine_diagonal() {
     
     echo "Combining $dark_image and $light_image -> $output_image"
     
-    # Get dimensions of the dark image (assuming both are the same size)
-    width=$(identify -format "%w" "$dark_image")
-    height=$(identify -format "%h" "$light_image")
+    # Get dimensions of the images (assuming both are the same size)
+    width=$(magick identify -format "%w" "$dark_image")
+    height=$(magick identify -format "%h" "$dark_image")
     
-    # Create a diagonal mask
-    # The mask will be white (255) for dark theme area and black (0) for light theme area
-    convert -size "${width}x${height}" xc:black \
+    echo "Image dimensions: ${width}x${height}"
+    
+    # Start with light image as base (preserves original alpha/transparency)
+    cp "$light_image" "$output_image"
+    
+    # Create mask for diagonal triangle
+    magick -size "${width}x${height}" xc:none \
         -fill white \
         -draw "polygon 0,0 ${width},0 0,${height}" \
-        /tmp/diagonal_mask.png
+        /tmp/mask.png
     
-    # Apply the mask to combine the images
-    # Dark image where mask is white, light image where mask is black
-    convert "$light_image" "$dark_image" /tmp/diagonal_mask.png \
-        -composite "$output_image"
+    # Extract triangle from dark image with transparency preserved
+    magick "$dark_image" /tmp/mask.png -alpha off -compose copy_opacity -composite /tmp/triangle.png
     
-    # Clean up temporary mask
-    rm -f /tmp/diagonal_mask.png
+    # Composite triangle onto the base image
+    magick "$output_image" /tmp/triangle.png -compose over -composite "$output_image"
+    
+    # Clean up
+    rm -f /tmp/mask.png /tmp/triangle.png
     
     echo "Created: $output_image"
 }
