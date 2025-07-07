@@ -23,9 +23,8 @@ class DigExecutor:
         if self._dig_available is not None:
             return self._dig_available
 
+        # Check for dig command (bundled in Flatpak or system-wide)
         cmd = ["which", "dig"]
-        if self.is_flatpak:
-            cmd = ["flatpak-spawn", "--host"] + cmd
 
         try:
             result = subprocess.run(cmd, capture_output=True, check=True, timeout=5)
@@ -154,10 +153,7 @@ class DigExecutor:
             ]
         )
 
-        # Handle Flatpak sandboxing
-        if self.is_flatpak:
-            return ["flatpak-spawn", "--host"] + base_cmd
-
+        # Return the command directly (dig is bundled in Flatpak)
         return base_cmd
 
     def execute_dig_sync(
