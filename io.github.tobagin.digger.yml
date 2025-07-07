@@ -13,8 +13,6 @@ finish-args:
   - --socket=wayland
   - --socket=fallback-x11
   
-  # Allow access to system DNS utilities
-  - --filesystem=/usr/bin:ro
 
 cleanup:
   - /include
@@ -39,13 +37,38 @@ modules:
       - --disable-static
       - --enable-shared
 
-  # Use system dig command (no build needed)
-  - name: system-dig-access
-    buildsystem: simple
-    build-commands:
-      # Create a symlink to system dig
-      - mkdir -p /app/bin
-      - ln -sf /usr/bin/dig /app/bin/dig
+  # Build minimal dig from BIND sources
+  - name: bind-utils
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://downloads.isc.org/isc/bind9/9.18.32/bind-9.18.32.tar.xz
+        sha256: dc840cdf9d54578d98400f2edf7008b1b33a1721be6e490eb1e42d0d11d9cff4
+    config-opts:
+      - --disable-static
+      - --enable-shared
+      - --disable-dnssec-tools
+      - --disable-dnssec-validation
+      - --without-openssl
+      - --without-gssapi
+      - --without-readline
+      - --without-libedit
+      - --without-libxml2
+      - --without-libjson
+      - --without-zlib
+      - --without-lmdb
+      - --without-libnghttp2
+      - --disable-dnsrps
+      - --disable-dnstap
+      - --disable-doh
+      - --disable-backtrace
+      - --disable-symtable
+      - --disable-linux-caps
+      - --without-python
+      - --prefix=/app
+    post-install:
+      - rm -rf /app/include /app/lib/pkgconfig /app/lib/*.la /app/share/man
+      - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup /app/bin/named* /app/bin/rndc* /app/bin/dnssec* /app/sbin
 
   # All Python wheel dependencies verified with correct SHA256 hashes for Flathub
   - name: python3-packages
@@ -113,4 +136,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/Digger.git
         tag: 0.1.0
-        commit: 820aa6c920a427bb5816aad1a35542b8f512f00d
+        commit: 056fcd6e5db42782b4912c1480fd661bdbcca937
