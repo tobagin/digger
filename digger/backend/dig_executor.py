@@ -23,13 +23,18 @@ class DigExecutor:
         if self._dig_available is not None:
             return self._dig_available
 
-        # Check for dig command (bundled in Flatpak or system-wide)
-        cmd = ["which", "dig"]
-
+        # Try to execute dig with --version to check availability
+        # This is more reliable than 'which' in Flatpak environments
         try:
-            result = subprocess.run(cmd, capture_output=True, check=True, timeout=5)
-            self._dig_available = result.returncode == 0
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            result = subprocess.run(
+                ["dig", "-v"], 
+                capture_output=True, 
+                timeout=5,
+                check=False
+            )
+            # dig -v returns non-zero exit code but still works if available
+            self._dig_available = True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
             self._dig_available = False
 
         return self._dig_available
@@ -111,10 +116,14 @@ class DigExecutor:
                     error_msg = (
                         result.stderr.strip() if result.stderr else "dig command failed"
                     )
-                    callback("", RuntimeError(f"dig command failed: {error_msg}"))
+                    # Add more specific error handling for network issues
+                    if "network unreachable" in error_msg.lower() or "connection timed out" in error_msg.lower():
+                        callback("", RuntimeError("Network connection failed. Please check your internet connection."))
+                    else:
+                        callback("", RuntimeError(f"dig command failed: {error_msg}"))
 
         except subprocess.TimeoutExpired:
-            callback("", TimeoutError("DNS query timed out"))
+            callback("", TimeoutError("DNS query timed out. Please check your network connection."))
         except Exception as e:
             callback("", e)
 
