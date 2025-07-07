@@ -68,6 +68,7 @@ modules:
       - --without-libnghttp2
       - --disable-dnsrps
       - --disable-dnstap
+      - --disable-doh
     post-install:
       # Only keep the dig tool and its dependencies
       - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup
