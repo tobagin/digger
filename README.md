@@ -17,6 +17,73 @@ A modern DNS lookup tool that provides a user-friendly graphical interface for t
 - 📋 **Copy Support**: Easy copying of DNS record values
 - ⌨️ **Keyboard Shortcuts**: Quick access with keyboard shortcuts (Ctrl+L, Ctrl+R, Escape)
 
+## Screenshots
+
+### Main Interface
+<p align="center">
+  <img src="screenshots/main-window.png" alt="Main application window" width="600"/>
+  <br>
+  <em>Main application window showing the query interface in both dark and light themes</em>
+</p>
+
+### DNS Record Types
+
+#### A Record Lookup (IPv4)
+<p align="center">
+  <img src="screenshots/A-lookup.png" alt="A record lookup" width="600"/>
+  <br>
+  <em>A record lookup showing IPv4 address resolution</em>
+</p>
+
+#### AAAA Record Lookup (IPv6)
+<p align="center">
+  <img src="screenshots/AAAA-lookup.png" alt="AAAA record lookup" width="600"/>
+  <br>
+  <em>AAAA record lookup showing IPv6 address resolution</em>
+</p>
+
+#### MX Record Lookup (Mail Exchange)
+<p align="center">
+  <img src="screenshots/MX-lookup.png" alt="MX record lookup" width="600"/>
+  <br>
+  <em>MX record lookup showing mail server configuration with priorities</em>
+</p>
+
+#### TXT Record Lookup
+<p align="center">
+  <img src="screenshots/TXT-lookup.png" alt="TXT record lookup" width="600"/>
+  <br>
+  <em>TXT record lookup showing text-based DNS records</em>
+</p>
+
+#### CNAME Record Lookup (Canonical Name)
+<p align="center">
+  <img src="screenshots/CNAME-lookup.png" alt="CNAME record lookup" width="600"/>
+  <br>
+  <em>CNAME record lookup showing domain aliasing</em>
+</p>
+
+#### NS Record Lookup (Name Server)
+<p align="center">
+  <img src="screenshots/NS-lookup.png" alt="NS record lookup" width="600"/>
+  <br>
+  <em>NS record lookup showing nameserver configuration</em>
+</p>
+
+#### SOA Record Lookup (Start of Authority)
+<p align="center">
+  <img src="screenshots/SOA-lookup.png" alt="SOA record lookup" width="600"/>
+  <br>
+  <em>SOA record lookup showing zone authority information</em>
+</p>
+
+### About Dialog
+<p align="center">
+  <img src="screenshots/about.png" alt="About dialog" width="500"/>
+  <br>
+  <em>About dialog showing application information and features</em>
+</p>
+
 ## Installation
 
 ### From Flathub (Recommended)

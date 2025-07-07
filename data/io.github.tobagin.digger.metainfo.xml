@@ -30,12 +30,40 @@
   
   <screenshots>
     <screenshot type="default">
-      <caption>Main application window showing DNS query interface</caption>
-      <image>https://raw.githubusercontent.com/tobagin/digger/main/screenshots/main-window.png</image>
+      <caption>Main application window showing DNS query interface in both dark and light themes</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/main-window.png</image>
     </screenshot>
     <screenshot>
-      <caption>DNS query results with structured display</caption>
-      <image>https://raw.githubusercontent.com/tobagin/digger/main/screenshots/results-view.png</image>
+      <caption>A record lookup showing IPv4 address resolution</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/A-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>AAAA record lookup showing IPv6 address resolution</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/AAAA-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>MX record lookup showing mail server configuration</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/MX-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>TXT record lookup showing text-based DNS records</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/TXT-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>CNAME record lookup showing domain aliasing</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/CNAME-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>NS record lookup showing nameserver configuration</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/NS-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>SOA record lookup showing zone authority information</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/SOA-lookup.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>About dialog showing application information and features</caption>
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/about.png</image>
     </screenshot>
   </screenshots>
   
@@ -58,7 +86,7 @@
   </recommends>
   
   <developer id="io.github.tobagin">
-    <name>Tobagin</name>
+    <name>Thiago Fernandes</name>
   </developer>
   
   <categories>
