@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.tobagin.digger</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Digger</name>
+  <summary>Modern DNS lookup tool with a graphical interface</summary>
+  
+  <description>
+    <p>
+      Digger is a modern DNS lookup tool that provides a user-friendly graphical interface for the dig command.
+      It simplifies DNS queries by presenting the results in a structured and easily understandable format.
+    </p>
+    <p>
+      Key features:
+    </p>
+    <ul>
+      <li>Support for all common DNS record types (A, AAAA, MX, TXT, NS, CNAME, SOA)</li>
+      <li>Custom DNS server specification</li>
+      <li>Structured results display with answer, authority, and additional sections</li>
+      <li>Responsive interface with background query processing</li>
+      <li>Modern GTK4 and LibAdwaita design following GNOME HIG</li>
+      <li>Built-in error handling for network issues and invalid domains</li>
+    </ul>
+    <p>
+      Perfect for network administrators, developers, and anyone who needs to troubleshoot DNS issues
+      or explore domain configurations.
+    </p>
+  </description>
+  
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main application window showing DNS query interface</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/screenshots/main-window.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>DNS query results with structured display</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/screenshots/results-view.png</image>
+    </screenshot>
+  </screenshots>
+  
+  <url type="homepage">https://github.com/tobagin/digger</url>
+  <url type="bugtracker">https://github.com/tobagin/digger/issues</url>
+  <url type="vcs-browser">https://github.com/tobagin/digger</url>
+  
+  <launchable type="desktop-id">io.github.tobagin.digger.desktop</launchable>
+  <provides>
+    <binary>digger</binary>
+  </provides>
+  
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+  
+  <developer id="io.github.tobagin">
+    <name>Tobagin</name>
+  </developer>
+  
+  <categories>
+    <category>Network</category>
+    <category>System</category>
+  </categories>
+  
+  <keywords>
+    <keyword>DNS</keyword>
+    <keyword>dig</keyword>
+    <keyword>lookup</keyword>
+    <keyword>network</keyword>
+    <keyword>domain</keyword>
+    <keyword>resolve</keyword>
+  </keywords>
+  
+  <content_rating type="oars-1.1" />
+  
+  <releases>
+    <release version="0.1.0" date="2025-07-07">
+      <description>
+        <p>Initial release of Digger DNS lookup tool.</p>
+        <ul>
+          <li>Support for A, AAAA, MX, TXT, NS, CNAME, and SOA record types</li>
+          <li>Custom DNS server specification</li>
+          <li>Modern GTK4/LibAdwaita interface</li>
+          <li>Structured results display</li>
+          <li>Background query processing</li>
+          <li>Comprehensive error handling</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  
+  <update_contact>tobagin@example.com</update_contact>
+</component>
