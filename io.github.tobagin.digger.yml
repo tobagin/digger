@@ -25,13 +25,24 @@ cleanup:
   - '*.a'
 
 modules:
+  # libuv dependency for BIND
+  - name: libuv
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
+        sha256: 8c253adb0f800926a6cbd1c6576abae0bc8eb86a4f891049b72f9e5b7dc58f33
+    config-opts:
+      - --disable-static
+      - --enable-shared
+
   # DNS tools including dig command
   - name: bind-utils
     buildsystem: autotools
     sources:
       - type: archive
         url: https://downloads.isc.org/isc/bind9/9.18.32/bind-9.18.32.tar.xz
-        sha256: 93cc8c2c6e08d9d3ee35b8d2ef1ad4b4b9e5be1b0aa2acccb30c7f10c5da91b5
+        sha256: dc840cdf9d54578d98400f2edf7008b1b33a1721be6e490eb1e42d0d11d9cff4
     config-opts:
       - --disable-static
       - --enable-shared

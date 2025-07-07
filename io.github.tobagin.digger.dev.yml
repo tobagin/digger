@@ -32,6 +32,17 @@ cleanup:
   - '*.a'
 
 modules:
+  # libuv dependency for BIND
+  - name: libuv
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
+        sha256: 8c253adb0f800926a6cbd1c6576abae0bc8eb86a4f891049b72f9e5b7dc58f33
+    config-opts:
+      - --disable-static
+      - --enable-shared
+
   # DNS tools including dig command
   - name: bind-utils
     buildsystem: autotools
