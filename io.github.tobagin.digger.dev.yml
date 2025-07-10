@@ -38,26 +38,24 @@ modules:
     sources:
       - type: archive
         url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
-        sha256: 8c253adb0f800926a6cbd1c6576abae0bc8eb86a4f891049b72f9e5b7dc58f33
+        sha256: 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
     config-opts:
       - --disable-static
       - --enable-shared
 
-  # DNS tools including dig command
-  - name: bind-utils
+  # BIND dig command using older version to avoid crypto issues  
+  - name: bind-dig
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.18.32/bind-9.18.32.tar.xz
-        sha256: 93cc8c2c6e08d9d3ee35b8d2ef1ad4b4b9e5be1b0aa2acccb30c7f10c5da91b5
+        url: https://downloads.isc.org/isc/bind9/9.16.48/bind-9.16.48.tar.xz
+        sha256: 8d3814582348f90dead1ad410b1019094cd399d3d83930abebb2b3b1eb0b2bbb
     config-opts:
       - --disable-static
       - --enable-shared
-      - --with-libtool
-      - --disable-backtrace
-      - --disable-symtable
-      - --disable-linux-caps
-      - --without-python
+      - --without-openssl
+      - --disable-dnssec-tools
+      - --disable-dnssec-validation
       - --without-gssapi
       - --without-readline
       - --without-libedit
@@ -69,12 +67,33 @@ modules:
       - --disable-dnsrps
       - --disable-dnstap
       - --disable-doh
+      - --disable-backtrace
+      - --disable-symtable
+      - --disable-linux-caps
+      - --without-python
+      - --prefix=/app
+    build-options:
+      env:
+        OPENSSL_CFLAGS: ""
+        OPENSSL_LIBS: ""
+        ac_cv_lib_crypto_EVP_sha256: "no"
+        ac_cv_lib_ssl_SSL_new: "no"
+    build-commands:
+      # Build only what we need for dig
+      - make -C lib/isc
+      - make -C lib/dns  
+      - make -C lib/bind9
+      - make -C bin/dig
+    install-commands:
+      # Install libraries and dig
+      - make -C lib/isc install
+      - make -C lib/dns install
+      - make -C lib/bind9 install
+      - make -C bin/dig install
     post-install:
-      # Only keep the dig tool and its dependencies
-      - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup
-      - rm -rf /app/bin/named* /app/bin/rndc* /app/bin/dnssec*
-      - rm -rf /app/sbin /app/share/man /app/include
-      - rm -rf /app/lib/*.la /app/lib/pkgconfig
+      # Clean up unnecessary files
+      - rm -rf /app/include /app/lib/pkgconfig /app/lib/*.la /app/share/man
+      - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup /app/bin/named* /app/bin/rndc* /app/bin/dnssec* /app/sbin || true
 
   - name: python3-packages
     buildsystem: simple

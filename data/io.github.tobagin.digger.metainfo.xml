@@ -106,6 +106,19 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="0.2.0" date="2025-07-10">
+      <description>
+        <p>Self-contained DNS lookup tool with bundled dig command.</p>
+        <ul>
+          <li>Self-contained dig command bundled within Flatpak (BIND 9.16.48)</li>
+          <li>Eliminated dependency on host system DNS tools</li>
+          <li>Fixed DNS connectivity issues in sandboxed environments</li>
+          <li>Improved reliability and portability</li>
+          <li>Better crypto compatibility in restricted environments</li>
+          <li>Enhanced Flatpak manifest with proper network permissions</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.0" date="2025-07-07">
       <description>
         <p>Initial release of Digger DNS lookup tool.</p>
