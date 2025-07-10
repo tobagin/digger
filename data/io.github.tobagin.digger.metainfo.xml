@@ -106,6 +106,17 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="0.2.1" date="2025-07-10">
+      <description>
+        <p>Bug fix release with corrected version information.</p>
+        <ul>
+          <li>Fixed about dialog to display correct version number</li>
+          <li>Updated Flatpak manifest with final build configuration</li>
+          <li>Corrected version consistency across all application components</li>
+          <li>Production-ready self-contained DNS lookup tool</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.2.0" date="2025-07-10">
       <description>
         <p>Self-contained DNS lookup tool with bundled dig command.</p>
