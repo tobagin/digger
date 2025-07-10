@@ -155,4 +155,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/Digger.git
         tag: v0.2.0
-        commit: 72ead219a543b308ad3e136f04a0b415cc97419a
+        commit: 24b57a959b9a333036047dd647a048e59cfed16c
