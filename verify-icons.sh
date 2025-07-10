@@ -34,7 +34,6 @@ declare -A EXPECTED_SIZES=(
     ["128x128"]="Extra large icons"
     ["256x256"]="High DPI medium"
     ["512x512"]="High DPI large"
-    ["scalable"]="Original/vector (1024x1024)"
 )
 
 MISSING_ICONS=0

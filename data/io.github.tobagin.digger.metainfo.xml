@@ -106,6 +106,16 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="0.2.2" date="2025-07-10">
+      <description>
+        <p>Minor release with scalable icon cleanup.</p>
+        <ul>
+          <li>Removed references to scalable icon directory (no longer needed)</li>
+          <li>Updated icon documentation and verification scripts</li>
+          <li>Version bump for consistency</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.2.1" date="2025-07-10">
       <description>
         <p>Bug fix release with corrected version information.</p>

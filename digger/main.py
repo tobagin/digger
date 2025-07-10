@@ -91,7 +91,7 @@ class DiggerApplication(Adw.Application):
             transient_for=win,
             application_name="Digger",
             application_icon="io.github.tobagin.digger",
-            version="0.2.1",
+            version="0.2.2",
             developer_name="Thiago Fernandes",
             copyright="© 2025 Thiago Fernandes",
             license_type=Gtk.License.GPL_3_0,

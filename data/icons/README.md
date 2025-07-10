@@ -15,7 +15,6 @@ data/icons/hicolor/
 ├── 128x128/apps/io.github.tobagin.digger.png    # Extra large icons
 ├── 256x256/apps/io.github.tobagin.digger.png    # High DPI medium
 ├── 512x512/apps/io.github.tobagin.digger.png    # High DPI large
-├── scalable/apps/io.github.tobagin.digger.png   # Original size (1024x1024)
 └── symbolic/apps/io.github.tobagin.digger-symbolic.png  # Monochrome variant
 ```
 
@@ -24,7 +23,6 @@ data/icons/hicolor/
 - **16x16 to 32x32**: Used in toolbars, small buttons, and compact interfaces
 - **48x48 to 128x128**: Used in application launchers, file managers, and standard UI elements
 - **256x256 to 512x512**: Used for high-DPI displays and larger interface elements
-- **scalable**: Used when maximum quality is needed or for very large displays
 - **symbolic**: Used in GNOME Shell, system themes, and monochrome contexts
 
 ## Technical Details
