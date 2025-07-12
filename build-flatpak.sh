@@ -111,11 +111,11 @@ print_success "Required runtimes are installed"
 
 # Determine manifest and app ID
 if [ "$BUILD_DEV" = true ]; then
-    MANIFEST="io.github.tobagin.digger.dev.yml"
+    MANIFEST="packaging/io.github.tobagin.digger.dev.yml"
     APP_ID="io.github.tobagin.digger.dev"
     print_info "Building development version"
 else
-    MANIFEST="io.github.tobagin.digger.yml"
+    MANIFEST="packaging/io.github.tobagin.digger.yml"
     APP_ID="io.github.tobagin.digger"
     print_info "Building production version"
 fi

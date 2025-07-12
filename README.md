@@ -163,8 +163,11 @@ Build and install locally for testing:
 # Install Flatpak SDK
 flatpak install org.gnome.Platform//48 org.gnome.Sdk//48
 
-# Build development version
-flatpak-builder build-dir io.github.tobagin.digger.dev.yml --force-clean --install --user
+# Option 1: Use the build script (recommended)
+./build-flatpak.sh --dev --install --run
+
+# Option 2: Manual build
+flatpak-builder build-dir packaging/io.github.tobagin.digger.dev.yml --force-clean --install --user
 
 # Run development version
 flatpak run io.github.tobagin.digger.dev
