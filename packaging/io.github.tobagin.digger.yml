@@ -8,6 +8,7 @@ finish-args:
   - --share=network
   # IPC for x11
   - --share=ipc
+  - --device=dri
   
   # Wayland and X11 display
   - --socket=wayland
@@ -151,4 +152,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/Digger.git
         tag: v1.0.0
-        commit: 22950800e7bbffcbdc9e2da6689c08814b487567
+        commit: 02a4f92d6c900aabc0731069f56da7615fb014b5
