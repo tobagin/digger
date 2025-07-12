@@ -42,8 +42,11 @@ htmlcov/
 *.swp
 *.swo
 
-# Flatpak
+# Flatpak and Meson builds
 build-dir/
+build-dev/
+builddir/
+test-build/
 .flatpak-builder/
 repo/
 *.flatpak
