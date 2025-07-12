@@ -1,10 +1,11 @@
-"""Main application window for Digger DNS lookup tool."""
+"""Main application window for Digger DNS lookup tool using Blueprint UI."""
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
+from pathlib import Path
 from typing import Optional
 
 from gi.repository import Adw, Gio, GLib, Gtk
@@ -12,13 +13,26 @@ from gi.repository import Adw, Gio, GLib, Gtk
 from ..backend.dig_executor import DigExecutor
 from ..backend.dig_parser import DigParser
 from ..backend.history import QueryHistory
-from .history_widget import HistoryPopover, HistoryWidget
-from .query_widget import QueryWidget
-from .results_widget import ResultsWidget
+from .history_widget_blueprint import HistoryPopover, HistoryWidget
+from .query_widget_blueprint import QueryWidget
+from .results_widget_blueprint import ResultsWidget
+from .settings_dialog import SettingsDialog
 
 
+@Gtk.Template(resource_path="/io/github/tobagin/digger/main_window.ui")
 class MainWindow(Adw.ApplicationWindow):
-    """Main application window for Digger."""
+    """Main application window for Digger using Blueprint UI."""
+
+    __gtype_name__ = "DiggerMainWindow"
+
+    # Template widgets
+    header_bar: Adw.HeaderBar = Gtk.Template.Child()
+    history_button: Gtk.MenuButton = Gtk.Template.Child()
+    menu_button: Gtk.MenuButton = Gtk.Template.Child()
+    main_box: Gtk.Box = Gtk.Template.Child()
+    query_widget: QueryWidget = Gtk.Template.Child()
+    results_widget: ResultsWidget = Gtk.Template.Child()
+    shortcut_controller: Gtk.ShortcutController = Gtk.Template.Child()
 
     def __init__(self, app: Adw.Application):
         """Initialize the main window.
@@ -28,11 +42,6 @@ class MainWindow(Adw.ApplicationWindow):
         """
         super().__init__(application=app)
 
-        # Window properties
-        self.set_default_size(800, 600)
-        self.set_title("Digger - DNS Lookup Tool")
-        self.set_icon_name("io.github.tobagin.digger")
-
         # Initialize backend components
         self.executor = DigExecutor()
         self.parser = DigParser()
@@ -41,105 +50,20 @@ class MainWindow(Adw.ApplicationWindow):
         # Track current query state
         self._current_query = None
 
-        # Build the UI
-        self._build_ui()
-
-        # Setup keyboard shortcuts
-        self._setup_shortcuts()
+        # Setup history popover
+        self.history_popover = HistoryPopover(self.history)
+        self.history_popover.connect("query-selected", self._on_history_query_selected)
+        self.history_popover.connect("view-all-requested", self._on_view_all_requested)
+        self.history_button.set_popover(self.history_popover)
 
         # Setup actions
         self._setup_actions()
 
-        # Check dig availability after UI is built
-        GLib.idle_add(self._check_dig_availability)
-
-    def _build_ui(self):
-        """Build the main user interface."""
-        # Create header bar
-        header = Adw.HeaderBar()
-        header.set_title_widget(Gtk.Label(label="Digger"))
-
-        # Add history button
-        history_button = Gtk.MenuButton()
-        history_button.set_icon_name("document-open-recent-symbolic")
-        history_button.set_tooltip_text("Query History")
-
-        # Create history popover
-        self.history_popover = HistoryPopover(self.history)
-        self.history_popover.connect("query-selected", self._on_history_query_selected)
-        history_button.set_popover(self.history_popover)
-
-        header.pack_end(history_button)
-
-        # Add menu button
-        menu_button = Gtk.MenuButton()
-        menu_button.set_icon_name("open-menu-symbolic")
-        menu_button.set_direction(Gtk.ArrowType.DOWN)
-
-        # Create menu
-        menu_model = Gio.Menu()
-        menu_model.append("View History", "win.view-history")
-        menu_model.append("About Digger", "app.about")
-        menu_model.append("Quit", "app.quit")
-        menu_button.set_menu_model(menu_model)
-
-        header.pack_end(menu_button)
-
-        # Create main content area
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-
-        # Create query widget
-        self.query_widget = QueryWidget()
+        # Connect query widget signal
         self.query_widget.connect("query-submitted", self._on_query_submitted)
 
-        # Create separator
-        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        separator.add_css_class("spacer")
-
-        # Create results widget
-        self.results_widget = ResultsWidget()
-
-        # Add widgets to main box
-        main_box.append(self.query_widget)
-        main_box.append(separator)
-        main_box.append(self.results_widget)
-
-        # Create toolbar view
-        toolbar_view = Adw.ToolbarView()
-        toolbar_view.add_top_bar(header)
-        toolbar_view.set_content(main_box)
-
-        # Set as window content
-        self.set_content(toolbar_view)
-
-    def _setup_shortcuts(self):
-        """Setup keyboard shortcuts."""
-        # Create shortcut controller
-        shortcut_controller = Gtk.ShortcutController()
-
-        # Ctrl+L - Focus domain entry
-        focus_shortcut = Gtk.Shortcut.new(
-            Gtk.ShortcutTrigger.parse_string("<Control>l"),
-            Gtk.CallbackAction.new(self._on_focus_domain_shortcut),
-        )
-        shortcut_controller.add_shortcut(focus_shortcut)
-
-        # Ctrl+R - Repeat last query
-        repeat_shortcut = Gtk.Shortcut.new(
-            Gtk.ShortcutTrigger.parse_string("<Control>r"),
-            Gtk.CallbackAction.new(self._on_repeat_query_shortcut),
-        )
-        shortcut_controller.add_shortcut(repeat_shortcut)
-
-        # Escape - Clear results
-        clear_shortcut = Gtk.Shortcut.new(
-            Gtk.ShortcutTrigger.parse_string("Escape"),
-            Gtk.CallbackAction.new(self._on_clear_results_shortcut),
-        )
-        shortcut_controller.add_shortcut(clear_shortcut)
-
-        # Add controller to window
-        self.add_controller(shortcut_controller)
+        # Check dig availability after UI is built
+        GLib.idle_add(self._check_dig_availability)
 
     def _setup_actions(self):
         """Setup window actions."""
@@ -148,37 +72,54 @@ class MainWindow(Adw.ApplicationWindow):
         view_history_action.connect("activate", self._on_view_history_action)
         self.add_action(view_history_action)
 
-    def _on_focus_domain_shortcut(self, widget, args):
-        """Handle focus domain shortcut (Ctrl+L).
+        # Focus domain action
+        focus_domain_action = Gio.SimpleAction(name="focus-domain")
+        focus_domain_action.connect("activate", self._on_focus_domain_action)
+        self.add_action(focus_domain_action)
+
+        # Repeat query action
+        repeat_query_action = Gio.SimpleAction(name="repeat-query")
+        repeat_query_action.connect("activate", self._on_repeat_query_action)
+        self.add_action(repeat_query_action)
+
+        # Clear results action
+        clear_results_action = Gio.SimpleAction(name="clear-results")
+        clear_results_action.connect("activate", self._on_clear_results_action)
+        self.add_action(clear_results_action)
+
+        # Settings action
+        settings_action = Gio.SimpleAction(name="settings")
+        settings_action.connect("activate", self._on_settings_action)
+        self.add_action(settings_action)
+
+    def _on_focus_domain_action(self, action: Gio.SimpleAction, parameter):
+        """Handle focus domain action (Ctrl+L).
 
         Args:
-            widget: The widget that triggered the shortcut.
-            args: Additional arguments.
+            action (Gio.SimpleAction): The action that was activated.
+            parameter: Action parameter (unused).
         """
         self.query_widget.focus_domain_entry()
-        return True
 
-    def _on_repeat_query_shortcut(self, widget, args):
-        """Handle repeat query shortcut (Ctrl+R).
+    def _on_repeat_query_action(self, action: Gio.SimpleAction, parameter):
+        """Handle repeat query action (Ctrl+R).
 
         Args:
-            widget: The widget that triggered the shortcut.
-            args: Additional arguments.
+            action (Gio.SimpleAction): The action that was activated.
+            parameter: Action parameter (unused).
         """
         if self._current_query:
             domain, record_type, nameserver = self._current_query
             self._execute_query(domain, record_type, nameserver)
-        return True
 
-    def _on_clear_results_shortcut(self, widget, args):
-        """Handle clear results shortcut (Escape).
+    def _on_clear_results_action(self, action: Gio.SimpleAction, parameter):
+        """Handle clear results action (Escape).
 
         Args:
-            widget: The widget that triggered the shortcut.
-            args: Additional arguments.
+            action (Gio.SimpleAction): The action that was activated.
+            parameter: Action parameter (unused).
         """
         self.results_widget._show_empty_state()
-        return True
 
     def _check_dig_availability(self):
         """Check if dig command is available and show warning if not."""
@@ -202,6 +143,20 @@ class MainWindow(Adw.ApplicationWindow):
         dialog.set_default_response("ok")
         dialog.set_close_response("ok")
         dialog.present()
+
+    @Gtk.Template.Callback()
+    def on_query_submitted(
+        self, widget: QueryWidget, domain: str, record_type: str, nameserver: str
+    ):
+        """Handle query submission from query widget.
+
+        Args:
+            widget (QueryWidget): The query widget that emitted the signal.
+            domain (str): Domain name to query.
+            record_type (str): DNS record type.
+            nameserver (str): DNS server to use (empty string if not specified).
+        """
+        self._on_query_submitted(widget, domain, record_type, nameserver)
 
     def _on_query_submitted(
         self, widget: QueryWidget, domain: str, record_type: str, nameserver: str
@@ -245,12 +200,18 @@ class MainWindow(Adw.ApplicationWindow):
         self.results_widget.show_loading()
         self.query_widget.set_loading_state(True)
 
+        # Get advanced options from query widget
+        advanced_options = self.query_widget.get_advanced_options()
+
         # Execute dig command in background
         self.executor.execute_dig(
             domain=domain,
             record_type=record_type,
             nameserver=nameserver,
             callback=self._on_dig_complete,
+            reverse_lookup=advanced_options.get("reverse_lookup", False),
+            trace=advanced_options.get("trace", False),
+            short=advanced_options.get("short", False),
         )
 
     def _on_dig_complete(self, output: str, error: Optional[Exception]):
@@ -357,7 +318,8 @@ class MainWindow(Adw.ApplicationWindow):
         """
         history_window = HistoryWidget(self, self.history)
         history_window.connect("query-selected", self._on_history_query_selected)
-        history_window.present()
+        history_window.connect("history-modified", self._on_history_modified)
+        history_window.present(self)
 
     def _on_history_query_selected(
         self, widget, domain: str, record_type: str, nameserver: str
@@ -377,6 +339,33 @@ class MainWindow(Adw.ApplicationWindow):
         nameserver_param = nameserver if nameserver else None
         self._current_query = (domain, record_type, nameserver_param)
         self._execute_query(domain, record_type, nameserver_param)
+
+    def _on_view_all_requested(self, popover):
+        """Handle view all history request from popover.
+
+        Args:
+            popover: The popover that emitted the signal.
+        """
+        self._on_view_history_action(None, None)
+
+    def _on_history_modified(self, widget):
+        """Handle history modification signal.
+
+        Args:
+            widget: The widget that emitted the signal.
+        """
+        # Refresh the history popover
+        self.history_popover.refresh()
+
+    def _on_settings_action(self, action: Gio.SimpleAction, parameter):
+        """Handle settings action.
+
+        Args:
+            action (Gio.SimpleAction): The action that was activated.
+            parameter: Action parameter (unused).
+        """
+        settings_dialog = SettingsDialog(self, self.history)
+        settings_dialog.present(self)
 
     def do_close_request(self):
         """Handle window close request."""

@@ -15,7 +15,7 @@ from gi.repository import Adw, Gio, Gtk
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from digger.ui.main_window import MainWindow
+from digger.ui.main_window_blueprint import MainWindow
 
 
 class DiggerApplication(Adw.Application):
@@ -50,6 +50,48 @@ class DiggerApplication(Adw.Application):
         # Set keyboard shortcuts
         self.set_accels_for_action("app.quit", ["<Control>q"])
 
+    def _load_resources(self):
+        """Load GResource files for development builds."""
+        # Check if resources are already loaded (e.g., by the launcher script)
+        try:
+            # Try to access a known resource to see if it's already loaded
+            from gi.repository import Gio
+            Gio.resources_get_info("/io/github/tobagin/digger/main_window.ui", Gio.ResourceLookupFlags.NONE)
+            print("GResource already loaded by launcher script")
+            return
+        except:
+            pass  # Resources not loaded, continue with manual loading
+        
+        try:
+            # Try multiple possible locations for the GResource file
+            possible_paths = [
+                # Development build (manual compilation)
+                Path(__file__).parent / "ui" / "digger.gresource",
+                # Meson build (installed location)
+                Path(__file__).parent / "digger-resources.gresource",
+                # System installed location
+                Path("/app/share/io.github.tobagin.digger/digger-resources.gresource"),
+            ]
+            
+            resource_loaded = False
+            for resource_path in possible_paths:
+                if resource_path.exists():
+                    resource = Gio.Resource.load(str(resource_path))
+                    resource._register()
+                    print(f"Loaded GResource: {resource_path}")
+                    resource_loaded = True
+                    break
+            
+            if not resource_loaded:
+                print("Warning: GResource file not found in any expected location")
+                print("Tried paths:")
+                for path in possible_paths:
+                    print(f"  - {path}")
+                print("UI may not load correctly.")
+        except Exception as e:
+            print(f"Error loading GResource: {e}")
+            print("UI may not load correctly.")
+
     def _on_startup(self, app):
         """Handle application startup.
 
@@ -58,6 +100,9 @@ class DiggerApplication(Adw.Application):
         """
         # Initialize LibAdwaita
         Adw.init()
+
+        # Load GResource
+        self._load_resources()
 
         # Set application icon
         Gtk.Window.set_default_icon_name("io.github.tobagin.digger")
@@ -91,7 +136,7 @@ class DiggerApplication(Adw.Application):
             transient_for=win,
             application_name="Digger",
             application_icon="io.github.tobagin.digger",
-            version="0.2.2",
+            version="1.0.0",
             developer_name="Thiago Fernandes",
             copyright="© 2025 Thiago Fernandes",
             license_type=Gtk.License.GPL_3_0,
@@ -109,7 +154,11 @@ class DiggerApplication(Adw.Application):
                     "for a native desktop experience.\n\n"
                     "Features:\n"
                     "• Support for all major DNS record types\n"
+                    "• Query history with search and management\n"
+                    "• Advanced dig options (reverse DNS, trace, short output)\n"
                     "• Custom nameserver configuration\n"
+                    "• Copy-to-clipboard for DNS records\n"
+                    "• Modern Blueprint-based UI architecture\n"
                     "• Responsive GTK4/LibAdwaita interface\n"
                     "• Comprehensive error handling\n"
                     "• Keyboard shortcuts for power users",

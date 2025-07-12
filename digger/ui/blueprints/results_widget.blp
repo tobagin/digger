@@ -1,0 +1,20 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerResultsWidget : Gtk.ScrolledWindow {
+  hscrollbar-policy: never;
+  vscrollbar-policy: automatic;
+  vexpand: true;
+  hexpand: true;
+
+  Gtk.Box main_box {
+    orientation: vertical;
+    spacing: 12;
+    margin-top: 12;
+    margin-bottom: 12;
+    margin-start: 12;
+    margin-end: 12;
+
+    // Content will be added dynamically
+  }
+}

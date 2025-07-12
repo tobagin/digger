@@ -1,10 +1,11 @@
-"""Widget for displaying DNS query results."""
+"""Widget for displaying DNS query results using Blueprint UI."""
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,24 +16,18 @@ from gi.repository import Adw, GObject, Gtk, Pango
 from ..backend.models import DigResponse, DNSRecord, MXRecord
 
 
+@Gtk.Template(resource_path="/io/github/tobagin/digger/results_widget.ui")
 class ResultsWidget(Gtk.ScrolledWindow):
-    """Widget for displaying DNS query results in a structured format."""
+    """Widget for displaying DNS query results in a structured format using Blueprint UI."""
+
+    __gtype_name__ = "DiggerResultsWidget"
+
+    # Template widgets
+    main_box: Gtk.Box = Gtk.Template.Child()
 
     def __init__(self):
         """Initialize the results widget."""
         super().__init__()
-        self.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.set_vexpand(True)
-        self.set_hexpand(True)
-
-        # Create main container
-        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        self.main_box.set_margin_top(12)
-        self.main_box.set_margin_bottom(12)
-        self.main_box.set_margin_start(12)
-        self.main_box.set_margin_end(12)
-
-        self.set_child(self.main_box)
 
         # Initialize with empty state
         self._show_empty_state()
@@ -222,10 +217,12 @@ class ResultsWidget(Gtk.ScrolledWindow):
 
         # Add status icon
         if response.status == "NOERROR":
-            status_icon = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
+            status_icon = Gtk.Image.new_from_icon_name("io.github.tobagin.digger-success-symbolic")
+            status_icon.set_icon_size(Gtk.IconSize.NORMAL)
             status_icon.add_css_class("success")
         else:
-            status_icon = Gtk.Image.new_from_icon_name("dialog-warning-symbolic")
+            status_icon = Gtk.Image.new_from_icon_name("io.github.tobagin.digger-error-symbolic")
+            status_icon.set_icon_size(Gtk.IconSize.NORMAL)
             status_icon.add_css_class("warning")
 
         status_row.add_suffix(status_icon)

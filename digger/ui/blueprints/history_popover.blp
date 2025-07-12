@@ -1,0 +1,37 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerHistoryPopover : Gtk.Popover {
+  position: bottom;
+
+  Gtk.Box main_box {
+    orientation: vertical;
+    spacing: 6;
+    margin-top: 6;
+    margin-bottom: 6;
+    margin-start: 6;
+    margin-end: 6;
+    width-request: 400;
+
+    Gtk.Label title {
+      label: _("Recent Queries");
+      styles ["heading"]
+      halign: start;
+    }
+
+    Gtk.Separator {
+      orientation: horizontal;
+    }
+
+    Gtk.ListBox history_list {
+      styles ["boxed-list"]
+      selection-mode: none;
+    }
+
+    Gtk.Button view_all_button {
+      label: _("View All History...");
+      styles ["flat"]
+      clicked => $on_view_all();
+    }
+  }
+}

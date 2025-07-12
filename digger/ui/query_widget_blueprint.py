@@ -1,10 +1,11 @@
-"""Widget for DNS query input controls."""
+"""Widget for DNS query input controls using Blueprint UI."""
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
+from pathlib import Path
 from typing import Optional
 
 from gi.repository import Adw, GObject, Gtk
@@ -12,95 +13,45 @@ from gi.repository import Adw, GObject, Gtk
 from ..backend.models import RecordType
 
 
+@Gtk.Template(resource_path="/io/github/tobagin/digger/query_widget.ui")
 class QueryWidget(Gtk.Box):
-    """Widget for DNS query input and submission."""
+    """Widget for DNS query input and submission using Blueprint UI."""
+
+    __gtype_name__ = "DiggerQueryWidget"
 
     __gsignals__ = {
         "query-submitted": (GObject.SignalFlags.RUN_FIRST, None, (str, str, str))
     }
 
+    # Template widgets
+    query_group: Adw.PreferencesGroup = Gtk.Template.Child()
+    domain_entry: Adw.EntryRow = Gtk.Template.Child()
+    type_combo: Adw.ComboRow = Gtk.Template.Child()
+    type_model: Gtk.StringList = Gtk.Template.Child()
+    server_entry: Adw.EntryRow = Gtk.Template.Child()
+    advanced_options: Adw.ExpanderRow = Gtk.Template.Child()
+    reverse_switch: Gtk.Switch = Gtk.Template.Child()
+    trace_switch: Gtk.Switch = Gtk.Template.Child()
+    short_switch: Gtk.Switch = Gtk.Template.Child()
+    button_box: Gtk.Box = Gtk.Template.Child()
+    lookup_button: Gtk.Button = Gtk.Template.Child()
+    clear_button: Gtk.Button = Gtk.Template.Child()
+
     def __init__(self):
         """Initialize the query widget."""
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        self.set_margin_top(12)
-        self.set_margin_bottom(12)
-        self.set_margin_start(12)
-        self.set_margin_end(12)
+        super().__init__()
 
-        self._build_ui()
-
-    def _build_ui(self):
-        """Build the query input user interface."""
-        # Create a preferences group for better organization
-        group = Adw.PreferencesGroup()
-        group.set_title("DNS Query")
-        group.set_description("Enter the details for your DNS lookup")
-
-        # Domain input row
-        self.domain_entry = Adw.EntryRow()
-        self.domain_entry.set_title("Domain Name")
-        self.domain_entry.set_text("example.com")
-        self.domain_entry.set_use_underline(True)
-        self.domain_entry.connect("activate", self._on_entry_activate)
-
-        # Add input validation styling
-        self.domain_entry.connect("changed", self._on_domain_changed)
-        group.add(self.domain_entry)
-
-        # Record type selection
-        self.type_combo = Adw.ComboRow()
-        self.type_combo.set_title("Record Type")
-        self.type_combo.set_subtitle("DNS record type to query")
-
-        # Create string list model for combo box
-        self.type_model = Gtk.StringList()
+        # Populate record type model
         for record_type in RecordType:
             self.type_model.append(record_type.value)
 
-        self.type_combo.set_model(self.type_model)
         self.type_combo.set_selected(0)  # Default to A record
-        group.add(self.type_combo)
-
-        # DNS server input (optional)
-        self.server_entry = Adw.EntryRow()
-        self.server_entry.set_title("DNS Server (Optional)")
-        self.server_entry.set_text("")
-        self.server_entry.set_use_underline(True)
-        self.server_entry.connect("activate", self._on_entry_activate)
-
-        # Add example in the placeholder
-        self.server_entry.set_input_hints(Gtk.InputHints.NO_SPELLCHECK)
-        group.add(self.server_entry)
-
-        self.append(group)
-
-        # Action buttons
-        self._build_action_buttons()
 
         # Set initial focus to domain entry
         self.domain_entry.grab_focus()
 
-    def _build_action_buttons(self):
-        """Build the action buttons area."""
-        # Button container
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        button_box.set_halign(Gtk.Align.CENTER)
-        button_box.set_margin_top(6)
-
-        # Lookup button (primary action)
-        self.lookup_button = Gtk.Button(label="Lookup")
-        self.lookup_button.add_css_class("suggested-action")
-        self.lookup_button.connect("clicked", self._on_lookup_clicked)
-        button_box.append(self.lookup_button)
-
-        # Clear button
-        self.clear_button = Gtk.Button(label="Clear")
-        self.clear_button.connect("clicked", self._on_clear_clicked)
-        button_box.append(self.clear_button)
-
-        self.append(button_box)
-
-    def _on_entry_activate(self, widget):
+    @Gtk.Template.Callback()
+    def on_entry_activate(self, widget):
         """Handle Enter key press in entry fields.
 
         Args:
@@ -108,23 +59,8 @@ class QueryWidget(Gtk.Box):
         """
         self._submit_query()
 
-    def _on_lookup_clicked(self, button):
-        """Handle lookup button click.
-
-        Args:
-            button: The button widget that was clicked.
-        """
-        self._submit_query()
-
-    def _on_clear_clicked(self, button):
-        """Handle clear button click.
-
-        Args:
-            button: The button widget that was clicked.
-        """
-        self.clear_inputs()
-
-    def _on_domain_changed(self, entry):
+    @Gtk.Template.Callback()
+    def on_domain_changed(self, entry):
         """Handle domain entry text changes for validation.
 
         Args:
@@ -141,6 +77,24 @@ class QueryWidget(Gtk.Box):
             entry.add_css_class("error")
         else:
             entry.remove_css_class("error")
+
+    @Gtk.Template.Callback()
+    def on_lookup_clicked(self, button):
+        """Handle lookup button click.
+
+        Args:
+            button: The button widget that was clicked.
+        """
+        self._submit_query()
+
+    @Gtk.Template.Callback()
+    def on_clear_clicked(self, button):
+        """Handle clear button click.
+
+        Args:
+            button: The button widget that was clicked.
+        """
+        self.clear_inputs()
 
     def _is_valid_domain_format(self, domain: str) -> bool:
         """Basic domain format validation.
@@ -218,6 +172,18 @@ class QueryWidget(Gtk.Box):
         server = self.server_entry.get_text().strip()
         return server if server else None
 
+    def get_advanced_options(self) -> dict:
+        """Get the advanced options state.
+
+        Returns:
+            dict: Dictionary with advanced options state.
+        """
+        return {
+            "reverse_lookup": self.reverse_switch.get_active(),
+            "trace": self.trace_switch.get_active(),
+            "short": self.short_switch.get_active(),
+        }
+
     def set_domain(self, domain: str):
         """Set the domain name in the entry.
 
@@ -249,11 +215,36 @@ class QueryWidget(Gtk.Box):
         """
         self.server_entry.set_text(nameserver or "")
 
+    def set_advanced_options(self, options: dict):
+        """Set the advanced options state.
+
+        Args:
+            options (dict): Dictionary with advanced options state.
+        """
+        self.reverse_switch.set_active(options.get("reverse_lookup", False))
+        self.trace_switch.set_active(options.get("trace", False))
+        self.short_switch.set_active(options.get("short", False))
+
+    def set_query_params(self, domain: str, record_type: str, nameserver: str):
+        """Set all query parameters at once.
+
+        Args:
+            domain (str): Domain name to set.
+            record_type (str): Record type to select.
+            nameserver (str): Nameserver address to set.
+        """
+        self.set_domain(domain)
+        self.set_record_type(record_type)
+        self.set_nameserver(nameserver if nameserver else None)
+
     def clear_inputs(self):
         """Clear all input fields."""
         self.domain_entry.set_text("")
         self.server_entry.set_text("")
         self.type_combo.set_selected(0)  # Reset to A record
+        self.reverse_switch.set_active(False)
+        self.trace_switch.set_active(False)
+        self.short_switch.set_active(False)
         self.domain_entry.grab_focus()
 
     def set_loading_state(self, loading: bool):
@@ -271,18 +262,6 @@ class QueryWidget(Gtk.Box):
             self.lookup_button.set_label("Looking up...")
         else:
             self.lookup_button.set_label("Lookup")
-
-    def set_query_params(self, domain: str, record_type: str, nameserver: str):
-        """Set all query parameters at once.
-
-        Args:
-            domain (str): Domain name to set.
-            record_type (str): Record type to select.
-            nameserver (str): Nameserver address to set.
-        """
-        self.set_domain(domain)
-        self.set_record_type(record_type)
-        self.set_nameserver(nameserver if nameserver else None)
 
     def focus_domain_entry(self):
         """Focus the domain entry field."""

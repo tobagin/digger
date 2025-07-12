@@ -1,0 +1,46 @@
+#!/usr/bin/env @PYTHON@
+
+import os
+import sys
+import signal
+
+# Make sure we'll find the installed modules
+sys.path.insert(1, '@PKGDATADIR@')
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+exit_code = 0
+
+if __name__ == '__main__':
+    import gi
+    
+    gi.require_version('Gtk', '4.0')
+    gi.require_version('Adw', '1')
+    
+    from gi.repository import Gio
+    
+    # Register resources BEFORE importing any UI modules  
+    resource_path = os.path.join('@PKGDATADIR@', 'digger-resources.gresource')
+    if not os.path.isabs(resource_path):
+        resource_path = os.path.join('/app', resource_path)
+    print(f"Attempting to load GResource from: {resource_path}")
+    
+    try:
+        if os.path.exists(resource_path):
+            resource = Gio.Resource.load(resource_path)
+            resource._register()
+            print(f"Successfully loaded GResource from: {resource_path}")
+        else:
+            print(f"GResource file not found at: {resource_path}")
+            print("UI may not display correctly.")
+    except Exception as e:
+        print(f"Error loading GResource from {resource_path}: {e}")
+        print("UI may not display correctly.")
+    
+    from digger.main import main
+    
+    try:
+        exit_code = main()
+    except KeyboardInterrupt:
+        exit_code = 1
+    
+    sys.exit(exit_code)

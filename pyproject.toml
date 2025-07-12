@@ -1,6 +1,6 @@
 [project]
 name = "digger"
-version = "0.2.2"
+version = "1.0.0"
 description = "GTK4 DNS lookup tool"
 authors = [
     {name = "Tobagin", email = "tobagin@example.com"},
@@ -8,7 +8,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: X11 Applications :: GTK",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

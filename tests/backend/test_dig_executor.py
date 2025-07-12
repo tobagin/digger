@@ -33,17 +33,17 @@ class TestDigExecutor:
         assert result is True
         assert executor._dig_available is True
 
-        # Should call 'which dig' command
+        # Should call 'dig -v' command
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
-        assert "which" in args
         assert "dig" in args
+        assert "-v" in args
 
     @patch("subprocess.run")
     def test_check_dig_available_failure(self, mock_run):
         """Test dig availability check when dig is not available."""
         # Mock failed subprocess call
-        mock_run.side_effect = subprocess.CalledProcessError(1, "which")
+        mock_run.side_effect = FileNotFoundError("dig not found")
 
         executor = DigExecutor()
         result = executor.check_dig_available()
@@ -55,7 +55,7 @@ class TestDigExecutor:
     def test_check_dig_available_timeout(self, mock_run):
         """Test dig availability check with timeout."""
         # Mock timeout
-        mock_run.side_effect = subprocess.TimeoutExpired("which", 5)
+        mock_run.side_effect = subprocess.TimeoutExpired("dig", 5)
 
         executor = DigExecutor()
         result = executor.check_dig_available()
@@ -77,13 +77,11 @@ class TestDigExecutor:
         assert result is True
         assert executor.is_flatpak is True
 
-        # Should call flatpak-spawn command
+        # Should call 'dig -v' command (dig is bundled in Flatpak)
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
-        assert "flatpak-spawn" in args
-        assert "--host" in args
-        assert "which" in args
         assert "dig" in args
+        assert "-v" in args
 
     def test_execute_dig_without_callback(self):
         """Test that execute_dig requires callback."""
@@ -212,9 +210,8 @@ class TestDigExecutor:
         executor = DigExecutor()
         cmd = executor._build_command("example.com", "A", None)
 
+        # dig is bundled in Flatpak, so no flatpak-spawn needed
         expected = [
-            "flatpak-spawn",
-            "--host",
             "dig",
             "example.com",
             "A",
@@ -351,7 +348,7 @@ class TestDigExecutor:
         callback = Mock()
 
         # Execute in thread
-        executor._execute_in_thread("example.com", "A", None, callback)
+        executor._execute_in_thread("example.com", "A", None, callback, False, False, False)
 
         # Should call callback with success
         callback.assert_called_once()
@@ -370,7 +367,7 @@ class TestDigExecutor:
         callback = Mock()
 
         # Execute in thread
-        executor._execute_in_thread("example.com", "A", None, callback)
+        executor._execute_in_thread("example.com", "A", None, callback, False, False, False)
 
         # Should call callback with error
         callback.assert_called_once()
@@ -387,7 +384,7 @@ class TestDigExecutor:
         callback = Mock()
 
         # Execute in thread
-        executor._execute_in_thread("example.com", "A", None, callback)
+        executor._execute_in_thread("example.com", "A", None, callback, False, False, False)
 
         # Should call callback with error
         callback.assert_called_once()
@@ -414,10 +411,107 @@ class TestDigExecutor:
         callback = Mock()
 
         # Execute in thread
-        executor._execute_in_thread("example.com", "A", None, callback)
+        executor._execute_in_thread("example.com", "A", None, callback, False, False, False)
 
         # Should call callback with success (stdout is not empty)
         callback.assert_called_once()
         args = callback.call_args[0]
         assert args[0] == "dig output with warnings"
         assert args[1] is None
+
+    def test_build_command_reverse_lookup(self):
+        """Test building dig command for reverse lookup."""
+        executor = DigExecutor()
+        domain = "8.8.8.8"
+        record_type = "PTR"
+        
+        cmd = executor._build_command(
+            domain, record_type, None, reverse_lookup=True
+        )
+        
+        assert "dig" in cmd
+        assert "-x" in cmd
+        assert domain in cmd
+        # Should not contain record type for reverse lookup
+        assert record_type not in cmd
+
+    def test_build_command_trace(self):
+        """Test building dig command with trace option."""
+        executor = DigExecutor()
+        domain = "example.com"
+        record_type = "A"
+        
+        cmd = executor._build_command(
+            domain, record_type, None, trace=True
+        )
+        
+        assert "dig" in cmd
+        assert "+trace" in cmd
+        assert domain in cmd
+        assert record_type in cmd
+
+    def test_build_command_short(self):
+        """Test building dig command with short output."""
+        executor = DigExecutor()
+        domain = "example.com"
+        record_type = "A"
+        
+        cmd = executor._build_command(
+            domain, record_type, None, short=True
+        )
+        
+        assert "dig" in cmd
+        assert "+short" in cmd
+        assert domain in cmd
+        assert record_type in cmd
+        # Should not contain verbose options when using short
+        assert "+noall" not in cmd
+        assert "+answer" not in cmd
+
+    def test_build_command_combined_options(self):
+        """Test building dig command with multiple advanced options."""
+        executor = DigExecutor()
+        domain = "8.8.8.8"
+        record_type = "PTR"
+        nameserver = "1.1.1.1"
+        
+        cmd = executor._build_command(
+            domain, record_type, nameserver, 
+            reverse_lookup=True, trace=True, short=True
+        )
+        
+        assert "dig" in cmd
+        assert f"@{nameserver}" in cmd
+        assert "-x" in cmd
+        assert "+trace" in cmd
+        assert "+short" in cmd
+        assert domain in cmd
+
+    @patch("subprocess.run")
+    def test_execute_dig_sync_with_advanced_options(self, mock_run):
+        """Test synchronous execution with advanced options."""
+        # Mock successful dig execution
+        mock_result = Mock()
+        mock_result.returncode = 0
+        mock_result.stdout = "8.8.8.8.in-addr.arpa. 3600 IN PTR dns.google."
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
+
+        executor = DigExecutor()
+        executor._dig_available = True  # Mock dig as available
+
+        output, error = executor.execute_dig_sync(
+            "8.8.8.8", "PTR", None, 30, 
+            reverse_lookup=True, trace=False, short=True
+        )
+
+        assert error is None
+        assert "dns.google" in output
+        
+        # Verify the command was built correctly
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]  # First positional argument (the command)
+        assert "dig" in call_args
+        assert "-x" in call_args
+        assert "+short" in call_args
+        assert "8.8.8.8" in call_args

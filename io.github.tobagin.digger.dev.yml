@@ -32,6 +32,17 @@ cleanup:
   - '*.a'
 
 modules:
+  - name: blueprint-compiler
+    buildsystem: meson
+    cleanup: "*"
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/jwestman/blueprint-compiler.git
+        tag: v0.18.0
+        commit: 07c9c9df9cd1b6b4454ecba21ee58211e9144a4b
+    cleanup:
+      - '*'
+
   # libuv dependency for BIND
   - name: libuv
     buildsystem: autotools
@@ -84,16 +95,17 @@ modules:
       - make -C lib/dns  
       - make -C lib/bind9
       - make -C bin/dig
-    install-commands:
-      # Install libraries and dig
-      - make -C lib/isc install
-      - make -C lib/dns install
-      - make -C lib/bind9 install
-      - make -C bin/dig install
-    post-install:
-      # Clean up unnecessary files
-      - rm -rf /app/include /app/lib/pkgconfig /app/lib/*.la /app/share/man
-      - rm -rf /app/bin/delv /app/bin/host /app/bin/nslookup /app/bin/named* /app/bin/rndc* /app/bin/dnssec* /app/sbin || true
+    cleanup:
+      - '*.la'
+      - '/share/man'
+      - '/lib/pkgconfig'
+      - '/bin/delv'
+      - '/bin/host'
+      - '/bin/nslookup'
+      - '/bin/named*'
+      - '/bin/rndc*'
+      - '/bin/dnssec'
+      - '/sbin'
 
   - name: python3-packages
     buildsystem: simple
@@ -140,22 +152,7 @@ modules:
         sha256: e381c05537adac78881c8fa345fd0e9970159f4e4a04fcc42cfd3129cca640ce
     
   - name: digger-dev
-    buildsystem: simple
-    build-commands:
-      # Install the application in development mode
-      - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}"
-        --prefix=${FLATPAK_DEST} . --no-build-isolation
-      
-      # Install desktop file
-      - install -Dm644 data/io.github.tobagin.digger.desktop /app/share/applications/io.github.tobagin.digger.desktop
-      
-      # Install icons
-      - mkdir -p /app/share/icons/hicolor
-      - cp -r data/icons/hicolor/* /app/share/icons/hicolor/
-      
-      # Install metainfo
-      - install -Dm644 data/io.github.tobagin.digger.metainfo.xml /app/share/metainfo/io.github.tobagin.digger.metainfo.xml
-      
+    buildsystem: meson
     sources:
       - type: dir
         path: .
@@ -166,5 +163,6 @@ modules:
           - '*.pyc'
           - venv_linux
           - build
+          - builddir
           - dist
           - '*.egg-info'

@@ -1,0 +1,63 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerHistoryWidget : Adw.Dialog {
+  content-width: 600;
+  content-height: 500;
+  title: _("Query History");
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar top_header {
+      title-widget: Gtk.Label {
+        label: _("Query History");
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+      spacing: 0;
+
+      Gtk.Box search_box {
+        orientation: horizontal;
+        margin-top: 12;
+        margin-bottom: 12;
+        margin-start: 12;
+        margin-end: 12;
+
+        Gtk.SearchEntry search_entry {
+          placeholder-text: _("Search history...");
+          hexpand: true;
+          search-changed => $on_search_changed();
+        }
+      }
+
+      Gtk.ScrolledWindow {
+        hscrollbar-policy: never;
+        vscrollbar-policy: automatic;
+        vexpand: true;
+
+        Gtk.ListBox history_list {
+          styles ["boxed-list"]
+          selection-mode: none;
+          margin-top: 12;
+          margin-bottom: 12;
+          margin-start: 12;
+          margin-end: 12;
+        }
+      }
+    };
+
+    [bottom]
+    Adw.HeaderBar bottom_header {
+      title-widget: Gtk.Button clear_button {
+        label: _("Clear All");
+        styles ["destructive-action"]
+        sensitive: false;
+        clicked => $on_clear_history();
+      };
+      
+      show-end-title-buttons: false;
+    }
+  }
+}

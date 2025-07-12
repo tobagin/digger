@@ -45,6 +45,9 @@ class DigExecutor:
         record_type: str = "A",
         nameserver: Optional[str] = None,
         callback: Optional[Callable[[str, Optional[Exception]], None]] = None,
+        reverse_lookup: bool = False,
+        trace: bool = False,
+        short: bool = False,
     ) -> None:
         """Execute dig command in background thread.
 
@@ -53,6 +56,9 @@ class DigExecutor:
             record_type (str): DNS record type to query (A, AAAA, MX, etc.).
             nameserver (Optional[str]): DNS server to use for the query.
             callback (Optional[Callable]): Callback function to handle results.
+            reverse_lookup (bool): Whether to perform reverse DNS lookup.
+            trace (bool): Whether to enable trace mode (+trace).
+            short (bool): Whether to use short output format (+short).
         """
         if not callback:
             raise ValueError("Callback function is required")
@@ -68,7 +74,7 @@ class DigExecutor:
         # Start background thread
         thread = threading.Thread(
             target=self._execute_in_thread,
-            args=(domain, record_type, nameserver, callback),
+            args=(domain, record_type, nameserver, callback, reverse_lookup, trace, short),
             daemon=True,
         )
         thread.start()
@@ -79,6 +85,9 @@ class DigExecutor:
         record_type: str,
         nameserver: Optional[str],
         callback: Callable[[str, Optional[Exception]], None],
+        reverse_lookup: bool = False,
+        trace: bool = False,
+        short: bool = False,
     ) -> None:
         """Thread worker for dig execution.
 
@@ -87,6 +96,9 @@ class DigExecutor:
             record_type (str): DNS record type to query.
             nameserver (Optional[str]): DNS server to use.
             callback (Callable): Callback function to handle results.
+            reverse_lookup (bool): Whether to perform reverse DNS lookup.
+            trace (bool): Whether to enable trace mode.
+            short (bool): Whether to use short output format.
         """
         try:
             # Check if dig is available
@@ -95,7 +107,7 @@ class DigExecutor:
                 return
 
             # Build and execute command
-            cmd = self._build_command(domain, record_type, nameserver)
+            cmd = self._build_command(domain, record_type, nameserver, reverse_lookup, trace, short)
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -128,7 +140,8 @@ class DigExecutor:
             callback("", e)
 
     def _build_command(
-        self, domain: str, record_type: str, nameserver: Optional[str]
+        self, domain: str, record_type: str, nameserver: Optional[str],
+        reverse_lookup: bool = False, trace: bool = False, short: bool = False
     ) -> list[str]:
         """Build dig command with appropriate options.
 
@@ -136,6 +149,9 @@ class DigExecutor:
             domain (str): Domain name to query.
             record_type (str): DNS record type to query.
             nameserver (Optional[str]): DNS server to use.
+            reverse_lookup (bool): Whether to perform reverse DNS lookup.
+            trace (bool): Whether to enable trace mode.
+            short (bool): Whether to use short output format.
 
         Returns:
             List[str]: Complete command as list of strings.
@@ -146,21 +162,33 @@ class DigExecutor:
         if nameserver and nameserver.strip():
             base_cmd.append(f"@{nameserver.strip()}")
 
-        # Add domain and record type
-        base_cmd.extend([domain, record_type])
+        # Handle reverse lookup
+        if reverse_lookup:
+            # For reverse lookup, use -x flag
+            base_cmd.extend(["-x", domain])
+        else:
+            # Add domain and record type for normal lookup
+            base_cmd.extend([domain, record_type])
 
-        # Add options for structured output
-        base_cmd.extend(
-            [
-                "+noall",  # Turn off all sections
-                "+answer",  # Show answer section
-                "+authority",  # Show authority section
-                "+additional",  # Show additional section
-                "+stats",  # Show query statistics
-                "+comments",  # Show section comments
-                "+cmd",  # Show command line used
-            ]
-        )
+        # Add advanced options
+        if trace:
+            base_cmd.append("+trace")
+        
+        if short:
+            base_cmd.append("+short")
+        else:
+            # Add options for structured output (only if not short)
+            base_cmd.extend(
+                [
+                    "+noall",  # Turn off all sections
+                    "+answer",  # Show answer section
+                    "+authority",  # Show authority section
+                    "+additional",  # Show additional section
+                    "+stats",  # Show query statistics
+                    "+comments",  # Show section comments
+                    "+cmd",  # Show command line used
+                ]
+            )
 
         # Return the command directly (dig is bundled in Flatpak)
         return base_cmd
@@ -171,6 +199,9 @@ class DigExecutor:
         record_type: str = "A",
         nameserver: Optional[str] = None,
         timeout: int = 30,
+        reverse_lookup: bool = False,
+        trace: bool = False,
+        short: bool = False,
     ) -> tuple[str, Optional[Exception]]:
         """Execute dig command synchronously (for testing).
 
@@ -179,6 +210,9 @@ class DigExecutor:
             record_type (str): DNS record type to query.
             nameserver (Optional[str]): DNS server to use.
             timeout (int): Timeout in seconds.
+            reverse_lookup (bool): Whether to perform reverse DNS lookup.
+            trace (bool): Whether to enable trace mode.
+            short (bool): Whether to use short output format.
 
         Returns:
             tuple[str, Optional[Exception]]: Output and any exception.
@@ -187,7 +221,7 @@ class DigExecutor:
             if not self.check_dig_available():
                 return "", RuntimeError("dig command is not available")
 
-            cmd = self._build_command(domain, record_type, nameserver)
+            cmd = self._build_command(domain, record_type, nameserver, reverse_lookup, trace, short)
             result = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=timeout, check=False
             )

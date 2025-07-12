@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Digger
+GenericName=DNS Lookup Tool
+Comment=Modern DNS lookup tool with a graphical interface
+Exec=digger
+Icon=io.github.tobagin.digger
+Categories=Network;System;GTK;
+Terminal=false
+StartupNotify=true
+Keywords=DNS;dig;lookup;network;domain;resolve;
+MimeType=x-scheme-handler/dns;

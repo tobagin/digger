@@ -9,12 +9,15 @@ A modern DNS lookup tool that provides a user-friendly graphical interface for t
 ## Features
 
 - 🔍 **Comprehensive DNS Support**: Query A, AAAA, MX, TXT, NS, CNAME, and SOA records
+- 📚 **Query History**: Full history management with search, filtering, and quick access to recent queries
+- ⚙️ **Advanced Options**: Reverse DNS lookups, trace mode, and short output format
 - 🖥️ **Modern Interface**: Built with GTK4 and LibAdwaita following GNOME Human Interface Guidelines
+- 🎨 **Blueprint Architecture**: Modern declarative UI using GTK4 Blueprint files
 - ⚡ **Responsive Design**: Background query processing keeps the UI smooth and responsive
 - 🛠️ **Custom DNS Servers**: Specify your own DNS server for queries
 - 📊 **Structured Results**: Clear display of Answer, Authority, and Additional sections
 - 🔧 **Error Handling**: Graceful handling of network issues, invalid domains, and missing dependencies
-- 📋 **Copy Support**: Easy copying of DNS record values
+- 📋 **Copy Support**: Easy copying of DNS record values with visual feedback
 - ⌨️ **Keyboard Shortcuts**: Quick access with keyboard shortcuts (Ctrl+L, Ctrl+R, Escape)
 
 ## Screenshots
@@ -177,6 +180,25 @@ flatpak run io.github.tobagin.digger.dev
 4. **Optionally specify a DNS server** (e.g., `8.8.8.8`)
 5. **Click "Lookup"** or press Enter
 
+### Advanced Features
+
+#### Query History
+- **Access History**: Click the history button (📄) in the header bar for quick access to recent queries
+- **Full History**: Use "View History" from the menu to see all past queries with search and management
+- **Quick Repeat**: Click on any history entry to instantly repeat that query
+- **Search & Filter**: Use the search bar to find specific domains or query types in your history
+
+#### Advanced DNS Options
+Expand the "Advanced Options" section in the query form to access:
+- **Reverse DNS Lookup**: Check to perform reverse DNS lookup (PTR record) for IP addresses
+- **Trace Query Path**: Enable trace mode to see the full query path from root servers
+- **Short Output**: Use short format for minimal, essential output only
+
+#### Copy to Clipboard
+- Click the copy button (📋) next to any DNS record to copy its value
+- Visual feedback shows successful copying
+- MX records copy in "priority mailserver" format
+
 ### Keyboard Shortcuts
 
 - **Ctrl+L**: Focus the domain entry field
@@ -235,6 +257,40 @@ digger/
 
 ## Development
 
+### Building the Project
+
+Digger uses modern GTK4 Blueprint files for UI definition. To build the complete project:
+
+```bash
+# Complete build (UI files, formatting, linting, tests)
+./build.py
+
+# Or individual steps:
+./build-ui.py          # Compile Blueprint and GResource files
+./compile-blueprints.py # Compile .blp files to .ui files
+./compile-resources.py  # Compile .ui files to GResource bundle
+```
+
+### Prerequisites for Development
+
+- **blueprint-compiler**: For compiling `.blp` files
+- **glib-compile-resources**: For creating GResource bundles
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install blueprint-compiler libglib2.0-dev-bin
+```
+
+**Fedora:**
+```bash
+sudo dnf install blueprint-compiler glib2-devel
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S blueprint-compiler glib2
+```
+
 ### Running Tests
 
 ```bash
@@ -260,6 +316,16 @@ ruff check digger/ tests/ --fix
 # Type checking
 mypy digger/backend/
 ```
+
+### UI Development
+
+The UI is built using GTK4 Blueprint files for a modern, declarative approach:
+
+- **Blueprint files** (`.blp`): Located in `digger/ui/blueprints/`
+- **Compiled UI files** (`.ui`): Generated in `digger/ui/compiled/`
+- **GResource bundle**: Compiled into `digger/ui/digger.gresource`
+
+After modifying Blueprint files, run `./build-ui.py` to recompile.
 
 ### Project Structure Requirements
 

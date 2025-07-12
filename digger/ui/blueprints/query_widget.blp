@@ -1,0 +1,96 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerQueryWidget : Gtk.Box {
+  orientation: vertical;
+  spacing: 12;
+  margin-top: 12;
+  margin-bottom: 12;
+  margin-start: 12;
+  margin-end: 12;
+
+  Adw.PreferencesGroup query_group {
+    title: _("DNS Query");
+    description: _("Enter the details for your DNS lookup");
+
+    Adw.EntryRow domain_entry {
+      title: _("Domain Name");
+      text: "example.com";
+      use-underline: true;
+      activates-default: true;
+      activate => $on_entry_activate();
+      changed => $on_domain_changed();
+    }
+
+    Adw.ComboRow type_combo {
+      title: _("Record Type");
+      subtitle: _("DNS record type to query");
+      model: Gtk.StringList type_model {};
+    }
+
+    Adw.EntryRow server_entry {
+      title: _("DNS Server (Optional)");
+      text: "";
+      use-underline: true;
+      activates-default: true;
+      input-hints: no_spellcheck;
+      activate => $on_entry_activate();
+    }
+
+    Adw.ExpanderRow advanced_options {
+      title: _("Advanced Options");
+      show-enable-switch: false;
+
+      Adw.ActionRow reverse_row {
+        title: _("Reverse DNS Lookup");
+        subtitle: _("Perform reverse DNS lookup (PTR record)");
+        activatable-widget: reverse_switch;
+
+        [suffix]
+        Gtk.Switch reverse_switch {
+          valign: center;
+        }
+      }
+
+      Adw.ActionRow trace_row {
+        title: _("Trace Query Path");
+        subtitle: _("Show the query path from root servers");
+        activatable-widget: trace_switch;
+
+        [suffix]
+        Gtk.Switch trace_switch {
+          valign: center;
+        }
+      }
+
+      Adw.ActionRow short_row {
+        title: _("Short Output");
+        subtitle: _("Show only essential information");
+        activatable-widget: short_switch;
+
+        [suffix]
+        Gtk.Switch short_switch {
+          valign: center;
+        }
+      }
+    }
+  }
+
+  Gtk.Box button_box {
+    orientation: horizontal;
+    spacing: 6;
+    halign: center;
+    margin-top: 6;
+
+    Gtk.Button lookup_button {
+      label: _("Lookup");
+      styles ["suggested-action"]
+      clicked => $on_lookup_clicked();
+    }
+
+    Gtk.Button clear_button {
+      label: _("Clear");
+      clicked => $on_clear_clicked();
+    }
+  }
+}

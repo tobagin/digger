@@ -1,0 +1,88 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerMainWindow : Adw.ApplicationWindow {
+  default-width: 800;
+  default-height: 600;
+  title: _("Digger - DNS Lookup Tool");
+  icon-name: "io.github.tobagin.digger";
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar header_bar {
+      title-widget: Gtk.Label {
+        label: _("Digger");
+      };
+
+      [start]
+      Gtk.MenuButton history_button {
+        icon-name: "document-open-recent-symbolic";
+        tooltip-text: _("Query History");
+        direction: down;
+      }
+
+      [end]
+      Gtk.MenuButton menu_button {
+        icon-name: "open-menu-symbolic";
+        menu-model: primary_menu;
+        direction: down;
+      }
+    }
+
+    content: Gtk.Box main_box {
+      orientation: vertical;
+      spacing: 0;
+
+      $DiggerQueryWidget query_widget {
+        query-submitted => $on_query_submitted();
+      }
+
+      Gtk.Separator {
+        orientation: horizontal;
+        styles ["spacer"]
+      }
+
+      $DiggerResultsWidget results_widget {
+        vexpand: true;
+      }
+    };
+  }
+
+  ShortcutController shortcut_controller {
+    Shortcut {
+      trigger: "<Control>l";
+      action: "action(win.focus-domain)";
+    }
+
+    Shortcut {
+      trigger: "<Control>r";
+      action: "action(win.repeat-query)";
+    }
+
+    Shortcut {
+      trigger: "Escape";
+      action: "action(win.clear-results)";
+    }
+  }
+}
+
+menu primary_menu {
+  section {
+    item {
+      label: _("Settings");
+      action: "win.settings";
+    }
+  }
+  
+  section {
+    item {
+      label: _("About Digger");
+      action: "app.about";
+    }
+    
+    item {
+      label: _("Quit");
+      action: "app.quit";
+    }
+  }
+}
