@@ -5,6 +5,7 @@
 venv_linux/
 venv/
 .env
+test-build/
 
 # Python
 __pycache__/

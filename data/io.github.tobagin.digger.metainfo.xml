@@ -4,24 +4,14 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Digger</name>
-  <summary>Modern DNS lookup tool with a graphical interface</summary>
+  <summary>DNS lookup tool with graphical interface</summary>
   
   <description>
     <p>
-      Digger is a modern DNS lookup tool that provides a user-friendly graphical interface for the dig command.
-      It simplifies DNS queries by presenting the results in a structured and easily understandable format.
+      Digger provides a user-friendly graphical interface for DNS queries, making it easy to look up
+      domain information without using command-line tools. It supports all common record types and
+      presents results in a clear, organized format.
     </p>
-    <p>
-      Key features:
-    </p>
-    <ul>
-      <li>Support for all common DNS record types (A, AAAA, MX, TXT, NS, CNAME, SOA)</li>
-      <li>Custom DNS server specification</li>
-      <li>Structured results display with answer, authority, and additional sections</li>
-      <li>Responsive interface with background query processing</li>
-      <li>Modern GTK4 and LibAdwaita design following GNOME HIG</li>
-      <li>Built-in error handling for network issues and invalid domains</li>
-    </ul>
     <p>
       Perfect for network administrators, developers, and anyone who needs to troubleshoot DNS issues
       or explore domain configurations.
@@ -88,6 +78,11 @@
   <developer id="io.github.tobagin">
     <name>Thiago Fernandes</name>
   </developer>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#3584e4</color>
+    <color type="primary" scheme_preference="dark">#78aeed</color>
+  </branding>
   
   <categories>
     <category>Network</category>
@@ -106,18 +101,14 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.1" date="2025-07-14">
+      <description>
+        <p>This release features a refreshed application icon with improved visual design and better integration with modern desktop environments.</p>
+      </description>
+    </release>
     <release version="1.0.0" date="2025-07-10">
       <description>
-        <p>Major 1.0.0 release with complete feature set and modern architecture.</p>
-        <ul>
-          <li>Added comprehensive query history with search and management</li>
-          <li>Implemented advanced dig options (reverse DNS lookups, trace mode, short output)</li>
-          <li>Enhanced copy-to-clipboard functionality for all DNS record values</li>
-          <li>Modernized UI architecture using GTK4 Blueprint files</li>
-          <li>Added extensive keyboard shortcuts and accessibility improvements</li>
-          <li>Improved error handling and user feedback for edge cases</li>
-          <li>Production-ready stable release with comprehensive test coverage</li>
-        </ul>
+        <p>First stable release featuring comprehensive DNS lookup capabilities with query history, advanced options, and modern GTK4 interface. Includes full support for all common record types and improved user experience.</p>
       </description>
     </release>
     <release version="0.2.2" date="2025-07-10">

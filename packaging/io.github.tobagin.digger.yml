@@ -34,8 +34,6 @@ modules:
         url: https://gitlab.gnome.org/jwestman/blueprint-compiler.git
         tag: v0.18.0
         commit: 07c9c9df9cd1b6b4454ecba21ee58211e9144a4b
-    cleanup:
-      - '*'
 
   # libuv dependency for BIND
   - name: libuv
@@ -98,7 +96,7 @@ modules:
       - '/bin/nslookup'
       - '/bin/named*'
       - '/bin/rndc*'
-      - '/bin/dnssec'
+      - '/bin/dnssec*'
       - '/sbin'
 
   # All Python wheel dependencies verified with correct SHA256 hashes for Flathub
