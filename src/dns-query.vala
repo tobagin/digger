@@ -168,27 +168,47 @@ namespace Digger {
 
             var lines = output.split ("\n");
             ParseSection current_section = ParseSection.NONE;
+            bool has_section_headers = output.contains ("ANSWER SECTION") || 
+                                      output.contains ("AUTHORITY SECTION") || 
+                                      output.contains ("ADDITIONAL SECTION");
 
             foreach (string line in lines) {
                 string trimmed_line = line.strip ();
                 
-                if (trimmed_line.length == 0 || trimmed_line.has_prefix (";")) {
+                if (trimmed_line.length == 0) {
                     continue;
                 }
 
-                // Check for section headers
-                if (trimmed_line.contains ("ANSWER SECTION")) {
-                    current_section = ParseSection.ANSWER;
-                    continue;
-                } else if (trimmed_line.contains ("AUTHORITY SECTION")) {
-                    current_section = ParseSection.AUTHORITY;
-                    continue;
-                } else if (trimmed_line.contains ("ADDITIONAL SECTION")) {
-                    current_section = ParseSection.ADDITIONAL;
-                    continue;
-                } else if (trimmed_line.contains ("Query time:")) {
+                // Handle query time and other stats
+                if (trimmed_line.has_prefix (";;") && trimmed_line.contains ("Query time:")) {
                     parse_query_time (trimmed_line, result);
                     continue;
+                }
+                
+                // Skip other comment lines when we have section headers
+                if (has_section_headers && trimmed_line.has_prefix (";")) {
+                    continue;
+                }
+
+                if (has_section_headers) {
+                    // Check for section headers
+                    if (trimmed_line.contains ("ANSWER SECTION")) {
+                        current_section = ParseSection.ANSWER;
+                        continue;
+                    } else if (trimmed_line.contains ("AUTHORITY SECTION")) {
+                        current_section = ParseSection.AUTHORITY;
+                        continue;
+                    } else if (trimmed_line.contains ("ADDITIONAL SECTION")) {
+                        current_section = ParseSection.ADDITIONAL;
+                        continue;
+                    }
+                } else {
+                    // Without section headers, assume all DNS records are answers
+                    // unless they contain stats info
+                    if (trimmed_line.has_prefix (";;")) {
+                        continue; // Skip stats lines
+                    }
+                    current_section = ParseSection.ANSWER;
                 }
 
                 // Parse DNS records
