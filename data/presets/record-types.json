@@ -1,0 +1,84 @@
+{
+  "record_types": [
+    {
+      "type": "A",
+      "name": "IPv4 Address",
+      "description": "Maps a domain name to an IPv4 address",
+      "icon": "network-workgroup-symbolic",
+      "color": "#3584e4",
+      "common_use": "Most common record type for web hosting"
+    },
+    {
+      "type": "AAAA",
+      "name": "IPv6 Address", 
+      "description": "Maps a domain name to an IPv6 address",
+      "icon": "network-workgroup-symbolic",
+      "color": "#9141ac",
+      "common_use": "IPv6 equivalent of A record"
+    },
+    {
+      "type": "CNAME",
+      "name": "Canonical Name",
+      "description": "Creates an alias for another domain name",
+      "icon": "insert-link-symbolic",
+      "color": "#26a269",
+      "common_use": "Subdomain redirection (www.example.com → example.com)"
+    },
+    {
+      "type": "MX",
+      "name": "Mail Exchange",
+      "description": "Specifies mail servers for the domain",
+      "icon": "mail-unread-symbolic",
+      "color": "#e66100",
+      "common_use": "Email routing configuration"
+    },
+    {
+      "type": "NS",
+      "name": "Name Server",
+      "description": "Delegates a subdomain to other name servers",
+      "icon": "network-server-symbolic",
+      "color": "#613583",
+      "common_use": "DNS delegation and subdomain management"
+    },
+    {
+      "type": "PTR",
+      "name": "Pointer Record",
+      "description": "Maps an IP address back to a domain name",
+      "icon": "view-restore-symbolic",
+      "color": "#c64600",
+      "common_use": "Reverse DNS lookups"
+    },
+    {
+      "type": "TXT",
+      "name": "Text Record",
+      "description": "Stores arbitrary text data",
+      "icon": "document-text-symbolic",
+      "color": "#865e3c",
+      "common_use": "SPF, DKIM, domain verification"
+    },
+    {
+      "type": "SOA",
+      "name": "Start of Authority",
+      "description": "Contains administrative information about the domain",
+      "icon": "emblem-important-symbolic",
+      "color": "#a51d2d",
+      "common_use": "DNS zone configuration and settings"
+    },
+    {
+      "type": "SRV",
+      "name": "Service Record",
+      "description": "Defines the hostname and port for specific services",
+      "icon": "preferences-system-network-symbolic",
+      "color": "#1c71d8",
+      "common_use": "Service discovery (SIP, XMPP, etc.)"
+    },
+    {
+      "type": "ANY",
+      "name": "All Records",
+      "description": "Requests all available record types",
+      "icon": "view-list-symbolic",
+      "color": "#5e5c64",
+      "common_use": "Comprehensive DNS information gathering"
+    }
+  ]
+}

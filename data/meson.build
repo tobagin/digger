@@ -33,3 +33,16 @@ gnome.compile_schemas(build_by_default: true)
 install_data('icons/io.github.tobagin.digger.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
 )
+
+# Preset data files
+install_data(
+  'presets/dns-servers.json',
+  'presets/record-types.json',
+  install_dir: join_paths(get_option('datadir'), 'digger', 'presets')
+)
+
+# CSS themes
+install_subdir('../assets/themes',
+  install_dir: join_paths(get_option('datadir'), 'digger'),
+  strip_directory: false
+)

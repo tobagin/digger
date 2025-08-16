@@ -11,11 +11,9 @@
 namespace Digger {
     public class Window : Adw.ApplicationWindow {
         private Adw.ToastOverlay toast_overlay;
-        private Gtk.Entry domain_entry;
-        private Gtk.DropDown record_type_dropdown;
-        private Gtk.Button query_button;
+        private EnhancedQueryForm query_form;
+        private EnhancedResultView result_view;
         private AdvancedOptions advanced_options;
-        private QueryResultView result_view;
         private Gtk.MenuButton history_button;
         private Gtk.Popover history_popover;
         private Gtk.ListBox history_listbox;
@@ -23,11 +21,17 @@ namespace Digger {
         
         private DnsQuery dns_query;
         private QueryHistory query_history;
+        private DnsPresets dns_presets;
+        private ThemeManager theme_manager;
         private bool query_in_progress = false;
 
         public Window (Gtk.Application app, QueryHistory history) {
             Object (application: app);
             query_history = history;
+            
+            // Initialize enhanced components
+            dns_presets = DnsPresets.get_instance ();
+            theme_manager = ThemeManager.get_instance ();
             
             setup_ui ();
             setup_actions ();
@@ -71,72 +75,26 @@ namespace Digger {
             // Add header bar
             main_box.append (header_bar);
 
-            // Query form in header area
-            var query_form_group = new Adw.PreferencesGroup () {
+            // Enhanced query form
+            query_form = new EnhancedQueryForm (dns_presets) {
                 margin_top = 12,
                 margin_start = 12,
                 margin_end = 12,
                 margin_bottom = 6
             };
-
-            // Domain input row
-            var domain_row = new Adw.ActionRow () {
-                title = "Domain or IP Address"
-            };
             
-            domain_entry = new Gtk.Entry () {
-                placeholder_text = "example.com",
-                hexpand = true,
-                input_purpose = Gtk.InputPurpose.URL
-            };
-            domain_row.add_suffix (domain_entry);
-
-            // Record type dropdown row
-            var record_type_row = new Adw.ActionRow () {
-                title = "Record Type"
-            };
-
-            var record_type_model = new Gtk.StringList (null);
-            record_type_model.append ("A");
-            record_type_model.append ("AAAA");
-            record_type_model.append ("CNAME");
-            record_type_model.append ("MX");
-            record_type_model.append ("NS");
-            record_type_model.append ("PTR");
-            record_type_model.append ("TXT");
-            record_type_model.append ("SOA");
-            record_type_model.append ("SRV");
-            record_type_model.append ("ANY");
-
-            record_type_dropdown = new Gtk.DropDown (record_type_model, null) {
-                selected = 0 // Default to A record
-            };
-            record_type_row.add_suffix (record_type_dropdown);
-
             // Advanced options
             advanced_options = new AdvancedOptions ();
+            query_form.add (advanced_options);
 
-            // Query button row
-            var button_row = new Adw.ActionRow ();
-            query_button = new Gtk.Button.with_label ("Look up DNS records") {
-                hexpand = true
-            };
-            query_button.add_css_class ("suggested-action");
-            button_row.add_suffix (query_button);
-
-            query_form_group.add (domain_row);
-            query_form_group.add (record_type_row);
-            query_form_group.add (advanced_options);
-            query_form_group.add (button_row);
-
-            main_box.append (query_form_group);
+            main_box.append (query_form);
 
             // Separator
             var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             main_box.append (separator);
 
-            // Results view
-            result_view = new QueryResultView ();
+            // Enhanced results view
+            result_view = new EnhancedResultView ();
             main_box.append (result_view);
 
             // Setup history popover
@@ -223,8 +181,7 @@ namespace Digger {
         }
 
         private void connect_signals () {
-            domain_entry.activate.connect (on_query_button_clicked);
-            query_button.clicked.connect (on_query_button_clicked);
+            query_form.query_requested.connect (on_query_requested);
             
             history_search_entry.search_changed.connect (update_history_list);
             history_listbox.row_activated.connect (on_history_item_selected);
@@ -236,55 +193,55 @@ namespace Digger {
         }
 
         private void focus_domain_entry () {
-            domain_entry.grab_focus ();
+            query_form.focus_domain_entry ();
         }
 
         private void repeat_last_query () {
             var last_query = query_history.get_last_query ();
             if (last_query != null) {
                 apply_query_settings (last_query);
-                perform_query.begin ();
+                // Trigger query through the form's signal
+                query_form.trigger_query ();
             }
         }
 
         private void clear_results () {
             result_view.clear_results ();
-            domain_entry.text = "";
+            query_form.clear_form ();
             advanced_options.reset_to_defaults ();
-            domain_entry.grab_focus ();
+            query_form.focus_domain_entry ();
         }
 
-        private void on_query_button_clicked () {
+        private void on_query_requested (string domain, RecordType record_type, string? dns_server) {
             if (!query_in_progress) {
-                perform_query.begin ();
+                perform_query_with_params.begin (domain, record_type, dns_server);
             }
         }
 
-        private async void perform_query () {
-            string domain = domain_entry.text.strip ();
+        private async void perform_query_with_params (string domain, RecordType record_type, string? dns_server) {
             if (domain.length == 0) {
                 show_toast ("Please enter a domain name or IP address");
                 return;
             }
 
             query_in_progress = true;
-            update_query_button_state ();
-
-            // Get selected record type
-            uint selected_index = record_type_dropdown.selected;
-            RecordType record_type = (RecordType) selected_index;
-
+            
             // Get advanced options
-            string? dns_server = advanced_options.dns_server;
-            if (dns_server != null && dns_server.length == 0) {
-                dns_server = null;
+            string? server = dns_server;
+            if (server == "System default") {
+                server = advanced_options.dns_server;
             }
+            if (server != null && server.length == 0) {
+                server = null;
+            }
+            
+            result_view.show_query_started (domain, record_type, server);
 
             try {
                 var result = yield dns_query.perform_query (
                     domain,
                     record_type,
-                    dns_server,
+                    server,
                     advanced_options.reverse_lookup,
                     advanced_options.trace_path,
                     advanced_options.short_output
@@ -297,10 +254,10 @@ namespace Digger {
 
             } catch (Error e) {
                 show_toast (@"Query failed: $(e.message)");
+                result_view.clear_results ();
             }
 
             query_in_progress = false;
-            update_query_button_state ();
         }
 
         private void on_query_completed (QueryResult result) {
@@ -311,15 +268,6 @@ namespace Digger {
             show_toast (error_message);
         }
 
-        private void update_query_button_state () {
-            if (query_in_progress) {
-                query_button.label = "Looking up...";
-                query_button.sensitive = false;
-            } else {
-                query_button.label = "Look up DNS records";
-                query_button.sensitive = true;
-            }
-        }
 
         private void show_toast (string message) {
             var toast = new Adw.Toast (message);
@@ -411,8 +359,9 @@ namespace Digger {
         }
 
         private void apply_query_settings (QueryResult result) {
-            domain_entry.text = result.domain;
-            record_type_dropdown.selected = (uint) result.query_type;
+            query_form.set_domain (result.domain);
+            query_form.set_record_type (result.query_type);
+            query_form.set_dns_server (result.dns_server);
             advanced_options.apply_from_query_result (result);
         }
     }

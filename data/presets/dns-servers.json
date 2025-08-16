@@ -1,0 +1,60 @@
+{
+  "dns_servers": [
+    {
+      "name": "Google Public DNS",
+      "primary": "8.8.8.8",
+      "secondary": "8.8.4.4",
+      "description": "Fast and reliable DNS service by Google",
+      "supports_dnssec": true,
+      "category": "public"
+    },
+    {
+      "name": "Cloudflare DNS",
+      "primary": "1.1.1.1",
+      "secondary": "1.0.0.1",
+      "description": "Privacy-focused DNS service by Cloudflare",
+      "supports_dnssec": true,
+      "category": "public"
+    },
+    {
+      "name": "Quad9 DNS",
+      "primary": "9.9.9.9",
+      "secondary": "149.112.112.112",
+      "description": "Security-focused DNS with malware blocking",
+      "supports_dnssec": true,
+      "category": "security"
+    },
+    {
+      "name": "OpenDNS",
+      "primary": "208.67.222.222",
+      "secondary": "208.67.220.220",
+      "description": "DNS service with content filtering options",
+      "supports_dnssec": true,
+      "category": "filtered"
+    },
+    {
+      "name": "AdGuard DNS",
+      "primary": "94.140.14.14",
+      "secondary": "94.140.15.15",
+      "description": "DNS service with ad and tracker blocking",
+      "supports_dnssec": true,
+      "category": "security"
+    },
+    {
+      "name": "DNS.Watch",
+      "primary": "84.200.69.80",
+      "secondary": "84.200.70.40",
+      "description": "Uncensored DNS service from Germany",
+      "supports_dnssec": false,
+      "category": "uncensored"
+    },
+    {
+      "name": "Comodo Secure DNS",
+      "primary": "8.26.56.26",
+      "secondary": "8.20.247.20",
+      "description": "DNS service with malware and phishing protection",
+      "supports_dnssec": false,
+      "category": "security"
+    }
+  ]
+}

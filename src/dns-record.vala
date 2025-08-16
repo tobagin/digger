@@ -58,6 +58,7 @@ namespace Digger {
         SUCCESS,
         NXDOMAIN,
         SERVFAIL,
+        REFUSED,
         TIMEOUT,
         NETWORK_ERROR,
         INVALID_DOMAIN,
@@ -68,6 +69,7 @@ namespace Digger {
                 case SUCCESS: return "Success";
                 case NXDOMAIN: return "NXDOMAIN - Domain not found";
                 case SERVFAIL: return "SERVFAIL - Server failure";
+                case REFUSED: return "REFUSED - Query refused";
                 case TIMEOUT: return "Query timeout";
                 case NETWORK_ERROR: return "Network error";
                 case INVALID_DOMAIN: return "Invalid domain format";

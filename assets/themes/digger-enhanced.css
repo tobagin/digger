@@ -1,0 +1,265 @@
+/* Enhanced CSS for Digger DNS Lookup Tool */
+
+/* DNS Record Type Badges */
+.pill {
+  border-radius: 12px;
+  padding: 4px 8px;
+  margin: 2px;
+  font-size: 0.8em;
+  font-weight: bold;
+  min-width: 50px;
+}
+
+/* Status-based styling */
+.success {
+  background-color: alpha(@success_color, 0.2);
+  color: @success_color;
+  border: 1px solid alpha(@success_color, 0.3);
+}
+
+.warning {
+  background-color: alpha(@warning_color, 0.2);
+  color: @warning_color;
+  border: 1px solid alpha(@warning_color, 0.3);
+}
+
+.error {
+  background-color: alpha(@error_color, 0.2);
+  color: @error_color;
+  border: 1px solid alpha(@error_color, 0.3);
+}
+
+.info {
+  background-color: alpha(@accent_color, 0.2);
+  color: @accent_color;
+  border: 1px solid alpha(@accent_color, 0.3);
+}
+
+/* Enhanced progress bar */
+progressbar {
+  margin: 6px;
+}
+
+progressbar > trough > progress {
+  background-image: linear-gradient(90deg, 
+    @accent_color, 
+    alpha(@accent_color, 0.8), 
+    @accent_color);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1.0; }
+  100% { opacity: 0.6; }
+}
+
+/* Enhanced syntax highlighting for DNS records */
+.dns-record-value {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.dns-record-a {
+  color: #3584e4;
+}
+
+.dns-record-aaaa {
+  color: #9141ac;
+}
+
+.dns-record-cname {
+  color: #26a269;
+}
+
+.dns-record-mx {
+  color: #e66100;
+}
+
+.dns-record-ns {
+  color: #613583;
+}
+
+.dns-record-ptr {
+  color: #c64600;
+}
+
+.dns-record-txt {
+  color: #865e3c;
+}
+
+.dns-record-soa {
+  color: #a51d2d;
+}
+
+.dns-record-srv {
+  color: #1c71d8;
+}
+
+/* Enhanced action rows */
+row.enhanced-record {
+  padding: 8px;
+  border-radius: 8px;
+  margin: 2px 0;
+  transition: all 200ms ease;
+}
+
+row.enhanced-record:hover {
+  background-color: alpha(@accent_color, 0.1);
+}
+
+/* Query form enhancements */
+.query-form {
+  background: alpha(@card_bg_color, 0.5);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 6px;
+  box-shadow: 0 2px 8px alpha(black, 0.1);
+}
+
+/* DNS server preset buttons */
+.dns-preset-button {
+  transition: all 200ms ease;
+  border-radius: 20px;
+  padding: 6px 12px;
+}
+
+.dns-preset-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px alpha(black, 0.15);
+}
+
+/* Statistics section */
+.stats-group {
+  background: alpha(@headerbar_bg_color, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px 0;
+}
+
+/* Error states */
+entry.error {
+  border-color: @error_color;
+  color: @error_color;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Welcome screen enhancements */
+.welcome-container {
+  background: radial-gradient(circle, 
+    alpha(@accent_color, 0.1) 0%, 
+    transparent 70%);
+  border-radius: 20px;
+  padding: 40px;
+}
+
+/* Raw output text view */
+textview.raw-output {
+  background-color: alpha(@window_bg_color, 0.8);
+  border: 1px solid alpha(@borders, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* Toast styling */
+toast {
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Improved scrollbars */
+scrollbar {
+  background: transparent;
+}
+
+scrollbar slider {
+  background: alpha(@accent_color, 0.5);
+  border-radius: 10px;
+  min-width: 8px;
+  min-height: 8px;
+  margin: 2px;
+}
+
+scrollbar slider:hover {
+  background: alpha(@accent_color, 0.7);
+}
+
+/* Enhanced tooltips */
+tooltip {
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: alpha(@popover_bg_color, 0.95);
+  box-shadow: 0 4px 16px alpha(black, 0.15);
+  font-size: 0.9em;
+}
+
+/* Performance indicators */
+.performance-good {
+  color: @success_color;
+}
+
+.performance-moderate {
+  color: @warning_color;
+}
+
+.performance-slow {
+  color: @error_color;
+}
+
+/* Responsive design helpers */
+@media (max-width: 600px) {
+  .query-form {
+    margin: 4px;
+    padding: 8px;
+  }
+  
+  .pill {
+    font-size: 0.7em;
+    padding: 3px 6px;
+  }
+}
+
+/* Dark theme specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .query-form {
+    background: alpha(@card_bg_color, 0.3);
+    box-shadow: 0 2px 8px alpha(black, 0.3);
+  }
+  
+  .stats-group {
+    background: alpha(@headerbar_bg_color, 0.2);
+  }
+  
+  textview.raw-output {
+    background-color: alpha(@dark_1, 0.8);
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .pill {
+    border-width: 2px;
+  }
+  
+  entry.error {
+    border-width: 2px;
+  }
+  
+  .enhanced-record:hover {
+    border: 2px solid @accent_color;
+  }
+}

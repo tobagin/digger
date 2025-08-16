@@ -41,6 +41,10 @@ executable('digger-vala',
     'src/query-history.vala',
     'src/query-result-view.vala',
     'src/advanced-options.vala',
+    'src/features/dns-presets.vala',
+    'src/ui/enhanced-query-form.vala',
+    'src/ui/enhanced-result-view.vala',
+    'src/ui/theme-manager.vala',
     config_header
   ],
   dependencies: [
