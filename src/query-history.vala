@@ -9,17 +9,43 @@
  */
 
 namespace Digger {
+    /**
+     * Search criteria for enhanced history search
+     */
+    public enum SearchCriteria {
+        ALL,
+        DOMAIN_ONLY,
+        RECORD_TYPE_ONLY,
+        DNS_SERVER_ONLY
+    }
+    
+    /**
+     * Helper class for domain frequency tracking
+     */
+    public class DomainFrequencyPair {
+        public string domain;
+        public int frequency;
+        
+        public DomainFrequencyPair (string domain, int frequency) {
+            this.domain = domain;
+            this.frequency = frequency;
+        }
+    }
     public class QueryHistory : Object {
         private const string HISTORY_FILE = "query-history.json";
         private const int MAX_HISTORY_SIZE = 100;
         
         private Gee.ArrayList<QueryResult> history;
         private string history_file_path;
+        private Gee.HashMap<string, int> domain_frequency;
+        private Gee.HashMap<string, DateTime> domain_last_used;
 
         public signal void history_updated ();
 
         public QueryHistory () {
             history = new Gee.ArrayList<QueryResult> ();
+            domain_frequency = new Gee.HashMap<string, int> ();
+            domain_last_used = new Gee.HashMap<string, DateTime> ();
             
             // Get user data directory
             string user_data_dir = Environment.get_user_data_dir ();
@@ -42,6 +68,9 @@ namespace Digger {
         public void add_query (QueryResult result) {
             // Add to beginning of history
             history.insert (0, result);
+            
+            // Update domain frequency tracking
+            update_domain_frequency (result.domain);
             
             // Limit history size
             while (history.size > MAX_HISTORY_SIZE) {
@@ -80,8 +109,154 @@ namespace Digger {
 
         public void clear_history () {
             history.clear ();
+            domain_frequency.clear ();
+            domain_last_used.clear ();
             save_history ();
             history_updated ();
+        }
+        
+        /**
+         * Get domains sorted by frequency of use
+         */
+        public Gee.List<string> get_frequent_domains (int limit = 10) {
+            var domains = new Gee.ArrayList<string> ();
+            
+            // Convert to list of pairs for sorting
+            var domain_pairs = new Gee.ArrayList<DomainFrequencyPair> ();
+            foreach (var entry in domain_frequency.entries) {
+                domain_pairs.add (new DomainFrequencyPair (entry.key, entry.value));
+            }
+            
+            // Sort by frequency (descending)
+            domain_pairs.sort ((a, b) => {
+                if (a.frequency != b.frequency) {
+                    return b.frequency - a.frequency;
+                }
+                
+                // If frequencies are equal, sort by recency
+                var a_time = domain_last_used.get (a.domain);
+                var b_time = domain_last_used.get (b.domain);
+                if (a_time != null && b_time != null) {
+                    return b_time.compare (a_time);
+                }
+                
+                return 0;
+            });
+            
+            // Extract domains up to limit
+            for (int i = 0; i < int.min (domain_pairs.size, limit); i++) {
+                domains.add (domain_pairs[i].domain);
+            }
+            
+            return domains;
+        }
+        
+        /**
+         * Get domain suggestions based on partial input
+         */
+        public Gee.List<string> get_domain_suggestions (string partial, int limit = 5) {
+            var suggestions = new Gee.ArrayList<string> ();
+            string lower_partial = partial.down ();
+            
+            // Get all domains that match the partial input
+            var matching_domains = new Gee.ArrayList<DomainFrequencyPair> ();
+            foreach (var entry in domain_frequency.entries) {
+                if (entry.key.down ().has_prefix (lower_partial) || 
+                    entry.key.down ().contains (lower_partial)) {
+                    matching_domains.add (new DomainFrequencyPair (entry.key, entry.value));
+                }
+            }
+            
+            // Sort by frequency and recency
+            matching_domains.sort ((a, b) => {
+                // Prefer exact prefix matches
+                bool a_prefix = a.domain.down ().has_prefix (lower_partial);
+                bool b_prefix = b.domain.down ().has_prefix (lower_partial);
+                
+                if (a_prefix && !b_prefix) return -1;
+                if (!a_prefix && b_prefix) return 1;
+                
+                // Then by frequency
+                if (a.frequency != b.frequency) {
+                    return b.frequency - a.frequency;
+                }
+                
+                // Finally by recency
+                var a_time = domain_last_used.get (a.domain);
+                var b_time = domain_last_used.get (b.domain);
+                if (a_time != null && b_time != null) {
+                    return b_time.compare (a_time);
+                }
+                
+                return 0;
+            });
+            
+            // Extract domains up to limit
+            for (int i = 0; i < int.min (matching_domains.size, limit); i++) {
+                suggestions.add (matching_domains[i].domain);
+            }
+            
+            return suggestions;
+        }
+        
+        /**
+         * Get enhanced search results with multiple criteria
+         */
+        public Gee.List<QueryResult> search_history_enhanced (string query, SearchCriteria criteria = SearchCriteria.ALL) {
+            var results = new Gee.ArrayList<QueryResult> ();
+            string lower_query = query.down ();
+            
+            foreach (var result in history) {
+                bool matches = false;
+                
+                switch (criteria) {
+                    case SearchCriteria.DOMAIN_ONLY:
+                        matches = result.domain.down ().contains (lower_query);
+                        break;
+                    
+                    case SearchCriteria.RECORD_TYPE_ONLY:
+                        matches = result.query_type.to_string ().down ().contains (lower_query);
+                        break;
+                    
+                    case SearchCriteria.DNS_SERVER_ONLY:
+                        matches = result.dns_server.down ().contains (lower_query);
+                        break;
+                    
+                    case SearchCriteria.ALL:
+                    default:
+                        matches = result.domain.down ().contains (lower_query) ||
+                                 result.query_type.to_string ().down ().contains (lower_query) ||
+                                 result.dns_server.down ().contains (lower_query);
+                        break;
+                }
+                
+                if (matches) {
+                    results.add (result);
+                }
+            }
+            
+            return results;
+        }
+        
+        /**
+         * Get domain frequency for a specific domain
+         */
+        public int get_domain_frequency (string domain) {
+            return domain_frequency.has_key (domain) ? domain_frequency.get (domain) : 0;
+        }
+        
+        /**
+         * Update domain frequency tracking
+         */
+        private void update_domain_frequency (string domain) {
+            string normalized_domain = domain.down ().strip ();
+            
+            // Update frequency count
+            int current_count = domain_frequency.has_key (normalized_domain) ? domain_frequency.get (normalized_domain) : 0;
+            domain_frequency.set (normalized_domain, current_count + 1);
+            
+            // Update last used time
+            domain_last_used.set (normalized_domain, new DateTime.now_local ());
         }
 
         private void load_history () {

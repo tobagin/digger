@@ -24,7 +24,7 @@ conf_data.set('DATADIR', join_paths(get_option('prefix'), get_option('datadir'))
 conf_data.set('APP_ID', 'io.github.tobagin.digger')
 
 # Generate config file
-config_header = configure_file(
+config_vala = configure_file(
   input: 'src/config.vala.in',
   output: 'config.vala',
   configuration: conf_data
@@ -32,21 +32,22 @@ config_header = configure_file(
 
 # Application executable
 executable('digger-vala',
-  sources: [
-    'src/main.vala',
-    'src/application.vala',
-    'src/window.vala',
-    'src/dns-query.vala',
-    'src/dns-record.vala',
-    'src/query-history.vala',
-    'src/query-result-view.vala',
-    'src/advanced-options.vala',
-    'src/features/dns-presets.vala',
-    'src/ui/enhanced-query-form.vala',
-    'src/ui/enhanced-result-view.vala',
-    'src/ui/theme-manager.vala',
-    config_header
-  ],
+  'src/main.vala',
+  'src/application.vala',
+  'src/window.vala',
+  'src/dns-query.vala',
+  'src/dns-record.vala',
+  'src/query-history.vala',
+  'src/query-result-view.vala',
+  'src/advanced-options.vala',
+  'src/features/dns-presets.vala',
+  'src/features/domain-suggestions.vala',
+  'src/ui/enhanced-query-form.vala',
+  'src/ui/enhanced-result-view.vala',
+  'src/ui/autocomplete-dropdown.vala',
+  'src/ui/enhanced-history-search.vala',
+  'src/ui/theme-manager.vala',
+  config_vala,
   dependencies: [
     gtk4_dep,
     libadwaita_dep,

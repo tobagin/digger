@@ -83,6 +83,9 @@ namespace Digger {
                 margin_bottom = 6
             };
             
+            // Connect query history to enhanced form for autocomplete
+            query_form.set_query_history (query_history);
+            
             // Advanced options
             advanced_options = new AdvancedOptions ();
             query_form.add (advanced_options);

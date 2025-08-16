@@ -16,6 +16,7 @@ namespace Digger {
         private Gtk.MenuButton dns_server_button;
         private Gtk.Box quick_presets_box;
         private Adw.EntryRow custom_dns_entry;
+        private AutocompleteDropdown autocomplete_dropdown;
         
         private DnsPresets dns_presets;
         private QueryHistory query_history;
@@ -55,6 +56,10 @@ namespace Digger {
         
         public void set_query_history (QueryHistory history) {
             query_history = history;
+            
+            // Connect autocomplete to query history
+            autocomplete_dropdown.set_query_history (history);
+            
             setup_domain_suggestions ();
         }
         
@@ -69,6 +74,9 @@ namespace Digger {
                 hexpand = true,
                 input_purpose = Gtk.InputPurpose.URL
             };
+            
+            // Initialize autocomplete dropdown
+            autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
             
             // Add quick paste button
             var paste_button = new Gtk.Button.from_icon_name ("edit-paste-symbolic") {
@@ -279,8 +287,8 @@ namespace Digger {
         private void setup_domain_suggestions () {
             if (query_history == null) return;
             
-            // TODO: Implement domain autocomplete based on query history
-            // This would require a more sophisticated completion system
+            // Autocomplete system is already set up through the AutocompleteDropdown
+            // The dropdown will automatically use the query history for suggestions
         }
         
         private void connect_signals () {
@@ -289,6 +297,9 @@ namespace Digger {
             
             // Real-time validation
             domain_entry.changed.connect (validate_input);
+            
+            // Connect autocomplete signals
+            autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
         }
         
         private void validate_input () {
@@ -418,6 +429,32 @@ namespace Digger {
         
         public void trigger_query () {
             on_query_requested ();
+        }
+        
+        /**
+         * Handle autocomplete suggestion selection
+         */
+        private void on_autocomplete_selected (string domain) {
+            // The domain is already set in the entry by the autocomplete dropdown
+            // Just validate the input
+            validate_input ();
+            
+            // Optionally trigger query immediately if user preference is set
+            // For now, just focus remains on the domain entry for user confirmation
+        }
+        
+        /**
+         * Show autocomplete suggestions programmatically
+         */
+        public void show_suggestions () {
+            autocomplete_dropdown.trigger_suggestions ();
+        }
+        
+        /**
+         * Hide autocomplete suggestions
+         */
+        public void hide_suggestions () {
+            autocomplete_dropdown.clear_suggestions ();
         }
     }
 }
