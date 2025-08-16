@@ -1,0 +1,96 @@
+app-id: io.github.tobagin.digger.Devel
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+command: digger-vala
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=xdg-data/digger:create
+  - --talk-name=org.freedesktop.secrets
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /man
+  - /share/doc
+  - /share/gtk-doc
+  - /share/man
+  - /share/pkgconfig
+  - /share/vala
+  - '*.la'
+  - '*.a'
+
+modules:
+  - name: libgee
+    buildsystem: meson
+    config-opts:
+      - -Dintrospection=false
+      - -Dvapi=true
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
+        sha256: 26ce69690b78df1b76230e6b13ff65aeba5b5bfdc46a8e6b7b7e3dcf4dd9b71f
+        x-checker-data:
+          type: gnome
+          name: libgee
+
+  - name: bind-utils
+    buildsystem: autotools
+    no-autogen: true
+    config-opts:
+      - --disable-static
+      - --enable-shared
+      - --with-python=no
+      - --disable-linux-caps
+      - --without-gssapi
+      - --disable-isc-spnego
+      - --without-dlopen
+      - --without-openssl
+      - --without-zlib
+    make-args:
+      - -C
+      - bin/dig
+    no-make-install: true
+    post-install:
+      - install -Dm755 bin/dig/dig /app/bin/dig
+    sources:
+      - type: archive
+        url: https://downloads.isc.org/isc/bind9/9.18.31/bind-9.18.31.tar.xz
+        sha256: 17beb34637c7ec14ff1b4ab4d8e7d44ba6041a9ad33cd8a6cce22b6d85df6a5a
+        x-checker-data:
+          type: anitya
+          project-id: 1365
+          url-template: https://downloads.isc.org/isc/bind9/$version/bind-$version.tar.xz
+
+  - name: digger-vala
+    buildsystem: meson
+    post-install:
+      # Copy and rename files for development version
+      - cp /app/share/applications/io.github.tobagin.digger.desktop /app/share/applications/io.github.tobagin.digger.Devel.desktop
+      - cp /app/share/metainfo/io.github.tobagin.digger.appdata.xml /app/share/metainfo/io.github.tobagin.digger.Devel.appdata.xml
+      - cp /app/share/glib-2.0/schemas/io.github.tobagin.digger.gschema.xml /app/share/glib-2.0/schemas/io.github.tobagin.digger.Devel.gschema.xml
+      - cp /app/share/icons/hicolor/scalable/apps/io.github.tobagin.digger.svg /app/share/icons/hicolor/scalable/apps/io.github.tobagin.digger.Devel.svg
+      # Modify development files
+      - sed -i 's/io\.github\.tobagin\.digger/io.github.tobagin.digger.Devel/g' /app/share/applications/io.github.tobagin.digger.Devel.desktop
+      - sed -i 's/Name=Digger/Name=Digger (Development)/g' /app/share/applications/io.github.tobagin.digger.Devel.desktop
+      - sed -i 's/Comment=DNS lookup tool with an intuitive GTK interface/Comment=DNS lookup tool with an intuitive GTK interface (Development Version)/g' /app/share/applications/io.github.tobagin.digger.Devel.desktop
+      - sed -i 's/io\.github\.tobagin\.digger/io.github.tobagin.digger.Devel/g' /app/share/metainfo/io.github.tobagin.digger.Devel.appdata.xml
+      - sed -i 's/<name>Digger<\/name>/<name>Digger (Development)<\/name>/g' /app/share/metainfo/io.github.tobagin.digger.Devel.appdata.xml
+      - sed -i 's/<summary>DNS lookup tool with an intuitive GTK interface<\/summary>/<summary>DNS lookup tool with an intuitive GTK interface (Development Version)<\/summary>/g' /app/share/metainfo/io.github.tobagin.digger.Devel.appdata.xml
+      - sed -i 's/id="io\.github\.tobagin\.digger"/id="io.github.tobagin.digger.Devel"/g' /app/share/glib-2.0/schemas/io.github.tobagin.digger.Devel.gschema.xml
+      - sed -i 's/path="\/io\/github\/tobagin\/digger\/"/path="\/io\/github\/tobagin\/digger\/Devel\/"/g' /app/share/glib-2.0/schemas/io.github.tobagin.digger.Devel.gschema.xml
+      # Modify icon to be orange for development
+      - sed -i 's/fill="#3584e4"/fill="#ff7800"/g' /app/share/icons/hicolor/scalable/apps/io.github.tobagin.digger.Devel.svg
+      - sed -i 's/stroke="#1c71d8"/stroke="#e55100"/g' /app/share/icons/hicolor/scalable/apps/io.github.tobagin.digger.Devel.svg
+      # Clean up original files for development build
+      - rm /app/share/applications/io.github.tobagin.digger.desktop
+      - rm /app/share/metainfo/io.github.tobagin.digger.appdata.xml
+      - rm /app/share/glib-2.0/schemas/io.github.tobagin.digger.gschema.xml
+      - rm /app/share/icons/hicolor/scalable/apps/io.github.tobagin.digger.svg
+    sources:
+      - type: dir
+        path: .

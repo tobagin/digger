@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.tobagin.digger</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <name>Digger</name>
+  <summary>DNS lookup tool with an intuitive GTK interface</summary>
+  
+  <description>
+    <p>
+      Digger is a modern DNS lookup tool built with GTK4 and libadwaita that provides 
+      an intuitive interface for performing DNS queries and exploring DNS records.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Support for all major DNS record types (A, AAAA, MX, CNAME, NS, TXT, SOA, SRV, PTR)</li>
+      <li>Advanced DNS options including reverse lookups, trace queries, and custom DNS servers</li>
+      <li>Query history with search and filtering capabilities</li>
+      <li>One-click copying of DNS record values to clipboard</li>
+      <li>Modern adaptive interface that works well on desktop and mobile</li>
+      <li>Keyboard shortcuts for improved productivity</li>
+    </ul>
+  </description>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main-window.png</image>
+      <caption>Main application window showing DNS lookup interface</caption>
+    </screenshot>
+  </screenshots>
+  
+  <url type="homepage">https://github.com/tobagin/digger-vala</url>
+  <url type="bugtracker">https://github.com/tobagin/digger-vala/issues</url>
+  
+  <developer_name>tobagin</developer_name>
+  <update_contact>tobagin@example.com</update_contact>
+  
+  <provides>
+    <binary>digger-vala</binary>
+  </provides>
+  
+  <launchable type="desktop-id">io.github.tobagin.digger.desktop</launchable>
+  
+  <releases>
+    <release version="1.0.0" date="2024-08-16">
+      <description>
+        <p>Initial release</p>
+        <ul>
+          <li>DNS lookup functionality for all major record types</li>
+          <li>Advanced DNS query options</li>
+          <li>Query history with search</li>
+          <li>Modern GTK4/libadwaita interface</li>
+          <li>Clipboard integration</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

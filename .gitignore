@@ -1,0 +1,41 @@
+# Build directories
+builddir/
+build/
+_build/
+
+# Flatpak build artifacts
+.flatpak-builder/
+repo/
+
+# Meson files
+meson-logs/
+meson-private/
+
+# Vala generated files
+*.c
+*.h
+config.vala
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Log files
+*.log

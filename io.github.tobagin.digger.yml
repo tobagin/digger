@@ -1,0 +1,78 @@
+app-id: io.github.tobagin.digger
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+command: digger-vala
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=xdg-data/digger:create
+  - --talk-name=org.freedesktop.secrets
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /man
+  - /share/doc
+  - /share/gtk-doc
+  - /share/man
+  - /share/pkgconfig
+  - /share/vala
+  - '*.la'
+  - '*.a'
+
+modules:
+  - name: libgee
+    buildsystem: meson
+    config-opts:
+      - -Dintrospection=false
+      - -Dvapi=true
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
+        sha256: 26ce69690b78df1b76230e6b13ff65aeba5b5bfdc46a8e6b7b7e3dcf4dd9b71f
+        x-checker-data:
+          type: gnome
+          name: libgee
+
+  - name: bind-utils
+    buildsystem: autotools
+    no-autogen: true
+    config-opts:
+      - --disable-static
+      - --enable-shared
+      - --with-python=no
+      - --disable-linux-caps
+      - --without-gssapi
+      - --disable-isc-spnego
+      - --without-dlopen
+      - --without-openssl
+      - --without-zlib
+    make-args:
+      - -C
+      - bin/dig
+    no-make-install: true
+    post-install:
+      - install -Dm755 bin/dig/dig /app/bin/dig
+    sources:
+      - type: archive
+        url: https://downloads.isc.org/isc/bind9/9.18.31/bind-9.18.31.tar.xz
+        sha256: 17beb34637c7ec14ff1b4ab4d8e7d44ba6041a9ad33cd8a6cce22b6d85df6a5a
+        x-checker-data:
+          type: anitya
+          project-id: 1365
+          url-template: https://downloads.isc.org/isc/bind9/$version/bind-$version.tar.xz
+
+  - name: digger-vala
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://github.com/tobagin/digger-vala/archive/v1.0.0.tar.gz
+        sha256: REPLACE_WITH_ACTUAL_SHA256_WHEN_RELEASING
+        x-checker-data:
+          type: anitya
+          project-id: digger-vala
+          url-template: https://github.com/tobagin/digger-vala/archive/v$version.tar.gz
