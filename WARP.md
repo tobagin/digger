@@ -29,7 +29,7 @@ sudo pacman -S vala meson gtk4 libadwaita json-glib gee
 # Install Flatpak and GNOME SDK (if not already installed)
 sudo dnf install flatpak flatpak-builder
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
+flatpak install flathub org.gnome.Platform//48 org.gnome.Sdk//48
 
 # Build the Flatpak (Production)
 flatpak-builder --user --install --force-clean builddir io.github.tobagin.digger.yml

@@ -55,7 +55,7 @@ sudo dnf install flatpak flatpak-builder  # Fedora/RHEL
 
 # Add Flathub repository and install GNOME SDK
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
+flatpak install flathub org.gnome.Platform//48 org.gnome.Sdk//48
 
 # Build and install the Flatpak (Production)
 flatpak-builder --user --install --force-clean builddir io.github.tobagin.digger.yml

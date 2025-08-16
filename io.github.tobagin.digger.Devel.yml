@@ -1,6 +1,6 @@
 app-id: io.github.tobagin.digger.Devel
 runtime: org.gnome.Platform
-runtime-version: '47'
+runtime-version: '48'
 sdk: org.gnome.Sdk
 command: digger-vala
 finish-args:
@@ -26,10 +26,10 @@ cleanup:
 
 modules:
   - name: libgee
-    buildsystem: meson
+    buildsystem: autotools
     config-opts:
-      - -Dintrospection=false
-      - -Dvapi=true
+      - --disable-introspection
+      - --enable-vapi
     sources:
       - type: archive
         url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
