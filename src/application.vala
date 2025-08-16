@@ -16,15 +16,17 @@ namespace Digger {
 
         public Application () {
             // Detect if we're running as development version by checking data files
-            app_id = detect_app_id ();
+            string detected_app_id = detect_app_id ();
             
             Object (
-                application_id: app_id,
+                application_id: detected_app_id,
                 flags: ApplicationFlags.DEFAULT_FLAGS
             );
+            
+            app_id = detected_app_id;
         }
         
-        private string detect_app_id () {
+        private static string detect_app_id () {
             // Check if development desktop file exists
             string devel_desktop = Path.build_filename (Environment.get_user_data_dir (), 
                                                         "applications", 
