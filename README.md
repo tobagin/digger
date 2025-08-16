@@ -41,6 +41,8 @@ flatpak install flathub io.github.tobagin.digger
 flatpak run io.github.tobagin.digger
 ```
 
+**Current Status**: Flatpak builds are working perfectly! Both production and development manifests are fully functional with embedded `dig` command support.
+
 ### Building from Source
 
 #### Using Flatpak Builder
@@ -166,6 +168,17 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - Inspired by the classic `dig` command-line tool
 - Thanks to the GNOME and GTK communities for excellent documentation
 
+## Recent Updates
+
+### ✅ Flatpak Build System Complete
+- **Working Flatpak builds**: Both production and development manifests build successfully
+- **Embedded dig command**: No external dependencies needed - dig is built into the Flatpak
+- **Crash fixes**: Resolved GSettings schema compilation and array conversion issues
+- **DNS parsing**: Fixed output parsing to handle all dig response formats
+- **Development workflow**: Dual manifest system for production and development builds
+
+The application now works perfectly in the Flatpak environment with full DNS lookup functionality!
+
 ---
 
-**Note**: Digger requires the `dig` command to be installed on your system. This is typically provided by the `bind-utils` (Fedora/RHEL), `dnsutils` (Ubuntu/Debian), or `bind` (Arch Linux) packages.
+**Note**: When building from source outside of Flatpak, Digger requires the `dig` command to be installed on your system. This is typically provided by the `bind-utils` (Fedora/RHEL), `dnsutils` (Ubuntu/Debian), or `bind` (Arch Linux) packages. **Flatpak builds include `dig` automatically.**
