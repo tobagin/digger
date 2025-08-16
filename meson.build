@@ -17,11 +17,11 @@ gee_dep = dependency('gee-0.8')
 
 # Configuration data
 conf_data = configuration_data()
-conf_data.set_quoted('VERSION', meson.project_version())
-conf_data.set_quoted('GETTEXT_PACKAGE', meson.project_name())
-conf_data.set_quoted('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
-conf_data.set_quoted('DATADIR', join_paths(get_option('prefix'), get_option('datadir')))
-conf_data.set_quoted('APP_ID', 'io.github.tobagin.digger')
+conf_data.set('VERSION', meson.project_version())
+conf_data.set('GETTEXT_PACKAGE', meson.project_name())
+conf_data.set('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
+conf_data.set('DATADIR', join_paths(get_option('prefix'), get_option('datadir')))
+conf_data.set('APP_ID', 'io.github.tobagin.digger')
 
 # Generate config file
 config_header = configure_file(

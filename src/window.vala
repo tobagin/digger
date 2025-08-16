@@ -16,7 +16,7 @@ namespace Digger {
         private Gtk.Button query_button;
         private AdvancedOptions advanced_options;
         private QueryResultView result_view;
-        private Gtk.Button history_button;
+        private Gtk.MenuButton history_button;
         private Gtk.Popover history_popover;
         private Gtk.ListBox history_listbox;
         private Gtk.SearchEntry history_search_entry;
@@ -51,7 +51,8 @@ namespace Digger {
             var header_bar = new Adw.HeaderBar ();
             
             // History button in header
-            history_button = new Gtk.Button.from_icon_name ("document-open-recent-symbolic") {
+            history_button = new Gtk.MenuButton () {
+                icon_name = "document-open-recent-symbolic",
                 tooltip_text = "Query History"
             };
             header_bar.pack_start (history_button);
@@ -242,7 +243,7 @@ namespace Digger {
             var last_query = query_history.get_last_query ();
             if (last_query != null) {
                 apply_query_settings (last_query);
-                perform_query ();
+                perform_query.begin ();
             }
         }
 
@@ -255,7 +256,7 @@ namespace Digger {
 
         private void on_query_button_clicked () {
             if (!query_in_progress) {
-                perform_query ();
+                perform_query.begin ();
             }
         }
 

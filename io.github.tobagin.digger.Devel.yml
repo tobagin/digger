@@ -38,41 +38,6 @@ modules:
           type: gnome
           name: libgee
 
-  - name: libuv
-    buildsystem: autotools
-    sources:
-      - type: archive
-        url: https://github.com/libuv/libuv/archive/v1.49.2.tar.gz
-        sha256: 3e200cad6801923e8254225e85bb8dd3a331c8d87c31c0d58b0b4b9b9b03df03
-
-  - name: bind-utils
-    buildsystem: autotools
-    no-autogen: true
-    config-opts:
-      - --disable-static
-      - --enable-shared
-      - --with-python=no
-      - --disable-linux-caps
-      - --without-gssapi
-      - --disable-isc-spnego
-      - --without-dlopen
-      - --without-openssl
-      - --without-zlib
-    make-args:
-      - -C
-      - bin/dig
-    no-make-install: true
-    post-install:
-      - install -Dm755 bin/dig/dig /app/bin/dig
-    sources:
-      - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.18.31/bind-9.18.31.tar.xz
-        sha256: 51b258969275c5206ef745a5aac03dbe98f1c8031fefed378d53597e7987b1b3
-        x-checker-data:
-          type: anitya
-          project-id: 1365
-          url-template: https://downloads.isc.org/isc/bind9/$version/bind-$version.tar.xz
-
   - name: digger-vala
     buildsystem: meson
     post-install:

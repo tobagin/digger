@@ -144,7 +144,10 @@ namespace Digger {
                                             out string standard_error, out int exit_status) throws Error {
             Subprocess process = new Subprocess.newv (command_args, SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE);
             
-            yield process.communicate_async (null, null, out standard_output, out standard_error);
+            Bytes stdout_bytes, stderr_bytes;
+            yield process.communicate_async (null, null, out stdout_bytes, out stderr_bytes);
+            standard_output = (string) stdout_bytes.get_data();
+            standard_error = (string) stderr_bytes.get_data();
             exit_status = process.get_exit_status ();
             
             return true;

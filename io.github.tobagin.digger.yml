@@ -43,7 +43,7 @@ modules:
     sources:
       - type: archive
         url: https://github.com/libuv/libuv/archive/v1.49.2.tar.gz
-        sha256: 3e200cad6801923e8254225e85bb8dd3a331c8d87c31c0d58b0b4b9b9b03df03
+        sha256: 388ffcf3370d4cf7c4b3a3205504eea06c4be5f9e80d2ab32d19f8235accc1cf
 
   - name: bind-utils
     buildsystem: autotools

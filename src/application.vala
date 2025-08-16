@@ -81,8 +81,7 @@ namespace Digger {
                 comments = "A modern DNS lookup tool with an intuitive GTK interface (Development Version)";
             }
             
-            var about = new Adw.AboutWindow () {
-                transient_for = main_window,
+            var about = new Adw.AboutDialog () {
                 application_name = app_name,
                 application_icon = app_id,
                 developer_name = "tobagin",
@@ -95,7 +94,7 @@ namespace Digger {
                 comments = comments
             };
 
-            about.present ();
+            about.present (main_window);
         }
 
         private void on_preferences_action () {

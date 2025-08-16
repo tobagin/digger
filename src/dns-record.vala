@@ -145,7 +145,7 @@ namespace Digger {
             }
 
             int total_records = answer_section.size + authority_section.size + additional_section.size;
-            return @"$total_records record(s) found in $(query_time_ms.format("%.2f"))ms";
+            return @"$total_records record(s) found in $(@"%.2f".printf(query_time_ms))ms";
         }
     }
 }
