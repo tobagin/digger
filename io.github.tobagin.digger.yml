@@ -33,7 +33,7 @@ modules:
     sources:
       - type: archive
         url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
-        sha256: 26ce69690b78df1b76230e6b13ff65aeba5b5bfdc46a8e6b7b7e3dcf4dd9b71f
+        sha256: 189815ac143d89867193b0c52b7dc31f3aa108a15f04d6b5dca2b6adfad0b0ee
         x-checker-data:
           type: gnome
           name: libgee
@@ -60,7 +60,7 @@ modules:
     sources:
       - type: archive
         url: https://downloads.isc.org/isc/bind9/9.18.31/bind-9.18.31.tar.xz
-        sha256: 17beb34637c7ec14ff1b4ab4d8e7d44ba6041a9ad33cd8a6cce22b6d85df6a5a
+        sha256: 51b258969275c5206ef745a5aac03dbe98f1c8031fefed378d53597e7987b1b3
         x-checker-data:
           type: anitya
           project-id: 1365
