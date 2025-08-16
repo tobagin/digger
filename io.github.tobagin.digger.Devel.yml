@@ -38,6 +38,13 @@ modules:
           type: gnome
           name: libgee
 
+  - name: libuv
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://github.com/libuv/libuv/archive/v1.49.2.tar.gz
+        sha256: 3e200cad6801923e8254225e85bb8dd3a331c8d87c31c0d58b0b4b9b9b03df03
+
   - name: bind-utils
     buildsystem: autotools
     no-autogen: true
