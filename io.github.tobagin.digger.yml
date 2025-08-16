@@ -38,40 +38,73 @@ modules:
           type: gnome
           name: libgee
 
+  # libuv dependency for BIND
   - name: libuv
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://github.com/libuv/libuv/archive/v1.49.2.tar.gz
-        sha256: 388ffcf3370d4cf7c4b3a3205504eea06c4be5f9e80d2ab32d19f8235accc1cf
-
-  - name: bind-utils
-    buildsystem: autotools
-    no-autogen: true
+        url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
+        sha256: 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
     config-opts:
       - --disable-static
       - --enable-shared
-      - --with-python=no
-      - --disable-linux-caps
-      - --without-gssapi
-      - --disable-isc-spnego
-      - --without-dlopen
-      - --without-openssl
-      - --without-zlib
-    make-args:
-      - -C
-      - bin/dig
-    no-make-install: true
-    post-install:
-      - install -Dm755 bin/dig/dig /app/bin/dig
+
+  # BIND dig command using older version to avoid crypto issues  
+  - name: bind-dig
+    buildsystem: autotools
     sources:
       - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.18.31/bind-9.18.31.tar.xz
-        sha256: 51b258969275c5206ef745a5aac03dbe98f1c8031fefed378d53597e7987b1b3
+        url: https://downloads.isc.org/isc/bind9/9.16.48/bind-9.16.48.tar.xz
+        sha256: 8d3814582348f90dead1ad410b1019094cd399d3d83930abebb2b3b1eb0b2bbb
         x-checker-data:
           type: anitya
           project-id: 1365
           url-template: https://downloads.isc.org/isc/bind9/$version/bind-$version.tar.xz
+    config-opts:
+      - --disable-static
+      - --enable-shared
+      - --without-openssl
+      - --disable-dnssec-tools
+      - --disable-dnssec-validation
+      - --without-gssapi
+      - --without-readline
+      - --without-libedit
+      - --without-libxml2
+      - --without-libjson
+      - --without-zlib
+      - --without-lmdb
+      - --without-libnghttp2
+      - --disable-dnsrps
+      - --disable-dnstap
+      - --disable-doh
+      - --disable-backtrace
+      - --disable-symtable
+      - --disable-linux-caps
+      - --without-python
+      - --prefix=/app
+    build-options:
+      env:
+        OPENSSL_CFLAGS: ""
+        OPENSSL_LIBS: ""
+        ac_cv_lib_crypto_EVP_sha256: "no"
+        ac_cv_lib_ssl_SSL_new: "no"
+    build-commands:
+      # Build only what we need for dig
+      - make -C lib/isc
+      - make -C lib/dns  
+      - make -C lib/bind9
+      - make -C bin/dig
+    cleanup:
+      - '*.la'
+      - '/share/man'
+      - '/lib/pkgconfig'
+      - '/bin/delv'
+      - '/bin/host'
+      - '/bin/nslookup'
+      - '/bin/named*'
+      - '/bin/rndc*'
+      - '/bin/dnssec*'
+      - '/sbin'
 
   - name: digger-vala
     buildsystem: meson
