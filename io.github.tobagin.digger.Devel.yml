@@ -105,6 +105,8 @@ modules:
   - name: digger-vala
     buildsystem: meson
     post-install:
+      # Compile GSettings schemas
+      - glib-compile-schemas /app/share/glib-2.0/schemas/
       # Copy and rename files for development version
       - cp /app/share/applications/io.github.tobagin.digger.desktop /app/share/applications/io.github.tobagin.digger.Devel.desktop
       - cp /app/share/metainfo/io.github.tobagin.digger.appdata.xml /app/share/metainfo/io.github.tobagin.digger.Devel.appdata.xml

@@ -137,7 +137,12 @@ namespace Digger {
             // Timeout
             args.add (@"+time=$DEFAULT_TIMEOUT");
 
-            return args.to_array ();
+            // Convert to string array safely
+            string[] result_args = new string[args.size];
+            for (int i = 0; i < args.size; i++) {
+                result_args[i] = args[i];
+            }
+            return result_args;
         }
 
         private async bool run_command_async (string[] command_args, out string standard_output,
@@ -242,7 +247,12 @@ namespace Digger {
             for (int i = 4; i < clean_parts.size; i++) {
                 value_parts.add (clean_parts[i]);
             }
-            string value = string.joinv (" ", value_parts.to_array ());
+            // Convert to string array safely
+            string[] value_array = new string[value_parts.size];
+            for (int i = 0; i < value_parts.size; i++) {
+                value_array[i] = value_parts[i];
+            }
+            string value = string.joinv (" ", value_array);
 
             // Handle MX records specially for priority
             int priority = -1;
@@ -253,7 +263,12 @@ namespace Digger {
                     for (int i = 5; i < clean_parts.size; i++) {
                         value_parts.add (clean_parts[i]);
                     }
-                    value = string.joinv (" ", value_parts.to_array ());
+                    // Convert to string array safely
+                    string[] mx_value_array = new string[value_parts.size];
+                    for (int i = 0; i < value_parts.size; i++) {
+                        mx_value_array[i] = value_parts[i];
+                    }
+                    value = string.joinv (" ", mx_value_array);
                 }
             }
 

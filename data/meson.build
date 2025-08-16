@@ -25,6 +25,10 @@ install_data('io.github.tobagin.digger.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 )
 
+# Compile GSettings schemas
+gnome = import('gnome')
+gnome.compile_schemas(build_by_default: true)
+
 # Icons
 install_data('icons/io.github.tobagin.digger.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
