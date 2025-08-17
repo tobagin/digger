@@ -10,7 +10,6 @@ finish-args:
   - --socket=wayland
   - --device=dri
   - --filesystem=xdg-data/digger:create
-  - --talk-name=org.freedesktop.secrets
 
 cleanup:
   - /include
@@ -116,13 +115,10 @@ modules:
       - '/bin/dnssec*'
       - '/sbin'
 
-  - name: digger-vala
+  - name: digger
     buildsystem: meson
     sources:
-      - type: archive
-        url: https://github.com/tobagin/digger-vala/archive/v2.0.0.tar.gz
-        sha256: REPLACE_WITH_ACTUAL_SHA256_WHEN_RELEASING
-        x-checker-data:
-          type: anitya
-          project-id: digger-vala
-          url-template: https://github.com/tobagin/digger-vala/archive/v$version.tar.gz
+      - type: git
+        url: https://github.com/tobagin/Digger.git
+        tag: v2.0.0
+        commit: 39556a144b9702a4a6e89e3c4ea4f05dff1f02fa
