@@ -16,14 +16,13 @@ template $DiggerEnhancedQueryForm : Adw.PreferencesGroup {
         placeholder-text: "example.com or 8.8.8.8";
         hexpand: true;
         input-purpose: url;
-        halign: center;
+        valign: center;
       }
 
       Button paste_button {
         icon-name: "edit-paste-symbolic";
         tooltip-text: "Paste from clipboard";
         valign: center;
-        halign: center;
         styles ["flat"]
       }
     }
@@ -34,82 +33,21 @@ template $DiggerEnhancedQueryForm : Adw.PreferencesGroup {
 
     DropDown record_type_dropdown {
       tooltip-text: "Select the type of DNS record to query";
-      halign: center;
+      valign: center;
     }
   }
 
   Adw.ActionRow dns_server_row {
     title: "DNS Server";
-    subtitle: "System default";
 
-    MenuButton dns_server_button {
-      icon-name: "network-server-symbolic";
+    DropDown dns_server_dropdown {
       tooltip-text: "Select DNS server";
-      halign: center;
-
-      Popover dns_server_popover {
-        position: bottom;
-
-        Box dns_server_box {
-          orientation: vertical;
-          spacing: 6;
-          margin-top: 12;
-          margin-bottom: 12;
-          margin-start: 12;
-          margin-end: 12;
-
-          CheckButton system_default_button {
-            label: "System default";
-            active: true;
-          }
-
-          Separator {}
-
-          Label popular_servers_label {
-            label: "Popular DNS Servers";
-            halign: start;
-            styles ["heading"]
-          }
-
-          CheckButton google_dns_button {
-            label: "Google DNS (8.8.8.8)";
-            group: system_default_button;
-          }
-
-          CheckButton cloudflare_dns_button {
-            label: "Cloudflare (1.1.1.1)";
-            group: system_default_button;
-          }
-
-          CheckButton quad9_dns_button {
-            label: "Quad9 (9.9.9.9)";
-            group: system_default_button;
-          }
-
-          Separator {}
-
-          Label custom_label {
-            label: "Custom DNS Server";
-            halign: start;
-            styles ["heading"]
-          }
-
-          Adw.EntryRow custom_dns_entry {
-            title: "Custom DNS Server";
-            text: "";
-          }
-
-          CheckButton custom_dns_button {
-            label: "Use custom server";
-            group: system_default_button;
-          }
-        }
-      }
+      valign: center;
     }
   }
 
   Adw.ActionRow presets_row {
-    title: "Quick Presets";
+    title: "DNS Quick Presets";
 
     Box quick_presets_box {
       orientation: horizontal;
@@ -117,16 +55,47 @@ template $DiggerEnhancedQueryForm : Adw.PreferencesGroup {
     }
   }
 
-  Box advanced_options_container {
-    orientation: vertical;
+  Adw.ActionRow reverse_lookup_row {
+    title: "Reverse DNS Lookup";
+    subtitle: "Perform PTR record lookup for IP addresses";
+
+    Switch reverse_lookup_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Perform reverse DNS lookup (PTR record) for IP addresses";
+    }
   }
 
-  Adw.ActionRow button_row {
-    Button query_button {
-      label: "Look up DNS records";
-      hexpand: true;
+  Adw.ActionRow trace_path_row {
+    title: "Trace Query Path";
+    subtitle: "Show full query path from root servers";
+
+    Switch trace_path_switch {
       halign: center;
-      styles ["suggested-action"]
+      valign: center;
+      tooltip-text: "Enable trace mode to see the full query path from root servers";
     }
+  }
+
+  Adw.ActionRow short_output_row {
+    title: "Short Output";
+    subtitle: "Use minimal, essential output format";
+
+    Switch short_output_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Use short format for minimal, essential output only";
+    }
+  }
+
+  Button query_button {
+    label: "Look up DNS records";
+    halign: center;
+    valign: center;
+    margin-top: 12;
+    margin-bottom: 12;
+    margin-start: 12;
+    margin-end: 12;
+    styles ["suggested-action"]
   }
 }

@@ -84,23 +84,23 @@ namespace Digger {
         }
 
         private void on_about_action () {
-            string[] developers = { "tobagin https://github.com/tobagin" };
+            string[] developers = { "Thiago Fernandes https://github.com/tobagin" };
             
             string app_name = "Digger";
-            string comments = "A modern DNS lookup tool with an intuitive GTK interface";
+            string comments = "Code By 'Thiago Fernandes'\nA modern DNS lookup tool with an intuitive GTK interface";
             
             if (app_id.contains ("Devel")) {
                 app_name = "Digger (Development)";
-                comments = "A modern DNS lookup tool with an intuitive GTK interface (Development Version)";
+                comments = "Code By 'Thiago Fernandes'\nA modern DNS lookup tool with an intuitive GTK interface (Development Version)";
             }
             
             var about = new Adw.AboutDialog () {
                 application_name = app_name,
                 application_icon = app_id,
-                developer_name = "tobagin",
+                developer_name = "Thiago Fernandes",
                 version = Config.VERSION,
                 developers = developers,
-                copyright = "© 2024 tobagin",
+                copyright = "© 2025 Thiago Fernandes",
                 license_type = Gtk.License.GPL_3_0,
                 website = "https://github.com/tobagin/digger-vala",
                 issue_url = "https://github.com/tobagin/digger-vala/issues",

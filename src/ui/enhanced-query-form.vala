@@ -19,41 +19,65 @@ namespace Digger {
         [GtkChild] private unowned Gtk.DropDown record_type_dropdown;
         [GtkChild] private unowned Gtk.Button query_button;
         [GtkChild] private unowned Gtk.Button paste_button;
-        [GtkChild] private unowned Gtk.MenuButton dns_server_button;
+        [GtkChild] private unowned Gtk.DropDown dns_server_dropdown;
         [GtkChild] private unowned Gtk.Box quick_presets_box;
-        [GtkChild] private unowned Adw.EntryRow custom_dns_entry;
-        [GtkChild] private unowned Gtk.Box advanced_options_container;
+        [GtkChild] private unowned Gtk.Switch reverse_lookup_switch;
+        [GtkChild] private unowned Gtk.Switch trace_path_switch;
+        [GtkChild] private unowned Gtk.Switch short_output_switch;
         
         private AutocompleteDropdown autocomplete_dropdown;
-        private AdvancedOptions advanced_options;
         
         private DnsPresets dns_presets;
         private QueryHistory query_history;
         private string current_dns_server = "";
+        private bool signals_connected = false;
+        private bool _query_in_progress = false;
         
         public signal void query_requested (string domain, RecordType record_type, string? dns_server);
         
         public bool query_in_progress { 
-            get { return !query_button.sensitive; }
+            get { return _query_in_progress; }
             set { 
-                query_button.sensitive = !value;
+                _query_in_progress = value;
                 domain_entry.sensitive = !value;
                 record_type_dropdown.sensitive = !value;
-                dns_server_button.sensitive = !value;
+                dns_server_dropdown.sensitive = !value;
                 
                 if (value) {
                     query_button.label = "Querying...";
+                    query_button.sensitive = false;
                 } else {
                     query_button.label = "Look up DNS records";
+                    // Re-validate to set correct button state
+                    validate_input ();
                 }
             }
         }
         
-        public EnhancedQueryForm (DnsPresets presets) {
-            dns_presets = presets;
+        public EnhancedQueryForm () {
+            // dns_presets will be set via set_dns_presets() after construction
+        }
+        
+        construct {
+            // This runs after the template is applied
+            // Initialize the button to disabled state initially
+            query_button.sensitive = false;
             
+            if (dns_presets != null) {
+                setup_ui ();
+                connect_signals ();
+            }
+        }
+        
+        public void set_dns_presets (DnsPresets presets) {
+            dns_presets = presets;
             setup_ui ();
-            connect_signals ();
+            if (!signals_connected) {
+                connect_signals ();
+                signals_connected = true;
+                // Initial validation after signals are connected
+                validate_input ();
+            }
         }
         
         public void set_query_history (QueryHistory history) {
@@ -66,15 +90,17 @@ namespace Digger {
         }
         
         private void setup_ui () {
-            // Initialize autocomplete dropdown with domain entry from template
-            autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
+            if (dns_presets == null) {
+                return; // Cannot setup UI without presets
+            }
             
-            // Create and add advanced options to container
-            advanced_options = new AdvancedOptions ();
-            advanced_options_container.append (advanced_options);
+            // Initialize autocomplete dropdown with domain entry from template
+            if (autocomplete_dropdown == null) {
+                autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
+            }
             
             setup_record_type_dropdown ();
-            setup_dns_server_button ();
+            setup_dns_server_dropdown ();
             setup_quick_presets ();
         }
         
@@ -119,89 +145,59 @@ namespace Digger {
             });
         }
         
-        private void setup_dns_server_button () {
-            // Set up the popover for the DNS server button (from template)
-            var popover = new Gtk.Popover () {
-                position = Gtk.PositionType.BOTTOM
-            };
-            dns_server_button.popover = popover;
+        private void setup_dns_server_dropdown () {
+            var model = new Gtk.StringList (null);
+            var dns_servers = new Gee.ArrayList<DnsServer> ();
             
-            var popover_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6) {
-                margin_top = 12,
-                margin_bottom = 12,
-                margin_start = 12,
-                margin_end = 12
-            };
+            // Add system default as first option
+            model.append ("System Default");
             
-            // System default option
-            var system_button = new Gtk.Button.with_label ("System Default") {
-                hexpand = true,
-                halign = Gtk.Align.CENTER
-            };
-            system_button.clicked.connect (() => {
-                set_dns_server_internal ("", "System default");
-                popover.popdown ();
-            });
-            popover_box.append (system_button);
-            
-            // Separator
-            popover_box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            
-            // DNS server presets grouped by category
-            var categories = new Gee.HashSet<string> ();
-            foreach (var server in dns_presets.get_dns_servers ()) {
-                categories.add (server.category);
+            // Add all DNS servers from presets
+            var all_servers = dns_presets.get_dns_servers ();
+            foreach (var server in all_servers) {
+                dns_servers.add (server);
+                model.append (server.get_display_name ());
             }
             
-            foreach (string category in categories) {
-                var category_label = new Gtk.Label (category.up ()) {
-                    halign = Gtk.Align.START,
-                    margin_top = 6
-                };
-                category_label.add_css_class ("heading");
-                popover_box.append (category_label);
+            // Add custom option
+            model.append ("Custom DNS Server...");
+            
+            dns_server_dropdown.model = model;
+            dns_server_dropdown.selected = 0; // Default to System Default
+            
+            // Store the dns_servers list for quick access
+            dns_server_dropdown.set_data ("dns_servers", dns_servers);
+            
+            // Add tooltips and handle selection changes
+            dns_server_dropdown.notify["selected"].connect (() => {
+                var selected_index = dns_server_dropdown.selected;
+                var selected_text = model.get_string (selected_index);
                 
-                var servers = dns_presets.get_dns_servers_by_category (category);
-                foreach (var server in servers) {
-                    var server_button = new Gtk.Button.with_label (server.get_display_name ()) {
-                        hexpand = true,
-                        tooltip_text = server.get_tooltip_text (),
-                        halign = Gtk.Align.CENTER
-                    };
-                    
-                    server_button.clicked.connect (() => {
-                        set_dns_server_internal (server.primary, server.get_display_name ());
-                        popover.popdown ();
-                    });
-                    
-                    popover_box.append (server_button);
-                }
-            }
-            
-            // Custom DNS server entry
-            popover_box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            
-            var custom_label = new Gtk.Label ("CUSTOM") {
-                halign = Gtk.Align.START,
-                margin_top = 6
-            };
-            custom_label.add_css_class ("heading");
-            popover_box.append (custom_label);
-            
-            // custom_dns_entry is from template
-            custom_dns_entry.apply.connect (() => {
-                var custom_server = custom_dns_entry.text.strip ();
-                if (custom_server.length > 0) {
-                    set_dns_server_internal (custom_server, @"Custom ($custom_server)");
-                    popover.popdown ();
+                if (selected_index == 0) {
+                    // System Default
+                    current_dns_server = "";
+                    dns_server_dropdown.tooltip_text = "Use system default DNS server";
+                } else if (selected_index == model.get_n_items () - 1) {
+                    // Custom DNS Server option
+                    show_custom_dns_dialog ();
+                } else {
+                    // Preset DNS server
+                    var server = dns_servers.get ((int)(selected_index - 1));
+                    current_dns_server = server.primary;
+                    dns_server_dropdown.tooltip_text = server.get_tooltip_text ();
                 }
             });
-            popover_box.append (custom_dns_entry);
-            
-            popover.child = popover_box;
         }
         
         private void setup_quick_presets () {
+            // Clear any existing preset buttons first
+            var child = quick_presets_box.get_first_child ();
+            while (child != null) {
+                var next = child.get_next_sibling ();
+                quick_presets_box.remove (child);
+                child = next;
+            }
+            
             // quick_presets_box is from template, just add buttons to it
             
             // Add Google DNS preset
@@ -217,11 +213,12 @@ namespace Digger {
         private void add_quick_preset_button (string name, string ip) {
             var preset_button = new Gtk.Button.with_label (name) {
                 tooltip_text = @"Use $name DNS ($ip)",
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
-            preset_button.add_css_class ("pill");
+            // preset_button.add_css_class ("pill");
             preset_button.clicked.connect (() => {
-                set_dns_server_internal (ip, @"$name ($ip)");
+                set_dns_server_by_ip (ip);
             });
             quick_presets_box.append (preset_button);
         }
@@ -241,15 +238,34 @@ namespace Digger {
             // Real-time validation
             domain_entry.changed.connect (validate_input);
             
-            // Initialize autocomplete dropdown
-            autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
-            
-            // Connect autocomplete signals
-            autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
+            // Connect autocomplete signals if dropdown exists
+            if (autocomplete_dropdown != null) {
+                autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
+            }
         }
         
-        public AdvancedOptions get_advanced_options () {
-            return advanced_options;
+        public bool get_reverse_lookup () {
+            return reverse_lookup_switch.active;
+        }
+        
+        public bool get_trace_path () {
+            return trace_path_switch.active;
+        }
+        
+        public bool get_short_output () {
+            return short_output_switch.active;
+        }
+        
+        public void set_reverse_lookup (bool value) {
+            reverse_lookup_switch.active = value;
+        }
+        
+        public void set_trace_path (bool value) {
+            trace_path_switch.active = value;
+        }
+        
+        public void set_short_output (bool value) {
+            short_output_switch.active = value;
         }
         
         private void validate_input () {
@@ -287,18 +303,93 @@ namespace Digger {
             }
         }
         
-        private void set_dns_server_internal (string server, string display_name) {
-            current_dns_server = server;
+        private void set_dns_server_by_ip (string ip) {
+            var model = dns_server_dropdown.model as Gtk.StringList;
+            var dns_servers = dns_server_dropdown.get_data<Gee.ArrayList<DnsServer>> ("dns_servers");
             
-            // Update the DNS server row subtitle
-            var dns_server_row = get_first_child () as Adw.ActionRow;
-            while (dns_server_row != null) {
-                if (dns_server_row.title == "DNS Server") {
-                    dns_server_row.subtitle = display_name;
-                    break;
+            // Look for the server by IP in our list
+            for (int i = 0; i < dns_servers.size; i++) {
+                var server = dns_servers.get (i);
+                if (server.primary == ip) {
+                    // Found it, select this item (add 1 for system default offset)
+                    dns_server_dropdown.selected = (uint)(i + 1);
+                    return;
                 }
-                dns_server_row = dns_server_row.get_next_sibling () as Adw.ActionRow;
             }
+        }
+        
+        private void show_custom_dns_dialog () {
+            var dialog = new Adw.AlertDialog ("Custom DNS Server", "Enter a custom DNS server address:");
+            
+            var entry = new Gtk.Entry () {
+                placeholder_text = "e.g., 1.1.1.1 or dns.example.com"
+            };
+            
+            dialog.set_extra_child (entry);
+            dialog.add_response ("cancel", "Cancel");
+            dialog.add_response ("ok", "OK");
+            dialog.set_response_appearance ("ok", Adw.ResponseAppearance.SUGGESTED);
+            dialog.set_default_response ("ok");
+            
+            var window = get_root () as Gtk.Window;
+            
+            dialog.response.connect ((response) => {
+                if (response == "ok") {
+                    var custom_server = entry.text.strip ();
+                    if (custom_server.length > 0) {
+                        // Add custom server to the model
+                        add_custom_dns_server (custom_server);
+                    } else {
+                        // Go back to system default if empty
+                        dns_server_dropdown.selected = 0;
+                    }
+                } else {
+                    // Cancel - go back to previous selection or system default
+                    dns_server_dropdown.selected = 0;
+                }
+            });
+            
+            dialog.present (window);
+        }
+        
+        private void add_custom_dns_server (string server_ip) {
+            var model = dns_server_dropdown.model as Gtk.StringList;
+            var dns_servers = dns_server_dropdown.get_data<Gee.ArrayList<DnsServer>> ("dns_servers");
+            
+            // Create a custom DNS server entry
+            var custom_server = new DnsServer ();
+            custom_server.name = "Custom";
+            custom_server.primary = server_ip;
+            custom_server.description = @"Custom DNS server ($server_ip)";
+            custom_server.category = "custom";
+            
+            // Check if this custom server already exists
+            for (int i = 0; i < dns_servers.size; i++) {
+                var existing = dns_servers.get (i);
+                if (existing.category == "custom" && existing.primary == server_ip) {
+                    // Already exists, just select it
+                    dns_server_dropdown.selected = (uint)(i + 1);
+                    return;
+                }
+            }
+            
+            // Remove old custom servers from the model and list
+            for (int i = dns_servers.size - 1; i >= 0; i--) {
+                var existing = dns_servers.get (i);
+                if (existing.category == "custom") {
+                    dns_servers.remove_at (i);
+                    model.remove (i + 1); // +1 for system default offset
+                }
+            }
+            
+            // Add the new custom server before the "Custom DNS Server..." option
+            var last_index = model.get_n_items () - 1;
+            dns_servers.add (custom_server);
+            model.splice (last_index, 0, {custom_server.get_display_name ()});
+            
+            // Select the new custom server
+            dns_server_dropdown.selected = (uint)last_index;
+            current_dns_server = server_ip;
         }
         
         private void paste_from_clipboard () {
@@ -363,7 +454,11 @@ namespace Digger {
         }
         
         public void set_dns_server (string server) {
-            set_dns_server_internal (server, server.length > 0 ? @"Custom ($server)" : "System default");
+            if (server.length == 0) {
+                dns_server_dropdown.selected = 0; // System default
+            } else {
+                set_dns_server_by_ip (server);
+            }
         }
         
         public void focus_domain_entry () {
@@ -373,7 +468,7 @@ namespace Digger {
         public void clear_form () {
             domain_entry.text = "";
             record_type_dropdown.selected = 0;
-            set_dns_server_internal ("", "System default");
+            dns_server_dropdown.selected = 0; // System default
             validate_input ();
         }
         

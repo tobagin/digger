@@ -19,26 +19,52 @@ namespace Digger {
         [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
         [GtkChild] private unowned Gtk.Box content_box;
         [GtkChild] private unowned Gtk.ProgressBar progress_bar;
-        [GtkChild] private unowned Gtk.ToggleButton raw_toggle_button;
+        [GtkChild] private unowned Gtk.Box buttons_box;
+        [GtkChild] private unowned Gtk.Button raw_output_button;
+        [GtkChild] private unowned Gtk.Button clear_button;
         
         private QueryResult? current_result = null;
         
         private DnsPresets dns_presets;
-        private bool show_raw_output = false;
         
         public EnhancedResultView () {
             dns_presets = DnsPresets.get_instance ();
+            print (@"EnhancedResultView: dns_presets is $(dns_presets != null ? "not null" : "null")\n");
             setup_ui ();
         }
         
         private void setup_ui () {
-            // Connect raw toggle button
-            raw_toggle_button.toggled.connect (() => {
-                show_raw_output = raw_toggle_button.active;
-                if (current_result != null) {
-                    refresh_display ();
-                }
-            });
+            // Debug: Check if buttons are found
+            print (@"raw_output_button is $(raw_output_button != null ? "not null" : "null")\n");
+            print (@"clear_button is $(clear_button != null ? "not null" : "null")\n");
+            print (@"buttons_box is $(buttons_box != null ? "not null" : "null")\n");
+            
+            if (raw_output_button != null) {
+                // Connect raw output button
+                raw_output_button.clicked.connect (() => {
+                    print ("Raw output button clicked\n");
+                    if (current_result != null) {
+                        print ("Showing raw output dialog\n");
+                        show_raw_output_dialog ();
+                    } else {
+                        print ("No current result\n");
+                    }
+                });
+                print ("Raw output button signal connected\n");
+            } else {
+                print ("ERROR: raw_output_button is null, cannot connect signal\n");
+            }
+            
+            if (clear_button != null) {
+                // Connect clear button
+                clear_button.clicked.connect (() => {
+                    print ("Clear button clicked\n");
+                    clear_results ();
+                });
+                print ("Clear button signal connected\n");
+            } else {
+                print ("ERROR: clear_button is null, cannot connect signal\n");
+            }
             
             // Initially show welcome message
             show_welcome_message ();
@@ -66,6 +92,10 @@ namespace Digger {
             current_result = result;
             progress_bar.visible = false;
             
+            // Show action buttons when we have a result
+            raw_output_button.visible = true;
+            clear_button.visible = true;
+            
             refresh_display ();
         }
         
@@ -77,10 +107,6 @@ namespace Digger {
             // Update summary
             summary_label.label = get_query_info (current_result);
             
-            if (show_raw_output) {
-                show_raw_dig_output (current_result);
-                return;
-            }
             
             if (current_result.status != QueryStatus.SUCCESS) {
                 show_error_message (current_result);
@@ -109,34 +135,25 @@ namespace Digger {
             add_query_statistics (current_result);
         }
         
-        private void show_raw_dig_output (QueryResult result) {
-            var raw_group = new Adw.PreferencesGroup () {
-                title = "Raw dig Output",
-                margin_start = 6,
-                margin_end = 6
-            };
+        private void show_raw_output_dialog () {
+            var dialog = new Adw.AlertDialog (
+                "Raw dig Output",
+                current_result.raw_output ?? "No raw output available"
+            );
             
-            var text_view = new Gtk.TextView () {
-                editable = false,
-                cursor_visible = false,
-                wrap_mode = Gtk.WrapMode.NONE,
-                monospace = true
-            };
-            text_view.buffer.text = result.raw_output ?? "No raw output available";
-            text_view.add_css_class ("card");
+            dialog.add_response ("copy", "Copy");
+            dialog.add_response ("close", "Close");
+            dialog.set_response_appearance ("copy", Adw.ResponseAppearance.SUGGESTED);
+            dialog.set_default_response ("close");
             
-            var scrolled = new Gtk.ScrolledWindow () {
-                height_request = 300,
-                hscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
-                vscrollbar_policy = Gtk.PolicyType.AUTOMATIC
-            };
-            scrolled.child = text_view;
+            dialog.response.connect ((response) => {
+                if (response == "copy") {
+                    var clipboard = this.get_clipboard ();
+                    clipboard.set_text (current_result.raw_output ?? "");
+                }
+            });
             
-            var raw_row = new Adw.ActionRow ();
-            raw_row.add_suffix (scrolled);
-            raw_group.add (raw_row);
-            
-            content_box.append (raw_group);
+            dialog.present (this.get_root () as Gtk.Window);
         }
         
         private string get_query_info (QueryResult result) {
@@ -287,7 +304,10 @@ namespace Digger {
             var row = new Adw.ActionRow ();
             
             // Get record type information for enhanced display
-            var type_info = dns_presets.get_record_type_info (record.record_type.to_string ());
+            RecordTypeInfo? type_info = null;
+            if (dns_presets != null) {
+                type_info = dns_presets.get_record_type_info (record.record_type.to_string ());
+            }
             
             // Create colored record type badge
             var type_badge = new Gtk.Label (record.record_type.to_string ()) {
@@ -317,9 +337,9 @@ namespace Digger {
             var value_label = new Gtk.Label (record.get_display_value ()) {
                 halign = Gtk.Align.END,
                 selectable = true,
-                wrap = true,
-                wrap_mode = Pango.WrapMode.WORD_CHAR,
-                max_width_chars = 50
+                wrap = false,
+                ellipsize = Pango.EllipsizeMode.END,
+                max_width_chars = 80
             };
             value_label.add_css_class ("monospace");
             
@@ -346,7 +366,8 @@ namespace Digger {
                 title = "Query Statistics",
                 margin_start = 6,
                 margin_end = 6,
-                margin_top = 12
+                margin_top = 12,
+                margin_bottom = 12
             };
             
             // Query time
@@ -403,6 +424,11 @@ namespace Digger {
         public void clear_results () {
             current_result = null;
             progress_bar.visible = false;
+            
+            // Hide action buttons when clearing results
+            raw_output_button.visible = false;
+            clear_button.visible = false;
+            
             show_welcome_message ();
         }
         

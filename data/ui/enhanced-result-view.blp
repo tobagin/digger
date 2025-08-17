@@ -26,11 +26,23 @@ template $DiggerEnhancedResultView : Box {
       styles ["heading"]
     }
 
-    ToggleButton raw_toggle_button {
-      icon-name: "text-x-generic-symbolic";
-      tooltip-text: "Toggle raw dig output";
-      halign: center;
+    Box buttons_box {
+      orientation: horizontal;
+      spacing: 6;
+      halign: end;
       valign: center;
+
+      Button raw_output_button {
+        icon-name: "text-x-generic-symbolic";
+        tooltip-text: "Show raw dig output";
+        visible: false;
+      }
+
+      Button clear_button {
+        icon-name: "edit-clear-symbolic";
+        tooltip-text: "Clear results";
+        visible: false;
+      }
     }
   }
 

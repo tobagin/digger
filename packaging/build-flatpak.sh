@@ -76,7 +76,7 @@ fi
 # Determine script directory (where this script is located)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Project root is the current directory (where this script is located)
+# Project root is the script directory
 PROJECT_ROOT="$SCRIPT_DIR"
 
 # Packaging directory is inside the project root

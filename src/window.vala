@@ -24,7 +24,6 @@ namespace Digger {
         [GtkChild] private unowned Gtk.SearchEntry history_search_entry;
         [GtkChild] private unowned Gtk.Button clear_button;
         
-        private AdvancedOptions advanced_options;
         
         private DnsQuery dns_query;
         private QueryHistory query_history;
@@ -50,11 +49,20 @@ namespace Digger {
         }
 
         private void setup_ui () {
+            // Initialize the enhanced query form with DNS presets
+            query_form.set_dns_presets (dns_presets);
+            
             // Connect query history to enhanced form for autocomplete
             query_form.set_query_history (query_history);
             
-            // Get advanced options from the form (they should be embedded in the blueprint)
-            advanced_options = query_form.get_advanced_options ();
+            // Set custom history icon
+            history_button.icon_name = Config.APP_ID + "-history";
+            
+            // Ensure the popover is connected to the button
+            history_button.popover = history_popover;
+            
+            // Ensure result view shows welcome message initially
+            result_view.clear_results ();
         }
 
         private void setup_actions () {
@@ -86,6 +94,7 @@ namespace Digger {
             
             // Update history list initially
             update_history_list ();
+            
         }
         
         private void on_clear_history () {
@@ -109,7 +118,9 @@ namespace Digger {
         private void clear_results () {
             result_view.clear_results ();
             query_form.clear_form ();
-            advanced_options.reset_to_defaults ();
+            query_form.set_reverse_lookup (false);
+            query_form.set_trace_path (false);
+            query_form.set_short_output (false);
             query_form.focus_domain_entry ();
         }
 
@@ -127,11 +138,8 @@ namespace Digger {
 
             query_in_progress = true;
             
-            // Get advanced options
+            // Use the provided DNS server
             string? server = dns_server;
-            if (server == "System default") {
-                server = advanced_options.dns_server;
-            }
             if (server != null && server.length == 0) {
                 server = null;
             }
@@ -143,9 +151,9 @@ namespace Digger {
                     domain,
                     record_type,
                     server,
-                    advanced_options.reverse_lookup,
-                    advanced_options.trace_path,
-                    advanced_options.short_output
+                    query_form.get_reverse_lookup (),
+                    query_form.get_trace_path (),
+                    query_form.get_short_output ()
                 );
 
                 if (result != null) {
@@ -263,7 +271,9 @@ namespace Digger {
             query_form.set_domain (result.domain);
             query_form.set_record_type (result.query_type);
             query_form.set_dns_server (result.dns_server);
-            advanced_options.apply_from_query_result (result);
+            query_form.set_reverse_lookup (result.reverse_lookup);
+            query_form.set_trace_path (result.trace_path);
+            query_form.set_short_output (result.short_output);
         }
     }
 }
