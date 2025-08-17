@@ -55,8 +55,7 @@ namespace Digger {
             // Connect query history to enhanced form for autocomplete
             query_form.set_query_history (query_history);
             
-            // Set custom history icon
-            history_button.icon_name = Config.APP_ID + "-history";
+            // Use standard symbolic icon for proper theme support (set in Blueprint)
             
             // Connect button click to show popover manually
             history_button.clicked.connect (() => {
