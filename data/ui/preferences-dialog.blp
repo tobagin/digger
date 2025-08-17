@@ -1,0 +1,41 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerPreferencesDialog : Adw.PreferencesDialog {
+  title: _("Preferences");
+  
+  Adw.PreferencesPage {
+    title: _("General");
+    icon-name: "preferences-system-symbolic";
+    
+    Adw.PreferencesGroup {
+      title: _("Appearance");
+      description: _("Customize the application appearance");
+      
+      Adw.ComboRow color_scheme_row {
+        title: _("Color Scheme");
+        subtitle: _("Choose the application color scheme");
+      }
+    }
+    
+    Adw.PreferencesGroup {
+      title: _("DNS Defaults");
+      description: _("Default settings for DNS queries");
+      
+      Adw.ComboRow default_record_type_row {
+        title: _("Default Record Type");
+        subtitle: _("The default DNS record type for new queries");
+      }
+    }
+    
+    Adw.PreferencesGroup {
+      title: _("History & Data");
+      description: _("Manage query history and data storage");
+      
+      Adw.SpinRow query_history_limit_row {
+        title: _("Query History Limit");
+        subtitle: _("Maximum number of queries to keep in history");
+      }
+    }
+  }
+}

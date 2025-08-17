@@ -18,7 +18,7 @@ namespace Digger {
         [GtkChild] private unowned Adw.ToastOverlay toast_overlay;
         [GtkChild] private unowned EnhancedQueryForm query_form;
         [GtkChild] private unowned EnhancedResultView result_view;
-        [GtkChild] private unowned Gtk.MenuButton history_button;
+        [GtkChild] private unowned Gtk.Button history_button;
         [GtkChild] private unowned Gtk.Popover history_popover;
         [GtkChild] private unowned Gtk.ListBox history_listbox;
         [GtkChild] private unowned Gtk.SearchEntry history_search_entry;
@@ -58,8 +58,22 @@ namespace Digger {
             // Set custom history icon
             history_button.icon_name = Config.APP_ID + "-history";
             
-            // Ensure the popover is connected to the button
-            history_button.popover = history_popover;
+            // Connect button click to show popover manually
+            history_button.clicked.connect (() => {
+                history_popover.set_parent (history_button);
+                history_popover.popup ();
+            });
+            
+            // Fix popover focus issues
+            history_popover.autohide = true;
+            history_popover.can_focus = false;
+            
+            // Ensure history components are sensitive and enabled
+            history_button.sensitive = true;
+            history_popover.sensitive = true;
+            history_listbox.sensitive = true;
+            history_search_entry.sensitive = true;
+            clear_button.sensitive = true;
             
             // Ensure result view shows welcome message initially
             result_view.clear_results ();
@@ -92,9 +106,92 @@ namespace Digger {
             
             query_history.history_updated.connect (update_history_list);
             
+            // Connect to popover show signal to ensure widgets are enabled
+            history_popover.show.connect (() => {
+                debug ("Popover shown - forcing widget sensitivity");
+                
+                // Force enable immediately when shown
+                Idle.add (() => {
+                    force_enable_history_components ();
+                    
+                    // Additional debugging
+                    debug ("SearchEntry sensitive: %s, can_focus: %s", 
+                           history_search_entry.sensitive.to_string(),
+                           history_search_entry.can_focus.to_string());
+                    debug ("ListBox sensitive: %s, can_focus: %s", 
+                           history_listbox.sensitive.to_string(),
+                           history_listbox.can_focus.to_string());
+                    debug ("Clear button sensitive: %s, can_focus: %s", 
+                           clear_button.sensitive.to_string(),
+                           clear_button.can_focus.to_string());
+                    
+                    // Allow natural focus flow instead of forcing focus
+                    // history_search_entry.grab_focus ();
+                    
+                    return false;
+                });
+            });
+            
             // Update history list initially
             update_history_list ();
             
+            // Force enable history components after everything is connected
+            force_enable_history_components ();
+            
+            // Also try after a short delay to ensure UI is fully loaded
+            Timeout.add (100, () => {
+                force_enable_history_components ();
+                return false;
+            });
+        }
+        
+        private void force_enable_history_components () {
+            // Force enable all history-related widgets
+            history_button.set_sensitive (true);
+            history_popover.set_sensitive (true);
+            
+            // Ensure popover handles focus correctly
+            history_popover.autohide = true;
+            history_popover.can_focus = false;
+            
+            // Enable the history box container
+            var history_box = history_popover.get_child ();
+            if (history_box != null) {
+                history_box.set_sensitive (true);
+                history_box.can_focus = true;
+            }
+            
+            history_listbox.set_sensitive (true);
+            history_search_entry.set_sensitive (true);
+            clear_button.set_sensitive (true);
+            
+            // Also try setting can_focus to ensure they're interactive
+            history_search_entry.can_focus = true;
+            history_listbox.can_focus = true;
+            clear_button.can_focus = true;
+            
+            // Enable the ListBox selection and activation
+            history_listbox.selection_mode = Gtk.SelectionMode.SINGLE;
+            history_listbox.activate_on_single_click = true;
+            
+            // Make sure all existing rows are also enabled
+            var child = history_listbox.get_first_child ();
+            while (child != null) {
+                if (child is Gtk.ListBoxRow) {
+                    var row = child as Gtk.ListBoxRow;
+                    row.set_sensitive (true);
+                    row.set_activatable (true);
+                    row.set_selectable (true);
+                    row.can_focus = true;
+                }
+                child = child.get_next_sibling ();
+            }
+            
+            // Print debug info
+            debug ("History button sensitive: %s", history_button.sensitive.to_string ());
+            debug ("History popover sensitive: %s", history_popover.sensitive.to_string ());
+            debug ("History search sensitive: %s", history_search_entry.sensitive.to_string ());
+            debug ("History listbox sensitive: %s", history_listbox.sensitive.to_string ());
         }
         
         private void on_clear_history () {
@@ -146,24 +243,18 @@ namespace Digger {
             
             result_view.show_query_started (domain, record_type, server);
 
-            try {
-                var result = yield dns_query.perform_query (
-                    domain,
-                    record_type,
-                    server,
-                    query_form.get_reverse_lookup (),
-                    query_form.get_trace_path (),
-                    query_form.get_short_output ()
-                );
+            var result = yield dns_query.perform_query (
+                domain,
+                record_type,
+                server,
+                query_form.get_reverse_lookup (),
+                query_form.get_trace_path (),
+                query_form.get_short_output ()
+            );
 
-                if (result != null) {
-                    result_view.show_result (result);
-                    query_history.add_query (result);
-                }
-
-            } catch (Error e) {
-                show_toast (@"Query failed: $(e.message)");
-                result_view.clear_results ();
+            if (result != null) {
+                result_view.show_result (result);
+                query_history.add_query (result);
             }
 
             query_in_progress = false;
@@ -216,10 +307,17 @@ namespace Digger {
                 var row = create_history_row (result);
                 history_listbox.append (row);
             }
+            
+            // Force enable components after adding new rows
+            force_enable_history_components ();
         }
 
         private Gtk.ListBoxRow create_history_row (QueryResult result) {
             var row = new Gtk.ListBoxRow ();
+            row.selectable = true;
+            row.activatable = true;
+            row.sensitive = true;
+            row.can_focus = true;
             
             var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 3) {
                 margin_top = 6,
@@ -243,7 +341,8 @@ namespace Digger {
             
             subtitle_parts.add (result.get_summary ());
 
-            var subtitle_label = new Gtk.Label (string.joinv (" • ", subtitle_parts.to_array ())) {
+            string[] subtitle_array = subtitle_parts.to_array ();
+            var subtitle_label = new Gtk.Label (string.joinv (" • ", subtitle_array)) {
                 halign = Gtk.Align.START,
                 ellipsize = Pango.EllipsizeMode.END
             };
@@ -268,7 +367,7 @@ namespace Digger {
         }
 
         private void apply_query_settings (QueryResult result) {
-            query_form.set_domain (result.domain);
+            query_form.set_domain_from_history (result.domain);
             query_form.set_record_type (result.query_type);
             query_form.set_dns_server (result.dns_server);
             query_form.set_reverse_lookup (result.reverse_lookup);

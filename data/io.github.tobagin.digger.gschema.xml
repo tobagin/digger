@@ -31,11 +31,6 @@
       <summary>Color scheme preference</summary>
       <description>The preferred color scheme: system, light, or dark</description>
     </key>
-    <key name="show-raw-output" type="b">
-      <default>false</default>
-      <summary>Show raw dig output by default</summary>
-      <description>Whether to show raw dig output instead of parsed results by default</description>
-    </key>
     <key name="query-history-limit" type="i">
       <default>100</default>
       <summary>Query history limit</summary>

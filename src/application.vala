@@ -61,10 +61,14 @@ namespace Digger {
             };
             add_action_entries (action_entries, this);
 
-            set_accels_for_action ("app.quit", {"<primary>q"});
-            set_accels_for_action ("win.new-query", {"<primary>l"});
-            set_accels_for_action ("win.repeat-query", {"<primary>r"});
-            set_accels_for_action ("win.clear-results", {"Escape"});
+            string[] quit_accels = {"<primary>q"};
+            set_accels_for_action ("app.quit", quit_accels);
+            string[] new_query_accels = {"<primary>l"};
+            set_accels_for_action ("win.new-query", new_query_accels);
+            string[] repeat_query_accels = {"<primary>r"};
+            set_accels_for_action ("win.repeat-query", repeat_query_accels);
+            string[] clear_results_accels = {"Escape"};
+            set_accels_for_action ("win.clear-results", clear_results_accels);
         }
         
         private void register_resources () {
@@ -111,8 +115,8 @@ namespace Digger {
         }
 
         private void on_preferences_action () {
-            // TODO: Implement preferences dialog
-            message ("Preferences dialog not yet implemented");
+            var preferences_dialog = new PreferencesDialog (main_window);
+            preferences_dialog.present (main_window);
         }
     }
 }

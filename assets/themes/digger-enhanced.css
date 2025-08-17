@@ -32,9 +32,10 @@ dropdown {
   valign: center;
 }
 
-entry {
+/* Centering removed from all entries to fix history search interaction */
+/* entry {
   text-align: center;
-}
+} */
 
 /* Status-based styling */
 .success {

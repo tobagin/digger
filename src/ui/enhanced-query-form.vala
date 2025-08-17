@@ -333,7 +333,7 @@ namespace Digger {
             
             var window = get_root () as Gtk.Window;
             
-            dialog.response.connect ((response) => {
+            dialog.response.connect_after ((response) => {
                 if (response == "ok") {
                     var custom_server = entry.text.strip ();
                     if (custom_server.length > 0) {
@@ -382,10 +382,17 @@ namespace Digger {
                 }
             }
             
-            // Add the new custom server before the "Custom DNS Server..." option
+            // Add the new custom server
             var last_index = model.get_n_items () - 1;
             dns_servers.add (custom_server);
-            model.splice (last_index, 0, {custom_server.get_display_name ()});
+            
+            // Get the "Custom DNS Server..." option and remove it temporarily
+            var custom_option_text = model.get_string (last_index);
+            model.remove (last_index);
+            
+            // Add the new server, then re-add the "Custom DNS Server..." option
+            model.append (custom_server.get_display_name ());
+            model.append (custom_option_text);
             
             // Select the new custom server
             dns_server_dropdown.selected = (uint)last_index;
@@ -428,6 +435,15 @@ namespace Digger {
         
         public void set_domain (string domain) {
             domain_entry.text = domain;
+            validate_input ();
+        }
+        
+        public void set_domain_from_history (string domain) {
+            if (autocomplete_dropdown != null) {
+                autocomplete_dropdown.set_domain_without_autocomplete (domain);
+            } else {
+                domain_entry.text = domain;
+            }
             validate_input ();
         }
         

@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="@APP_ID_PATH@">
     <file compressed="true" preprocess="xml-stripblanks">window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">preferences-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-result-view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">advanced-options.ui</file>

@@ -27,6 +27,7 @@ namespace Digger {
         private Gee.ArrayList<DomainSuggestion> current_suggestions;
         private int selected_index = -1;
         private bool showing_suggestions = false;
+        private bool suggestions_enabled = true;
         
         public signal void suggestion_selected (string domain);
         
@@ -58,6 +59,10 @@ namespace Digger {
         }
         
         private void on_entry_changed () {
+            if (!suggestions_enabled) {
+                return;
+            }
+            
             string text = target_entry.text.strip ();
             
             if (text.length < 2) {
@@ -86,9 +91,13 @@ namespace Digger {
                 case Gdk.Key.KP_Enter:
                     if (selected_index >= 0 && selected_index < current_suggestions.size) {
                         apply_suggestion (current_suggestions[selected_index]);
+                        // Ensure popover is hidden immediately
+                        hide_suggestions ();
                         return true;
                     }
-                    break;
+                    // If no suggestion is selected, hide the popover and let the normal Enter handling proceed
+                    hide_suggestions ();
+                    return false;
                     
                 case Gdk.Key.Escape:
                     hide_suggestions ();
@@ -107,8 +116,12 @@ namespace Digger {
         
         private void on_entry_focus_out () {
             // Delay hiding to allow for mouse clicks on suggestions
-            Timeout.add (100, () => {
-                hide_suggestions ();
+            // Use a slightly longer delay to ensure click events are processed
+            Timeout.add (150, () => {
+                // Only hide if we're still showing suggestions and don't have focus
+                if (showing_suggestions && !target_entry.has_focus) {
+                    hide_suggestions ();
+                }
                 return false;
             });
         }
@@ -117,6 +130,7 @@ namespace Digger {
             int index = row.get_index ();
             if (index >= 0 && index < current_suggestions.size) {
                 apply_suggestion (current_suggestions[index]);
+                hide_suggestions ();
             }
         }
         
@@ -260,7 +274,7 @@ namespace Digger {
             // Record usage for improved suggestions
             suggestion_engine.record_domain_usage (suggestion.domain);
             
-            hide_suggestions ();
+            // Emit signal before hiding to ensure proper order
             suggestion_selected (suggestion.domain);
         }
         
@@ -305,6 +319,31 @@ namespace Digger {
         public void clear_suggestions () {
             current_suggestions.clear ();
             hide_suggestions ();
+        }
+        
+        /**
+         * Temporarily disable autocomplete suggestions
+         */
+        public void disable_suggestions () {
+            suggestions_enabled = false;
+            hide_suggestions ();
+        }
+        
+        /**
+         * Re-enable autocomplete suggestions
+         */
+        public void enable_suggestions () {
+            suggestions_enabled = true;
+        }
+        
+        /**
+         * Set domain text without triggering autocomplete
+         */
+        public void set_domain_without_autocomplete (string domain) {
+            disable_suggestions ();
+            target_entry.text = domain;
+            target_entry.set_position (-1);
+            enable_suggestions ();
         }
     }
 }

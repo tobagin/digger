@@ -221,7 +221,8 @@ namespace Digger {
                 subtitle_parts.add (@"$((int)result.query_time_ms)ms");
             }
             
-            var subtitle_label = new Gtk.Label (string.joinv (" • ", subtitle_parts.to_array ())) {
+            string[] subtitle_array = subtitle_parts.to_array ();
+            var subtitle_label = new Gtk.Label (string.joinv (" • ", subtitle_array)) {
                 halign = Gtk.Align.START,
                 ellipsize = Pango.EllipsizeMode.END
             };

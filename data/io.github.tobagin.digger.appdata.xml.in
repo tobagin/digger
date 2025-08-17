@@ -42,15 +42,76 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
-    <release version="1.0.0" date="2024-08-16">
+    <release version="2.0.0" date="2025-08-17">
+      <description>
+        <p>Major rewrite from Python to Vala with significant enhancements</p>
+        <ul>
+          <li>Complete rewrite in Vala for improved performance and native integration</li>
+          <li>Enhanced modern GTK4/libadwaita interface with improved user experience</li>
+          <li>Advanced DNS options including reverse lookups and trace queries</li>
+          <li>Comprehensive query history with search and filtering capabilities</li>
+          <li>Support for additional DNS record types (SRV, PTR)</li>
+          <li>Dynamic app ID system with blueprint UI templates</li>
+          <li>Improved domain autocomplete functionality</li>
+          <li>Better keyboard shortcuts and productivity features</li>
+          <li>Enhanced clipboard integration and one-click copying</li>
+          <li>Optimized for better desktop and mobile compatibility</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.1" date="2025-07-14">
+      <description>
+        <p>Refreshed application icon with improved visual design and better integration with modern desktop environments</p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2025-07-10">
+      <description>
+        <p>First stable release featuring comprehensive DNS lookup capabilities</p>
+        <ul>
+          <li>Query history with advanced search and filtering</li>
+          <li>Advanced DNS query options and configurations</li>
+          <li>Modern GTK4/libadwaita interface</li>
+          <li>Full support for all common DNS record types</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.2.2" date="2025-07-10">
+      <description>
+        <p>Minor release with scalable icon cleanup</p>
+        <ul>
+          <li>Removed scalable icon directory references</li>
+          <li>Updated icon documentation and verification scripts</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.2.1" date="2025-07-10">
+      <description>
+        <p>Bug fix release</p>
+        <ul>
+          <li>Corrected version information in about dialog</li>
+          <li>Updated Flatpak manifest</li>
+          <li>Ensured version consistency across components</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.2.0" date="2025-07-10">
+      <description>
+        <p>Self-contained DNS lookup tool</p>
+        <ul>
+          <li>Bundled dig command (BIND 9.16.48)</li>
+          <li>Eliminated system DNS tool dependencies</li>
+          <li>Improved sandbox compatibility</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.0" date="2025-07-07">
       <description>
         <p>Initial release</p>
         <ul>
-          <li>DNS lookup functionality for all major record types</li>
-          <li>Advanced DNS query options</li>
-          <li>Query history with search</li>
-          <li>Modern GTK4/libadwaita interface</li>
-          <li>Clipboard integration</li>
+          <li>Supports A, AAAA, MX, TXT, NS, CNAME, and SOA record types</li>
+          <li>Custom DNS server specification</li>
+          <li>GTK4/LibAdwaita interface</li>
+          <li>Structured results display</li>
         </ul>
       </description>
     </release>

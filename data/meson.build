@@ -60,6 +60,7 @@ fs = import('fs')
 # Blueprint files
 blueprint_files = [
   'ui/window.blp',
+  'ui/preferences-dialog.blp',
   'ui/enhanced-query-form.blp',
   'ui/enhanced-result-view.blp',
   'ui/advanced-options.blp',

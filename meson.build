@@ -1,6 +1,6 @@
 project('digger-vala', 'vala', 'c',
-  version: '1.0.0',
-  default_options: ['warning_level=3'],
+  version: '2.0.0',
+  default_options: ['warning_level=1'],
   meson_version: '>= 0.58.0'
 )
 
@@ -57,6 +57,7 @@ executable('digger-vala',
   'src/main.vala',
   'src/application.vala',
   'src/window.vala',
+  'src/preferences-dialog.vala',
   'src/dns-query.vala',
   'src/dns-record.vala',
   'src/query-history.vala',

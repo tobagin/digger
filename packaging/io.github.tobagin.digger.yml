@@ -120,7 +120,7 @@ modules:
     buildsystem: meson
     sources:
       - type: archive
-        url: https://github.com/tobagin/digger-vala/archive/v1.0.0.tar.gz
+        url: https://github.com/tobagin/digger-vala/archive/v2.0.0.tar.gz
         sha256: REPLACE_WITH_ACTUAL_SHA256_WHEN_RELEASING
         x-checker-data:
           type: anitya

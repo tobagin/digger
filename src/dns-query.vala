@@ -172,6 +172,12 @@ namespace Digger {
                     continue;
                 }
 
+                // Parse header status (e.g., "status: NXDOMAIN")
+                if (trimmed_line.has_prefix (";;") && trimmed_line.contains ("->>HEADER<<-")) {
+                    parse_header_status (trimmed_line, result);
+                    continue;
+                }
+
                 // Handle query time and other stats
                 if (trimmed_line.has_prefix (";;") && trimmed_line.contains ("Query time:")) {
                     parse_query_time (trimmed_line, result);
@@ -216,6 +222,10 @@ namespace Digger {
                             break;
                         case ParseSection.ADDITIONAL:
                             result.additional_section.add (record);
+                            break;
+                        case ParseSection.NONE:
+                            // Default section - add to answer
+                            result.answer_section.add (record);
                             break;
                     }
                 }
@@ -286,6 +296,44 @@ namespace Digger {
             }
 
             return new DnsRecord (name, record_type, ttl, value, priority);
+        }
+
+        private void parse_header_status (string line, QueryResult result) {
+            // Example: ";; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 49919"
+            if (line.contains ("status:")) {
+                var parts = line.split ("status:");
+                if (parts.length >= 2) {
+                    var status_part = parts[1].strip ();
+                    var status_components = status_part.split (",");
+                    if (status_components.length >= 1) {
+                        string status = status_components[0].strip ().down ();
+                        
+                        switch (status) {
+                            case "nxdomain":
+                                result.status = QueryStatus.NXDOMAIN;
+                                break;
+                            case "servfail":
+                                result.status = QueryStatus.SERVFAIL;
+                                break;
+                            case "noerror":
+                                result.status = QueryStatus.SUCCESS;
+                                break;
+                            case "refused":
+                                result.status = QueryStatus.REFUSED;
+                                break;
+                            case "formerr":
+                                result.status = QueryStatus.NETWORK_ERROR;
+                                break;
+                            case "notimpl":
+                                result.status = QueryStatus.NETWORK_ERROR;
+                                break;
+                            default:
+                                // Keep existing status if unknown
+                                break;
+                        }
+                    }
+                }
+            }
         }
 
         private void parse_query_time (string line, QueryResult result) {
