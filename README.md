@@ -47,7 +47,21 @@ A modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides 
 
 ## Installation
 
-### Prerequisites
+### Flatpak
+
+```bash
+# Install from Flathub (when available)
+flatpak install flathub io.github.tobagin.digger
+flatpak run io.github.tobagin.digger
+```
+
+**Current Status**: Flatpak builds are working perfectly! Both production and development manifests are fully functional with embedded `dig` command support.
+
+### Building from Source
+
+> **Note**: Building from source requires development dependencies. For regular users, the Flatpak installation above is recommended as it includes all dependencies automatically.
+
+#### Prerequisites (for building only)
 
 **Fedora/RHEL:**
 ```bash
@@ -63,18 +77,6 @@ sudo apt install valac meson libgtk-4-dev libadwaita-1-dev libjson-glib-dev libg
 ```bash
 sudo pacman -S vala meson gtk4 libadwaita json-glib gee bind
 ```
-
-### Flatpak (Recommended)
-
-```bash
-# Install from Flathub (when available)
-flatpak install flathub io.github.tobagin.digger
-flatpak run io.github.tobagin.digger
-```
-
-**Current Status**: Flatpak builds are working perfectly! Both production and development manifests are fully functional with embedded `dig` command support.
-
-### Building from Source
 
 #### Using Build Scripts (Recommended)
 ```bash
