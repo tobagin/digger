@@ -8,11 +8,14 @@ A modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides 
 
 - 🔍 **Comprehensive DNS Queries**: Support for all major DNS record types (A, AAAA, CNAME, MX, NS, PTR, TXT, SOA, SRV, ANY)
 - ⚙️ **Advanced Options**: Reverse DNS lookup, trace queries, custom DNS servers, and short output format
-- 📝 **Query History**: Persistent history with search and filtering capabilities
-- 📋 **Clipboard Integration**: One-click copying of DNS record values
-- ⌨️ **Keyboard Shortcuts**: Efficient navigation with keyboard shortcuts
-- 🎨 **Modern Interface**: Clean, adaptive UI built with libadwaita
-- 🌐 **Network Diagnostics**: Detailed error handling and network troubleshooting
+- 📝 **Enhanced Query History**: Persistent history with advanced search, filtering, and management capabilities
+- 🔄 **Smart Autocomplete**: Intelligent domain suggestions with usage tracking and quick selection
+- 📋 **Clipboard Integration**: One-click copying of DNS record values and raw dig output
+- ⌨️ **Keyboard Shortcuts**: Efficient navigation with comprehensive keyboard shortcuts
+- 🎨 **Modern Interface**: Clean, adaptive UI built with libadwaita and blueprint templates
+- 🌐 **Network Diagnostics**: Detailed error handling with proper NXDOMAIN, SERVFAIL, and timeout detection
+- ⚙️ **Preferences**: Customizable themes, default settings, and history management
+- 🚀 **Performance**: Native Vala implementation for optimal speed and resource usage
 
 ## Installation
 
@@ -45,10 +48,25 @@ flatpak run io.github.tobagin.digger
 
 ### Building from Source
 
-#### Using Flatpak Builder
+#### Using Build Scripts (Recommended)
 ```bash
-git clone https://github.com/tobagin/digger-vala.git
-cd digger-vala
+git clone https://github.com/tobagin/Digger.git
+cd Digger
+
+# Production build
+./build.sh
+
+# Development build (with debug info)
+./build.sh --dev
+
+# Build and run development version
+./build.sh --dev --run
+```
+
+#### Using Flatpak Builder (Manual)
+```bash
+git clone https://github.com/tobagin/Digger.git
+cd Digger
 
 # Install Flatpak build dependencies
 sudo dnf install flatpak flatpak-builder  # Fedora/RHEL
@@ -60,18 +78,18 @@ flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.f
 flatpak install flathub org.gnome.Platform//48 org.gnome.Sdk//48
 
 # Build and install the Flatpak (Production)
-flatpak-builder --user --install --force-clean builddir io.github.tobagin.digger.yml
+flatpak-builder --user --install --force-clean build-dir packaging/io.github.tobagin.digger.yml
 flatpak run io.github.tobagin.digger
 
 # Build and install the Flatpak (Development)
-flatpak-builder --user --install --force-clean builddir io.github.tobagin.digger.Devel.yml
+flatpak-builder --user --install --force-clean build-dir-dev packaging/io.github.tobagin.digger.Devel.yml
 flatpak run io.github.tobagin.digger.Devel
 ```
 
-#### Traditional Build
+#### Traditional Meson Build
 ```bash
-git clone https://github.com/tobagin/digger-vala.git
-cd digger-vala
+git clone https://github.com/tobagin/Digger.git
+cd Digger
 meson setup builddir
 meson compile -C builddir
 sudo meson install -C builddir
@@ -80,11 +98,14 @@ sudo meson install -C builddir
 ### Development
 
 ```bash
-# Run without installing
-./builddir/digger-vala
+# Quick development build and run
+./build.sh --dev --run
+
+# Manual development run
+flatpak run io.github.tobagin.digger.Devel
 
 # Enable debug logging
-G_MESSAGES_DEBUG=all ./builddir/digger-vala
+G_MESSAGES_DEBUG=all flatpak run io.github.tobagin.digger.Devel
 ```
 
 ## Usage
@@ -107,38 +128,66 @@ Expand the "Advanced Options" section to access:
 - `Escape`: Clear results and return to empty state
 - `Enter`: Submit query when in any input field
 
-### Query History
-- Access history via the history button in the header
-- Search through previous queries
-- Click any history item to repeat the query
-- Clear history when needed
+### Smart Autocomplete
+- **Domain Suggestions**: Start typing a domain to see intelligent suggestions
+- **Usage Tracking**: Frequently used domains appear first in suggestions
+- **Keyboard Navigation**: Use arrow keys to navigate, Enter to select
+- **Automatic Hiding**: Suggestions automatically hide after selection
+
+### Enhanced Query History
+- **Easy Access**: Click the history button in the header bar
+- **Advanced Search**: Search through previous queries with real-time filtering
+- **Smart Selection**: Click any history item to instantly repeat that query
+- **No Autocomplete Interference**: History selection won't trigger autocomplete popover
+- **Comprehensive Management**: Clear history or manage query limits in preferences
+
+### Preferences & Customization
+- **Theme Selection**: Choose between system, light, or dark themes
+- **Default Settings**: Set default DNS record type and other preferences
+- **History Management**: Configure query history limits and behavior
+- **Modern Interface**: Clean preferences dialog with organized settings
 
 ## Architecture
 
 Digger follows a clean, modular architecture:
 
 ```
-digger-vala/
+Digger/
 ├── src/
-│   ├── main.vala              # Application entry point
-│   ├── application.vala       # Main application class
-│   ├── window.vala           # Main window and UI logic
-│   ├── dns-query.vala        # DNS query backend
-│   ├── dns-record.vala       # Data models and types
-│   ├── query-history.vala    # History management
-│   ├── query-result-view.vala # Results display
-│   └── advanced-options.vala # Advanced options panel
-├── data/                     # Application data files
-└── po/                      # Translations
+│   ├── main.vala                    # Application entry point
+│   ├── application.vala             # Main application class  
+│   ├── window.vala                  # Main window and UI logic
+│   ├── preferences-dialog.vala      # Preferences and settings
+│   ├── dns-query.vala              # DNS query backend with enhanced parsing
+│   ├── dns-record.vala             # Data models and enums
+│   ├── query-history.vala          # History management
+│   ├── query-result-view.vala      # Results display
+│   ├── advanced-options.vala       # Advanced options panel
+│   ├── ui/
+│   │   ├── enhanced-query-form.vala    # Modern query input form
+│   │   ├── enhanced-result-view.vala   # Enhanced results display
+│   │   ├── enhanced-history-search.vala # Advanced history search
+│   │   ├── autocomplete-dropdown.vala  # Smart autocomplete widget
+│   │   └── theme-manager.vala          # Theme management
+│   └── features/
+│       ├── dns-presets.vala         # DNS server presets
+│       └── domain-suggestions.vala  # Autocomplete suggestions engine
+├── data/
+│   ├── ui/*.blp                     # Blueprint UI templates
+│   ├── *.gschema.xml               # GSettings schemas
+│   └── icons/                       # Application icons
+├── packaging/                       # Flatpak manifests
+└── po/                             # Translations
 ```
 
 ## DNS Integration
 
-Digger uses the system `dig` command for DNS resolution, providing:
-- Robust error handling for network issues
-- Support for all standard DNS record types
-- Advanced query options like tracing and custom servers
-- Detailed query timing and status information
+Digger uses the embedded `dig` command for DNS resolution, providing:
+- **Enhanced Error Handling**: Proper parsing of NXDOMAIN, SERVFAIL, REFUSED, and other DNS status codes
+- **Comprehensive Record Support**: All standard DNS record types with proper parsing
+- **Advanced Query Options**: Tracing, custom servers, reverse lookups, and short output
+- **Detailed Diagnostics**: Query timing, server information, and comprehensive status reporting
+- **Self-Contained**: Embedded dig command in Flatpak builds eliminates external dependencies
 
 ## Contributing
 
@@ -170,14 +219,17 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### ✅ Flatpak Build System Complete
-- **Working Flatpak builds**: Both production and development manifests build successfully
-- **Embedded dig command**: No external dependencies needed - dig is built into the Flatpak
-- **Crash fixes**: Resolved GSettings schema compilation and array conversion issues
-- **DNS parsing**: Fixed output parsing to handle all dig response formats
-- **Development workflow**: Dual manifest system for production and development builds
+### 🚀 Version 2.0.0 - Complete Vala Rewrite
+- **Native Performance**: Complete rewrite from Python to Vala for optimal speed and resource usage
+- **Enhanced DNS Parsing**: Proper handling of NXDOMAIN, SERVFAIL, REFUSED, and all DNS status codes
+- **Smart Autocomplete**: Intelligent domain suggestions with usage tracking and keyboard navigation
+- **Improved History**: Advanced search, filtering, and management with no autocomplete interference
+- **Modern Preferences**: Comprehensive settings dialog with theme management and customization
+- **Blueprint UI**: Modern declarative UI architecture with GTK4 Blueprint templates
+- **Bug Fixes**: Resolved autocomplete popover issues, history button functionality, and DNS error handling
+- **Self-Contained**: Embedded dig command in Flatpak builds eliminates external dependencies
 
-The application now works perfectly in the Flatpak environment with full DNS lookup functionality!
+The application now provides a significantly enhanced user experience with native performance and modern features!
 
 ---
 
