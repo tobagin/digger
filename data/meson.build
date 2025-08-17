@@ -112,14 +112,10 @@ foreach size : icon_sizes
 endforeach
 
 # Install scalable icons
-scalable_icons = ['history', 'copy-symbolic', 'error-symbolic', 'success-symbolic']
+scalable_icons = ['history-symbolic', 'copy-symbolic', 'error-symbolic', 'success-symbolic']
 foreach icon : scalable_icons
-  # Determine the output name based on the icon type
-  if icon == 'history'
-    output_name = app_id + '-history.svg'
-  else
-    output_name = app_id + '-' + icon + '.svg'
-  endif
+  # Use consistent naming for all symbolic icons
+  output_name = app_id + '-' + icon + '.svg'
   
   configure_file(
     input: join_paths('icons', 'hicolor', 'scalable', 'apps', 'io.github.tobagin.digger-' + icon + '.svg'),
