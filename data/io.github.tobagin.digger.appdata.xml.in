@@ -24,27 +24,27 @@
   
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main.png</image>
+      <image>/app/share/digger/screenshots/main.png</image>
       <caption>Main application window showing DNS lookup interface</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/lookup.png</image>
+      <image>/app/share/digger/screenshots/lookup.png</image>
       <caption>DNS query results with detailed record information</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/autocomplete.png</image>
+      <image>/app/share/digger/screenshots/autocomplete.png</image>
       <caption>Domain autocomplete feature with suggestion dropdown</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/history.png</image>
+      <image>/app/share/digger/screenshots/history.png</image>
       <caption>Query history with search and filtering capabilities</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/preferences.png</image>
+      <image>/app/share/digger/screenshots/preferences.png</image>
       <caption>Preferences dialog for customizing application settings</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/about.png</image>
+      <image>/app/share/digger/screenshots/about.png</image>
       <caption>About dialog showing application information</caption>
     </screenshot>
   </screenshots>
@@ -55,6 +55,8 @@
   <developer_name>tobagin</developer_name>
   <update_contact>tobagin@example.com</update_contact>
   
+  <content_rating type="oars-1.1" />
+  
   <provides>
     <binary>digger-vala</binary>
   </provides>
@@ -62,6 +64,18 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.2" date="2025-08-17">
+      <description>
+        <p>AppStream compliance and Flatpak packaging improvements</p>
+        <ul>
+          <li>Added OARS content rating for AppStream compliance</li>
+          <li>Fixed screenshot references to use bundled local files</li>
+          <li>Removed unnecessary Flatpak filesystem permissions</li>
+          <li>Improved AppStream metadata validation</li>
+          <li>Enhanced README with comprehensive screenshots showcase</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.1" date="2025-08-17">
       <description>
         <p>Enhanced user experience with comprehensive screenshots and UI improvements</p>
