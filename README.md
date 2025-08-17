@@ -59,26 +59,9 @@ flatpak run io.github.tobagin.digger
 
 ### Building from Source
 
-> **Note**: Building from source requires development dependencies. For regular users, the Flatpak installation above is recommended as it includes all dependencies automatically.
+> **Note**: Building from source uses Flatpak, so no system dependencies are required. All dependencies are automatically handled by the build scripts.
 
-#### Prerequisites (for building only)
-
-**Fedora/RHEL:**
-```bash
-sudo dnf install vala meson gtk4-devel libadwaita-devel json-glib-devel libgee-devel bind-utils
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt install valac meson libgtk-4-dev libadwaita-1-dev libjson-glib-dev libgee-0.8-dev dnsutils
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S vala meson gtk4 libadwaita json-glib gee bind
-```
-
-#### Using Build Scripts (Recommended)
+#### Using Build Scripts
 ```bash
 git clone https://github.com/tobagin/Digger.git
 cd Digger
@@ -116,14 +99,6 @@ flatpak-builder --user --install --force-clean build-dir-dev packaging/io.github
 flatpak run io.github.tobagin.digger.Devel
 ```
 
-#### Traditional Meson Build
-```bash
-git clone https://github.com/tobagin/Digger.git
-cd Digger
-meson setup builddir
-meson compile -C builddir
-sudo meson install -C builddir
-```
 
 ### Development
 
