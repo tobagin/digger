@@ -237,5 +237,3 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 The application now provides a significantly enhanced user experience with native performance and modern features!
 
 ---
-
-**Note**: When building from source outside of Flatpak, Digger requires the `dig` command to be installed on your system. This is typically provided by the `bind-utils` (Fedora/RHEL), `dnsutils` (Ubuntu/Debian), or `bind` (Arch Linux) packages. **Flatpak builds include `dig` automatically.**
