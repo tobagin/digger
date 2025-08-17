@@ -24,27 +24,27 @@
   
   <screenshots>
     <screenshot type="default">
-      <image>/app/share/digger/screenshots/main.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main.png</image>
       <caption>Main application window showing DNS lookup interface</caption>
     </screenshot>
     <screenshot>
-      <image>/app/share/digger/screenshots/lookup.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/lookup.png</image>
       <caption>DNS query results with detailed record information</caption>
     </screenshot>
     <screenshot>
-      <image>/app/share/digger/screenshots/autocomplete.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/autocomplete.png</image>
       <caption>Domain autocomplete feature with suggestion dropdown</caption>
     </screenshot>
     <screenshot>
-      <image>/app/share/digger/screenshots/history.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/history.png</image>
       <caption>Query history with search and filtering capabilities</caption>
     </screenshot>
     <screenshot>
-      <image>/app/share/digger/screenshots/preferences.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/preferences.png</image>
       <caption>Preferences dialog for customizing application settings</caption>
     </screenshot>
     <screenshot>
-      <image>/app/share/digger/screenshots/about.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/about.png</image>
       <caption>About dialog showing application information</caption>
     </screenshot>
   </screenshots>
@@ -64,6 +64,17 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.3" date="2025-08-17">
+      <description>
+        <p>Documentation and AppStream metadata improvements</p>
+        <ul>
+          <li>Fixed AppStream screenshot URLs for proper web validation</li>
+          <li>Corrected repository URLs throughout documentation</li>
+          <li>Updated README with accurate version information and installation instructions</li>
+          <li>Improved documentation clarity and removed obsolete information</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.2" date="2025-08-17">
       <description>
         <p>AppStream compliance and Flatpak packaging improvements</p>
