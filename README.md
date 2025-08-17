@@ -2,7 +2,35 @@
 
 A modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides an intuitive interface for performing DNS queries, viewing results, and managing query history.
 
-![Digger Screenshot](https://via.placeholder.com/800x600/3584e4/white?text=Digger+DNS+Tool)
+## Screenshots
+
+<div align="center">
+
+### Main Interface
+![Main Window](screenshots/main.png)
+*Clean, modern interface for DNS lookups with instant autocomplete suggestions*
+
+### DNS Query Results
+![Query Results](screenshots/lookup.png)  
+*Detailed DNS record information with one-click copying and error handling*
+
+### Smart Autocomplete
+![Autocomplete Feature](screenshots/autocomplete.png)
+*Intelligent domain suggestions with keyboard navigation and usage tracking*
+
+### Query History
+![History Management](screenshots/history.png)
+*Advanced search and filtering through your DNS query history*
+
+### Preferences
+![Settings Dialog](screenshots/preferences.png)
+*Comprehensive settings for customizing behavior and appearance*
+
+### About Dialog
+![About Information](screenshots/about.png)
+*Modern about dialog with application information and version details*
+
+</div>
 
 ## Features
 
