@@ -118,6 +118,6 @@ modules:
     buildsystem: meson
     sources:
       - type: git
-        url: https://github.com/tobagin/digger-vala.git
+        url: https://github.com/tobagin/Digger.git
         tag: v2.0.3
         commit: 1efcd83572a25caf86c9e995c5797dde3bc686b2
