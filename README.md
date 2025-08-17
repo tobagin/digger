@@ -50,7 +50,7 @@ A modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides 
 ### Flatpak
 
 ```bash
-# Install from Flathub (when available)
+# Install from Flathub
 flatpak install flathub io.github.tobagin.digger
 flatpak run io.github.tobagin.digger
 ```
@@ -63,8 +63,8 @@ flatpak run io.github.tobagin.digger
 
 #### Using Build Scripts
 ```bash
-git clone https://github.com/tobagin/Digger.git
-cd Digger
+git clone https://github.com/tobagin/digger-vala.git
+cd digger-vala
 
 # Production build
 ./build.sh
@@ -78,8 +78,8 @@ cd Digger
 
 #### Using Flatpak Builder (Manual)
 ```bash
-git clone https://github.com/tobagin/Digger.git
-cd Digger
+git clone https://github.com/tobagin/digger-vala.git
+cd digger-vala
 
 # Install Flatpak build dependencies
 sudo dnf install flatpak flatpak-builder  # Fedora/RHEL
@@ -224,6 +224,13 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
+### 🚀 Version 2.0.2 - AppStream Compliance & Enhanced Documentation
+- **AppStream Compliance**: Added OARS content rating and proper metadata validation
+- **Enhanced Screenshots**: Comprehensive visual showcase with 6 detailed application screenshots
+- **Improved Documentation**: Restructured README with accurate installation instructions
+- **Flatpak Optimization**: Removed unnecessary permissions and fixed screenshot bundling
+- **Build Improvements**: Streamlined build process with better dependency handling
+
 ### 🚀 Version 2.0.0 - Complete Vala Rewrite
 - **Native Performance**: Complete rewrite from Python to Vala for optimal speed and resource usage
 - **Enhanced DNS Parsing**: Proper handling of NXDOMAIN, SERVFAIL, REFUSED, and all DNS status codes
@@ -231,9 +238,8 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - **Improved History**: Advanced search, filtering, and management with no autocomplete interference
 - **Modern Preferences**: Comprehensive settings dialog with theme management and customization
 - **Blueprint UI**: Modern declarative UI architecture with GTK4 Blueprint templates
-- **Bug Fixes**: Resolved autocomplete popover issues, history button functionality, and DNS error handling
 - **Self-Contained**: Embedded dig command in Flatpak builds eliminates external dependencies
 
-The application now provides a significantly enhanced user experience with native performance and modern features!
+The application now provides a significantly enhanced user experience with native performance, modern features, and improved Flatpak distribution!
 
 ---
