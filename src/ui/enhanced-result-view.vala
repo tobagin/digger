@@ -30,6 +30,9 @@ namespace Digger {
         public EnhancedResultView () {
             dns_presets = DnsPresets.get_instance ();
             print (@"EnhancedResultView: dns_presets is $(dns_presets != null ? "not null" : "null")\n");
+        }
+        
+        construct {
             setup_ui ();
         }
         

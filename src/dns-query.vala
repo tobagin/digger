@@ -125,13 +125,6 @@ namespace Digger {
 
             if (short_output) {
                 args.add ("+short");
-            } else {
-                // Always get additional information for parsing
-                args.add ("+noall");
-                args.add ("+answer");
-                args.add ("+authority");
-                args.add ("+additional");
-                args.add ("+stats");
             }
 
             // Timeout
@@ -184,14 +177,9 @@ namespace Digger {
                     parse_query_time (trimmed_line, result);
                     continue;
                 }
-                
-                // Skip other comment lines when we have section headers
-                if (has_section_headers && trimmed_line.has_prefix (";")) {
-                    continue;
-                }
 
                 if (has_section_headers) {
-                    // Check for section headers
+                    // Check for section headers first (before skipping comments)
                     if (trimmed_line.contains ("ANSWER SECTION")) {
                         current_section = ParseSection.ANSWER;
                         continue;
@@ -200,6 +188,11 @@ namespace Digger {
                         continue;
                     } else if (trimmed_line.contains ("ADDITIONAL SECTION")) {
                         current_section = ParseSection.ADDITIONAL;
+                        continue;
+                    }
+                    
+                    // Skip other comment lines when we have section headers
+                    if (trimmed_line.has_prefix (";")) {
                         continue;
                     }
                 } else {
