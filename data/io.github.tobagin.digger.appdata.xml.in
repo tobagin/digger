@@ -24,8 +24,28 @@
   
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main-window.png</image>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main.png</image>
       <caption>Main application window showing DNS lookup interface</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/lookup.png</image>
+      <caption>DNS query results with detailed record information</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/autocomplete.png</image>
+      <caption>Domain autocomplete feature with suggestion dropdown</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/history.png</image>
+      <caption>Query history with search and filtering capabilities</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/preferences.png</image>
+      <caption>Preferences dialog for customizing application settings</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/about.png</image>
+      <caption>About dialog showing application information</caption>
     </screenshot>
   </screenshots>
   
@@ -42,6 +62,19 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.1" date="2025-08-17">
+      <description>
+        <p>Enhanced user experience with comprehensive screenshots and UI improvements</p>
+        <ul>
+          <li>Added comprehensive application screenshots showcasing all major features</li>
+          <li>Enhanced autocomplete dropdown behavior for better user interaction</li>
+          <li>Improved DNS error handling for NXDOMAIN and other response statuses</li>
+          <li>Fixed history icon theme adaptation for proper light/dark mode support</li>
+          <li>Cleaned up Flatpak permissions following security best practices</li>
+          <li>General UI polish and stability improvements</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.0" date="2025-08-17">
       <description>
         <p>Major rewrite from Python to Vala with significant enhancements</p>

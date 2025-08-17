@@ -138,3 +138,9 @@ install_subdir('../assets/themes',
   install_dir: join_paths(get_option('datadir'), 'digger'),
   strip_directory: false
 )
+
+# Screenshots
+install_subdir('../screenshots',
+  install_dir: join_paths(get_option('datadir'), 'digger'),
+  strip_directory: false
+)
