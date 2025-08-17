@@ -1,0 +1,125 @@
+app-id: io.github.tobagin.digger.Devel
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: digger-vala
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=xdg-data/digger:create
+  - --talk-name=org.freedesktop.secrets
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /man
+  - /share/doc
+  - /share/gtk-doc
+  - /share/man
+  - /share/pkgconfig
+  - /share/vala
+  - '*.la'
+  - '*.a'
+
+modules:
+  # Blueprint compiler (build-time only, cleaned up after)
+  - name: blueprint-compiler
+    buildsystem: meson
+    cleanup: ['*']
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/jwestman/blueprint-compiler.git
+        tag: v0.18.0
+        commit: 07c9c9df9cd1b6b4454ecba21ee58211e9144a4b
+    
+  - name: libgee
+    buildsystem: autotools
+    config-opts:
+      - --disable-introspection
+      - --enable-vapi
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
+        sha256: 189815ac143d89867193b0c52b7dc31f3aa108a15f04d6b5dca2b6adfad0b0ee
+        x-checker-data:
+          type: gnome
+          name: libgee
+
+  # libuv dependency for BIND
+  - name: libuv
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
+        sha256: 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
+    config-opts:
+      - --disable-static
+      - --enable-shared
+
+  # BIND dig command using older version to avoid crypto issues  
+  - name: bind-dig
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://downloads.isc.org/isc/bind9/9.16.48/bind-9.16.48.tar.xz
+        sha256: 8d3814582348f90dead1ad410b1019094cd399d3d83930abebb2b3b1eb0b2bbb
+        x-checker-data:
+          type: anitya
+          project-id: 1365
+          url-template: https://downloads.isc.org/isc/bind9/$version/bind-$version.tar.xz
+    config-opts:
+      - --disable-static
+      - --enable-shared
+      - --without-openssl
+      - --disable-dnssec-tools
+      - --disable-dnssec-validation
+      - --without-gssapi
+      - --without-readline
+      - --without-libedit
+      - --without-libxml2
+      - --without-libjson
+      - --without-zlib
+      - --without-lmdb
+      - --without-libnghttp2
+      - --disable-dnsrps
+      - --disable-dnstap
+      - --disable-doh
+      - --disable-backtrace
+      - --disable-symtable
+      - --disable-linux-caps
+      - --without-python
+      - --prefix=/app
+    build-options:
+      env:
+        OPENSSL_CFLAGS: ""
+        OPENSSL_LIBS: ""
+        ac_cv_lib_crypto_EVP_sha256: "no"
+        ac_cv_lib_ssl_SSL_new: "no"
+    build-commands:
+      # Build only what we need for dig
+      - make -C lib/isc
+      - make -C lib/dns  
+      - make -C lib/bind9
+      - make -C bin/dig
+    cleanup:
+      - '*.la'
+      - '/share/man'
+      - '/lib/pkgconfig'
+      - '/bin/delv'
+      - '/bin/host'
+      - '/bin/nslookup'
+      - '/bin/named*'
+      - '/bin/rndc*'
+      - '/bin/dnssec*'
+      - '/sbin'
+
+  - name: digger-vala
+    buildsystem: meson
+    config-opts:
+      - -Ddevelopment=true
+    sources:
+      - type: dir
+        path: ..

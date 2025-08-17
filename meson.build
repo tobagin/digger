@@ -4,9 +4,19 @@ project('digger-vala', 'vala', 'c',
   meson_version: '>= 0.58.0'
 )
 
+# Build options
+development = get_option('development')
+
 # Check for Vala compiler
 vala = meson.get_compiler('vala')
 i18n = import('i18n')
+gnome = import('gnome')
+
+# Check for blueprint compiler
+blueprint_compiler = find_program('blueprint-compiler', required: false)
+if not blueprint_compiler.found()
+  error('blueprint-compiler not found. Install it with: pip3 install --user blueprint-compiler')
+endif
 
 # Dependencies
 gtk4_dep = dependency('gtk4', version: '>= 4.6.0')
@@ -16,12 +26,15 @@ gio_dep = dependency('gio-2.0')
 gee_dep = dependency('gee-0.8')
 
 # Configuration data
+app_id = development ? 'io.github.tobagin.digger.Devel' : 'io.github.tobagin.digger'
 conf_data = configuration_data()
 conf_data.set('VERSION', meson.project_version())
 conf_data.set('GETTEXT_PACKAGE', meson.project_name())
 conf_data.set('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
 conf_data.set('DATADIR', join_paths(get_option('prefix'), get_option('datadir')))
-conf_data.set('APP_ID', 'io.github.tobagin.digger')
+conf_data.set('APP_ID', app_id)
+conf_data.set('DEVELOPMENT', development.to_string())
+conf_data.set('RESOURCE_PATH', '/' + app_id.replace('.', '/'))
 
 # Generate config file
 config_vala = configure_file(
@@ -29,6 +42,15 @@ config_vala = configure_file(
   output: 'config.vala',
   configuration: conf_data
 )
+
+# Data subdirectory (must be processed before executable to generate resources)
+subdir('data')
+
+# Vala args based on development mode
+vala_args = []
+if development
+  vala_args += ['--define=DEVELOPMENT']
+endif
 
 # Application executable
 executable('digger-vala',
@@ -48,6 +70,7 @@ executable('digger-vala',
   'src/ui/enhanced-history-search.vala',
   'src/ui/theme-manager.vala',
   config_vala,
+  digger_resources,
   dependencies: [
     gtk4_dep,
     libadwaita_dep,
@@ -55,10 +78,15 @@ executable('digger-vala',
     gio_dep,
     gee_dep
   ],
+  vala_args: vala_args,
   install: true,
   install_dir: get_option('bindir')
 )
 
-# Data files
-subdir('data')
+# Po files
 subdir('po')
+
+# Post-install hooks
+gnome.post_install(
+  glib_compile_schemas: true
+)

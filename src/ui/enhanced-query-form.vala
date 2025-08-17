@@ -9,14 +9,23 @@
  */
 
 namespace Digger {
+#if DEVELOPMENT
+    [GtkTemplate (ui = "/io/github/tobagin/digger/Devel/enhanced-query-form.ui")]
+#else
+    [GtkTemplate (ui = "/io/github/tobagin/digger/enhanced-query-form.ui")]
+#endif
     public class EnhancedQueryForm : Adw.PreferencesGroup {
-        private Gtk.Entry domain_entry;
-        private Gtk.DropDown record_type_dropdown;
-        private Gtk.Button query_button;
-        private Gtk.MenuButton dns_server_button;
-        private Gtk.Box quick_presets_box;
-        private Adw.EntryRow custom_dns_entry;
+        [GtkChild] private unowned Gtk.Entry domain_entry;
+        [GtkChild] private unowned Gtk.DropDown record_type_dropdown;
+        [GtkChild] private unowned Gtk.Button query_button;
+        [GtkChild] private unowned Gtk.Button paste_button;
+        [GtkChild] private unowned Gtk.MenuButton dns_server_button;
+        [GtkChild] private unowned Gtk.Box quick_presets_box;
+        [GtkChild] private unowned Adw.EntryRow custom_dns_entry;
+        [GtkChild] private unowned Gtk.Box advanced_options_container;
+        
         private AutocompleteDropdown autocomplete_dropdown;
+        private AdvancedOptions advanced_options;
         
         private DnsPresets dns_presets;
         private QueryHistory query_history;
@@ -43,13 +52,6 @@ namespace Digger {
         public EnhancedQueryForm (DnsPresets presets) {
             dns_presets = presets;
             
-            title = "DNS Query";
-            description = "Enter a domain or IP address to look up DNS records";
-            margin_top = 12;
-            margin_start = 12;
-            margin_end = 12;
-            margin_bottom = 6;
-            
             setup_ui ();
             connect_signals ();
         }
@@ -64,72 +66,16 @@ namespace Digger {
         }
         
         private void setup_ui () {
-            // Domain input row with smart suggestions
-            var domain_row = new Adw.ActionRow () {
-                title = "Domain or IP Address"
-            };
-            
-            domain_entry = new Gtk.Entry () {
-                placeholder_text = "example.com or 8.8.8.8",
-                hexpand = true,
-                input_purpose = Gtk.InputPurpose.URL
-            };
-            
-            // Initialize autocomplete dropdown
+            // Initialize autocomplete dropdown with domain entry from template
             autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
             
-            // Add quick paste button
-            var paste_button = new Gtk.Button.from_icon_name ("edit-paste-symbolic") {
-                tooltip_text = "Paste from clipboard",
-                valign = Gtk.Align.CENTER
-            };
-            paste_button.add_css_class ("flat");
-            paste_button.clicked.connect (paste_from_clipboard);
-            
-            var domain_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            domain_box.append (domain_entry);
-            domain_box.append (paste_button);
-            domain_row.add_suffix (domain_box);
-            
-            add (domain_row);
-            
-            // Record type dropdown with enhanced display
-            var record_type_row = new Adw.ActionRow () {
-                title = "Record Type"
-            };
+            // Create and add advanced options to container
+            advanced_options = new AdvancedOptions ();
+            advanced_options_container.append (advanced_options);
             
             setup_record_type_dropdown ();
-            record_type_row.add_suffix (record_type_dropdown);
-            add (record_type_row);
-            
-            // DNS Server selection row
-            var dns_server_row = new Adw.ActionRow () {
-                title = "DNS Server",
-                subtitle = "System default"
-            };
-            
             setup_dns_server_button ();
-            dns_server_row.add_suffix (dns_server_button);
-            add (dns_server_row);
-            
-            // Quick preset buttons
             setup_quick_presets ();
-            if (quick_presets_box.get_first_child () != null) {
-                var presets_row = new Adw.ActionRow () {
-                    title = "Quick Presets"
-                };
-                presets_row.add_suffix (quick_presets_box);
-                add (presets_row);
-            }
-            
-            // Query button row
-            var button_row = new Adw.ActionRow ();
-            query_button = new Gtk.Button.with_label ("Look up DNS records") {
-                hexpand = true
-            };
-            query_button.add_css_class ("suggested-action");
-            button_row.add_suffix (query_button);
-            add (button_row);
         }
         
         private void setup_record_type_dropdown () {
@@ -158,10 +104,9 @@ namespace Digger {
                 model.append (record_type.get_display_name ());
             }
             
-            record_type_dropdown = new Gtk.DropDown (model, null) {
-                selected = 0, // Default to first item (A record)
-                tooltip_text = "Select the type of DNS record to query"
-            };
+            // Set up the dropdown model (template widget is already created)
+            record_type_dropdown.model = model;
+            record_type_dropdown.selected = 0; // Default to first item (A record)
             
             // Add tooltips based on selection
             record_type_dropdown.notify["selected"].connect (() => {
@@ -175,11 +120,7 @@ namespace Digger {
         }
         
         private void setup_dns_server_button () {
-            dns_server_button = new Gtk.MenuButton () {
-                icon_name = "network-server-symbolic",
-                tooltip_text = "Select DNS server"
-            };
-            
+            // Set up the popover for the DNS server button (from template)
             var popover = new Gtk.Popover () {
                 position = Gtk.PositionType.BOTTOM
             };
@@ -194,7 +135,8 @@ namespace Digger {
             
             // System default option
             var system_button = new Gtk.Button.with_label ("System Default") {
-                hexpand = true
+                hexpand = true,
+                halign = Gtk.Align.CENTER
             };
             system_button.clicked.connect (() => {
                 set_dns_server_internal ("", "System default");
@@ -223,7 +165,8 @@ namespace Digger {
                 foreach (var server in servers) {
                     var server_button = new Gtk.Button.with_label (server.get_display_name ()) {
                         hexpand = true,
-                        tooltip_text = server.get_tooltip_text ()
+                        tooltip_text = server.get_tooltip_text (),
+                        halign = Gtk.Align.CENTER
                     };
                     
                     server_button.clicked.connect (() => {
@@ -245,9 +188,7 @@ namespace Digger {
             custom_label.add_css_class ("heading");
             popover_box.append (custom_label);
             
-            custom_dns_entry = new Adw.EntryRow () {
-                title = "Custom DNS Server"
-            };
+            // custom_dns_entry is from template
             custom_dns_entry.apply.connect (() => {
                 var custom_server = custom_dns_entry.text.strip ();
                 if (custom_server.length > 0) {
@@ -261,7 +202,7 @@ namespace Digger {
         }
         
         private void setup_quick_presets () {
-            quick_presets_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+            // quick_presets_box is from template, just add buttons to it
             
             // Add Google DNS preset
             add_quick_preset_button ("Google", "8.8.8.8");
@@ -275,7 +216,8 @@ namespace Digger {
         
         private void add_quick_preset_button (string name, string ip) {
             var preset_button = new Gtk.Button.with_label (name) {
-                tooltip_text = @"Use $name DNS ($ip)"
+                tooltip_text = @"Use $name DNS ($ip)",
+                halign = Gtk.Align.CENTER
             };
             preset_button.add_css_class ("pill");
             preset_button.clicked.connect (() => {
@@ -292,14 +234,22 @@ namespace Digger {
         }
         
         private void connect_signals () {
+            paste_button.clicked.connect (paste_from_clipboard);
             domain_entry.activate.connect (on_query_requested);
             query_button.clicked.connect (on_query_requested);
             
             // Real-time validation
             domain_entry.changed.connect (validate_input);
             
+            // Initialize autocomplete dropdown
+            autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
+            
             // Connect autocomplete signals
             autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
+        }
+        
+        public AdvancedOptions get_advanced_options () {
+            return advanced_options;
         }
         
         private void validate_input () {

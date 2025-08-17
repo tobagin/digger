@@ -8,6 +8,9 @@
  * (at your option) any later version.
  */
 
+// External function declarations for GResource
+extern GLib.Resource digger_get_resource ();
+
 namespace Digger {
     public class Application : Adw.Application {
         private Window? main_window = null;
@@ -48,6 +51,9 @@ namespace Digger {
         }
 
         construct {
+            // Register resources
+            register_resources ();
+            
             ActionEntry[] action_entries = {
                 { "about", on_about_action },
                 { "preferences", on_preferences_action },
@@ -59,6 +65,11 @@ namespace Digger {
             set_accels_for_action ("win.new-query", {"<primary>l"});
             set_accels_for_action ("win.repeat-query", {"<primary>r"});
             set_accels_for_action ("win.clear-results", {"Escape"});
+        }
+        
+        private void register_resources () {
+            var resource = digger_get_resource ();
+            GLib.resources_register (resource);
         }
 
         public override void activate () {

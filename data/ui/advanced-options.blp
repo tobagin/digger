@@ -1,0 +1,46 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerAdvancedOptions : Adw.ExpanderRow {
+  title: "Advanced Options";
+  subtitle: "Configure additional DNS query settings";
+
+  Adw.ActionRow reverse_lookup_row {
+    title: "Reverse DNS Lookup";
+    subtitle: "Perform PTR record lookup for IP addresses";
+
+    Switch reverse_lookup_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Perform reverse DNS lookup (PTR record) for IP addresses";
+    }
+  }
+
+  Adw.ActionRow trace_path_row {
+    title: "Trace Query Path";
+    subtitle: "Show full query path from root servers";
+
+    Switch trace_path_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Enable trace mode to see the full query path from root servers";
+    }
+  }
+
+  Adw.ActionRow short_output_row {
+    title: "Short Output";
+    subtitle: "Use minimal, essential output format";
+
+    Switch short_output_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Use short format for minimal, essential output only";
+    }
+  }
+
+  Adw.EntryRow dns_server_entry {
+    title: "DNS Server";
+    text: "";
+    tooltip-text: "Specify a custom DNS server (e.g., 8.8.8.8, 1.1.1.1)";
+  }
+}

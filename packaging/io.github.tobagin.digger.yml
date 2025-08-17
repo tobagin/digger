@@ -25,6 +25,16 @@ cleanup:
   - '*.a'
 
 modules:
+  # Blueprint compiler (build-time only, cleaned up after)
+  - name: blueprint-compiler
+    buildsystem: meson
+    cleanup: ['*']
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/jwestman/blueprint-compiler.git
+        tag: v0.18.0
+        commit: 07c9c9df9cd1b6b4454ecba21ee58211e9144a4b
+    
   - name: libgee
     buildsystem: autotools
     config-opts:
@@ -108,9 +118,6 @@ modules:
 
   - name: digger-vala
     buildsystem: meson
-    post-install:
-      # Compile GSettings schemas
-      - glib-compile-schemas /app/share/glib-2.0/schemas/
     sources:
       - type: archive
         url: https://github.com/tobagin/digger-vala/archive/v1.0.0.tar.gz

@@ -1,0 +1,108 @@
+using Gtk 4.0;
+
+template $DiggerEnhancedHistorySearch : Box {
+  orientation: vertical;
+  spacing: 12;
+  margin-top: 12;
+  margin-bottom: 12;
+  margin-start: 12;
+  margin-end: 12;
+
+  Label title_label {
+    label: "Query History";
+    halign: start;
+    styles ["heading"]
+  }
+
+  Box controls_box {
+    orientation: vertical;
+    spacing: 6;
+
+    SearchEntry search_entry {
+      placeholder-text: "Search history...";
+    }
+
+    Box filter_sort_box {
+      orientation: horizontal;
+      spacing: 12;
+
+      Box filter_box {
+        orientation: horizontal;
+        spacing: 6;
+
+        Label filter_label {
+          label: "Filter:";
+          halign: start;
+          styles ["caption"]
+        }
+
+        DropDown filter_dropdown {
+          tooltip-text: "Filter search criteria";
+          model: StringList {
+            strings [
+              "All Results",
+              "Domain Only", 
+              "Record Type Only",
+              "DNS Server Only"
+            ]
+          };
+        }
+      }
+
+      Box sort_box {
+        orientation: horizontal;
+        spacing: 6;
+
+        Label sort_label {
+          label: "Sort:";
+          halign: start;
+          styles ["caption"]
+        }
+
+        DropDown sort_dropdown {
+          tooltip-text: "Sort results";
+          model: StringList {
+            strings [
+              "Most Recent",
+              "Oldest First",
+              "Domain A-Z", 
+              "Domain Z-A",
+              "Most Frequent"
+            ]
+          };
+        }
+      }
+    }
+  }
+
+  Label results_count_label {
+    halign: start;
+    margin-bottom: 6;
+    styles ["dim-label"]
+  }
+
+  ScrolledWindow scrolled_window {
+    hscrollbar-policy: never;
+    vscrollbar-policy: automatic;
+    vexpand: true;
+    height-request: 300;
+
+    ListBox results_listbox {
+      selection-mode: single;
+      styles ["boxed-list"]
+    }
+  }
+
+  Box actions_box {
+    orientation: horizontal;
+    spacing: 12;
+    halign: center;
+    margin-top: 6;
+
+    Button clear_button {
+      label: "Clear History";
+      tooltip-text: "Clear all query history";
+      styles ["destructive-action"]
+    }
+  }
+}

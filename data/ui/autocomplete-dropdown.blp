@@ -1,0 +1,24 @@
+using Gtk 4.0;
+
+template $DiggerAutocompleteDropdown : Popover {
+  position: bottom;
+  autohide: false;
+  has-arrow: false;
+  width-request: 400;
+  height-request: 300;
+
+  Box main_box {
+    orientation: vertical;
+
+    ScrolledWindow scrolled_window {
+      hscrollbar-policy: never;
+      vscrollbar-policy: automatic;
+      vexpand: true;
+
+      ListBox suggestion_listbox {
+        selection-mode: single;
+        styles ["navigation-sidebar"]
+      }
+    }
+  }
+}

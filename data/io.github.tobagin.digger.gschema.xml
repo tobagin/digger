@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="io.github.tobagin.digger" path="/io/github/tobagin/digger/">
+  <schema id="@APP_ID@" path="/@APP_ID_PATH@/">
     <key name="window-width" type="i">
       <default>900</default>
       <summary>Default window width</summary>

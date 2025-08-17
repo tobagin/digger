@@ -12,8 +12,16 @@ namespace Digger {
     /**
      * Autocomplete dropdown widget for domain suggestions
      */
+#if DEVELOPMENT
+    [GtkTemplate (ui = "/io/github/tobagin/digger/Devel/autocomplete-dropdown.ui")]
+#else
+    [GtkTemplate (ui = "/io/github/tobagin/digger/autocomplete-dropdown.ui")]
+#endif
     public class AutocompleteDropdown : Gtk.Popover {
-        private Gtk.ListBox suggestion_listbox;
+        [GtkChild] private unowned Gtk.Box main_box;
+        [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
+        [GtkChild] private unowned Gtk.ListBox suggestion_listbox;
+        
         private Gtk.Entry target_entry;
         private DomainSuggestionEngine suggestion_engine;
         private Gee.ArrayList<DomainSuggestion> current_suggestions;
@@ -27,36 +35,7 @@ namespace Digger {
             suggestion_engine = DomainSuggestionEngine.get_instance ();
             current_suggestions = new Gee.ArrayList<DomainSuggestion> ();
             
-            setup_ui ();
             connect_signals ();
-        }
-        
-        private void setup_ui () {
-            // Configure popover
-            position = Gtk.PositionType.BOTTOM;
-            autohide = false;
-            has_arrow = false;
-            width_request = 400;
-            height_request = 300;
-            
-            // Create main container
-            var main_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-            child = main_box;
-            
-            // Create scrolled window for suggestions
-            var scrolled_window = new Gtk.ScrolledWindow () {
-                hscrollbar_policy = Gtk.PolicyType.NEVER,
-                vscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
-                vexpand = true
-            };
-            
-            suggestion_listbox = new Gtk.ListBox () {
-                selection_mode = Gtk.SelectionMode.SINGLE
-            };
-            suggestion_listbox.add_css_class ("navigation-sidebar");
-            
-            scrolled_window.child = suggestion_listbox;
-            main_box.append (scrolled_window);
         }
         
         private void connect_signals () {

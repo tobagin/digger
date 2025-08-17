@@ -12,165 +12,45 @@ namespace Digger {
     /**
      * Enhanced history search widget with filtering and sorting options
      */
+#if DEVELOPMENT
+    [GtkTemplate (ui = "/io/github/tobagin/digger/Devel/enhanced-history-search.ui")]
+#else
+    [GtkTemplate (ui = "/io/github/tobagin/digger/enhanced-history-search.ui")]
+#endif
     public class EnhancedHistorySearch : Gtk.Box {
+        [GtkChild] private unowned Gtk.Label title_label;
+        [GtkChild] private unowned Gtk.Box controls_box;
+        [GtkChild] private unowned Gtk.SearchEntry search_entry;
+        [GtkChild] private unowned Gtk.Box filter_sort_box;
+        [GtkChild] private unowned Gtk.DropDown filter_dropdown;
+        [GtkChild] private unowned Gtk.DropDown sort_dropdown;
+        [GtkChild] private unowned Gtk.Label results_count_label;
+        [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
+        [GtkChild] private unowned Gtk.ListBox results_listbox;
+        [GtkChild] private unowned Gtk.Box actions_box;
+        [GtkChild] private unowned Gtk.Button clear_button;
+        
         private QueryHistory query_history;
-        private Gtk.SearchEntry search_entry;
-        private Gtk.DropDown filter_dropdown;
-        private Gtk.DropDown sort_dropdown;
-        private Gtk.ListBox results_listbox;
-        private Gtk.Label results_count_label;
         private Gee.ArrayList<QueryResult> current_results;
         
         public signal void result_selected (QueryResult result);
         public signal void history_cleared ();
         
         public EnhancedHistorySearch (QueryHistory history) {
-            orientation = Gtk.Orientation.VERTICAL;
-            spacing = 12;
-            margin_top = 12;
-            margin_bottom = 12;
-            margin_start = 12;
-            margin_end = 12;
-            
             query_history = history;
             current_results = new Gee.ArrayList<QueryResult> ();
             
-            setup_ui ();
             connect_signals ();
             update_results ();
         }
         
-        private void setup_ui () {
-            // Title
-            var title_label = new Gtk.Label ("Query History") {
-                halign = Gtk.Align.START
-            };
-            title_label.add_css_class ("heading");
-            append (title_label);
-            
-            // Search and filter controls
-            setup_controls ();
-            
-            // Results count
-            results_count_label = new Gtk.Label ("") {
-                halign = Gtk.Align.START,
-                margin_bottom = 6
-            };
-            results_count_label.add_css_class ("dim-label");
-            append (results_count_label);
-            
-            // Results list
-            setup_results_list ();
-            
-            // Action buttons
-            setup_action_buttons ();
-        }
-        
-        private void setup_controls () {
-            var controls_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
-            
-            // Search entry
-            search_entry = new Gtk.SearchEntry () {
-                placeholder_text = "Search history..."
-            };
-            controls_box.append (search_entry);
-            
-            // Filter and sort controls
-            var filter_sort_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-            
-            // Filter dropdown
-            var filter_model = new Gtk.StringList (null);
-            filter_model.append ("All Results");
-            filter_model.append ("Domain Only");
-            filter_model.append ("Record Type Only");
-            filter_model.append ("DNS Server Only");
-            
-            filter_dropdown = new Gtk.DropDown (filter_model, null) {
-                selected = 0,
-                tooltip_text = "Filter search criteria"
-            };
-            
-            var filter_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            var filter_label = new Gtk.Label ("Filter:") {
-                halign = Gtk.Align.START
-            };
-            filter_label.add_css_class ("caption");
-            filter_box.append (filter_label);
-            filter_box.append (filter_dropdown);
-            filter_sort_box.append (filter_box);
-            
-            // Sort dropdown
-            var sort_model = new Gtk.StringList (null);
-            sort_model.append ("Most Recent");
-            sort_model.append ("Oldest First");
-            sort_model.append ("Domain A-Z");
-            sort_model.append ("Domain Z-A");
-            sort_model.append ("Most Frequent");
-            
-            sort_dropdown = new Gtk.DropDown (sort_model, null) {
-                selected = 0,
-                tooltip_text = "Sort results"
-            };
-            
-            var sort_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-            var sort_label = new Gtk.Label ("Sort:") {
-                halign = Gtk.Align.START
-            };
-            sort_label.add_css_class ("caption");
-            sort_box.append (sort_label);
-            sort_box.append (sort_dropdown);
-            filter_sort_box.append (sort_box);
-            
-            controls_box.append (filter_sort_box);
-            append (controls_box);
-        }
-        
-        private void setup_results_list () {
-            var scrolled_window = new Gtk.ScrolledWindow () {
-                hscrollbar_policy = Gtk.PolicyType.NEVER,
-                vscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
-                vexpand = true,
-                height_request = 300
-            };
-            
-            results_listbox = new Gtk.ListBox () {
-                selection_mode = Gtk.SelectionMode.SINGLE
-            };
-            results_listbox.add_css_class ("boxed-list");
-            
-            scrolled_window.child = results_listbox;
-            append (scrolled_window);
-        }
-        
-        private void setup_action_buttons () {
-            var actions_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
-                halign = Gtk.Align.CENTER,
-                margin_top = 6
-            };
-            
-            // Clear history button
-            var clear_button = new Gtk.Button.with_label ("Clear History") {
-                tooltip_text = "Clear all query history"
-            };
-            clear_button.add_css_class ("destructive-action");
-            clear_button.clicked.connect (on_clear_history);
-            actions_box.append (clear_button);
-            
-            // Export button (for future implementation)
-            var export_button = new Gtk.Button.with_label ("Export") {
-                tooltip_text = "Export history to file",
-                sensitive = false // Disabled for now
-            };
-            actions_box.append (export_button);
-            
-            append (actions_box);
-        }
         
         private void connect_signals () {
             search_entry.search_changed.connect (update_results);
             filter_dropdown.notify["selected"].connect (update_results);
             sort_dropdown.notify["selected"].connect (update_results);
             results_listbox.row_activated.connect (on_result_activated);
+            clear_button.clicked.connect (on_clear_history);
             query_history.history_updated.connect (update_results);
         }
         

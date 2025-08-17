@@ -9,76 +9,36 @@
  */
 
 namespace Digger {
+#if DEVELOPMENT
+    [GtkTemplate (ui = "/io/github/tobagin/digger/Devel/enhanced-result-view.ui")]
+#else
+    [GtkTemplate (ui = "/io/github/tobagin/digger/enhanced-result-view.ui")]
+#endif
     public class EnhancedResultView : Gtk.Box {
-        private Gtk.Label summary_label;
-        private Gtk.ScrolledWindow scrolled_window;
-        private Gtk.Box content_box;
-        private Gtk.ProgressBar progress_bar;
+        [GtkChild] private unowned Gtk.Label summary_label;
+        [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
+        [GtkChild] private unowned Gtk.Box content_box;
+        [GtkChild] private unowned Gtk.ProgressBar progress_bar;
+        [GtkChild] private unowned Gtk.ToggleButton raw_toggle_button;
+        
         private QueryResult? current_result = null;
         
         private DnsPresets dns_presets;
         private bool show_raw_output = false;
         
         public EnhancedResultView () {
-            orientation = Gtk.Orientation.VERTICAL;
-            spacing = 12;
-            margin_top = 12;
-            margin_bottom = 12;
-            margin_start = 12;
-            margin_end = 12;
-            
             dns_presets = DnsPresets.get_instance ();
             setup_ui ();
         }
         
         private void setup_ui () {
-            // Progress bar for query execution
-            progress_bar = new Gtk.ProgressBar () {
-                visible = false,
-                show_text = true
-            };
-            append (progress_bar);
-            
-            // Summary header with query information
-            var summary_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
-                margin_bottom = 6
-            };
-            
-            summary_label = new Gtk.Label ("") {
-                halign = Gtk.Align.START,
-                wrap = true,
-                selectable = true,
-                hexpand = true
-            };
-            summary_label.add_css_class ("heading");
-            summary_box.append (summary_label);
-            
-            // Toggle raw output button
-            var raw_toggle_button = new Gtk.ToggleButton () {
-                icon_name = "text-x-generic-symbolic",
-                tooltip_text = "Toggle raw dig output"
-            };
+            // Connect raw toggle button
             raw_toggle_button.toggled.connect (() => {
                 show_raw_output = raw_toggle_button.active;
                 if (current_result != null) {
                     refresh_display ();
                 }
             });
-            summary_box.append (raw_toggle_button);
-            
-            append (summary_box);
-            
-            // Scrolled window for results
-            scrolled_window = new Gtk.ScrolledWindow () {
-                hscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
-                vscrollbar_policy = Gtk.PolicyType.AUTOMATIC,
-                vexpand = true
-            };
-            
-            content_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
-            scrolled_window.child = content_box;
-            
-            append (scrolled_window);
             
             // Initially show welcome message
             show_welcome_message ();
@@ -366,6 +326,7 @@ namespace Digger {
             // Copy button
             var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
                 valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.CENTER,
                 tooltip_text = "Copy to clipboard"
             };
             copy_button.add_css_class ("flat");

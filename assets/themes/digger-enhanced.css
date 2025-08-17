@@ -8,6 +8,32 @@
   font-size: 0.8em;
   font-weight: bold;
   min-width: 50px;
+  text-align: center;
+}
+
+/* Global centering styles for all buttons, toggles, and inputs */
+button {
+  valign: center;
+}
+
+togglebutton {
+  valign: center;
+}
+
+switch {
+  valign: center;
+}
+
+menubutton {
+  valign: center;
+}
+
+dropdown {
+  valign: center;
+}
+
+entry {
+  text-align: center;
 }
 
 /* Status-based styling */

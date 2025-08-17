@@ -1,0 +1,43 @@
+using Gtk 4.0;
+
+template $DiggerHistoryPopover : Popover {
+  position: bottom;
+  width-request: 400;
+  height-request: 500;
+
+  Box history_box {
+    orientation: vertical;
+    spacing: 6;
+    margin-top: 12;
+    margin-bottom: 12;
+    margin-start: 12;
+    margin-end: 12;
+
+    Label history_title {
+      label: "Query History";
+      halign: start;
+      styles ["heading"]
+    }
+
+    SearchEntry history_search_entry {
+      placeholder-text: "Search history...";
+    }
+
+    ScrolledWindow {
+      hscrollbar-policy: never;
+      vscrollbar-policy: automatic;
+      vexpand: true;
+
+      ListBox history_listbox {
+        styles ["boxed-list"]
+      }
+    }
+
+    Button clear_button {
+      label: "Clear History";
+      halign: center;
+      valign: center;
+      styles ["destructive-action"]
+    }
+  }
+}

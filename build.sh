@@ -1,0 +1,1 @@
+packaging/build-flatpak.sh

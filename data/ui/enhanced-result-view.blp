@@ -1,0 +1,47 @@
+using Gtk 4.0;
+
+template $DiggerEnhancedResultView : Box {
+  orientation: vertical;
+  spacing: 12;
+  margin-top: 12;
+  margin-bottom: 12;
+  margin-start: 12;
+  margin-end: 12;
+
+  ProgressBar progress_bar {
+    visible: false;
+    show-text: true;
+  }
+
+  Box summary_box {
+    orientation: horizontal;
+    spacing: 12;
+    margin-bottom: 6;
+
+    Label summary_label {
+      halign: start;
+      wrap: true;
+      selectable: true;
+      hexpand: true;
+      styles ["heading"]
+    }
+
+    ToggleButton raw_toggle_button {
+      icon-name: "text-x-generic-symbolic";
+      tooltip-text: "Toggle raw dig output";
+      halign: center;
+      valign: center;
+    }
+  }
+
+  ScrolledWindow scrolled_window {
+    hscrollbar-policy: automatic;
+    vscrollbar-policy: automatic;
+    vexpand: true;
+
+    Box content_box {
+      orientation: vertical;
+      spacing: 12;
+    }
+  }
+}

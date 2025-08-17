@@ -52,7 +52,7 @@ namespace Digger {
             
             // Set up settings
             try {
-                settings = new GLib.Settings("io.github.tobagin.digger");
+                settings = new GLib.Settings(Config.APP_ID);
                 var stored_theme = settings.get_string("color-scheme");
                 apply_theme(ColorScheme.from_string(stored_theme));
             } catch (Error e) {
