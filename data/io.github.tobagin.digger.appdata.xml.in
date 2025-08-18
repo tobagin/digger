@@ -2,9 +2,9 @@
 <component type="desktop-application">
   <id>@APP_ID@</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0+</project_license>
+  <project_license>GPL-3.0-or-later</project_license>
   <name>Digger</name>
-  <summary>DNS lookup tool with an intuitive GTK interface</summary>
+  <summary>DNS lookup tool with graphical interface</summary>
   
   <description>
     <p>
@@ -53,7 +53,7 @@
   <url type="homepage">https://github.com/tobagin/digger-vala</url>
   <url type="bugtracker">https://github.com/tobagin/digger-vala/issues</url>
   
-  <developer_name>tobagin</developer_name>
+  <developer_name>Thiago Fernandes</developer_name>
   <update_contact>tobagin@example.com</update_contact>
   
   <content_rating type="oars-1.1" />
@@ -65,6 +65,17 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.5" date="2025-08-17">
+      <description>
+        <p>Metadata corrections and Flathub compatibility improvements</p>
+        <ul>
+          <li>Restored correct developer name to "Thiago Fernandes"</li>
+          <li>Fixed project license to proper "GPL-3.0-or-later" SPDX identifier</li>
+          <li>Restored original summary text for consistency</li>
+          <li>Improved Flathub review compatibility by maintaining established metadata</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.4" date="2025-08-17">
       <description>
         <p>AppStream validation fixes and screenshot improvements</p>
