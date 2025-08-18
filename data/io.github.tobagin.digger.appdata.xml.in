@@ -65,6 +65,17 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.4" date="2025-08-17">
+      <description>
+        <p>AppStream validation fixes and screenshot improvements</p>
+        <ul>
+          <li>Fixed AppStream screenshot URLs to point to correct repository</li>
+          <li>Added proper XML language attributes for AppStream compliance</li>
+          <li>Improved XML formatting to meet AppStream specification</li>
+          <li>Resolved flatpak-builder-lint validation issues</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.3" date="2025-08-17">
       <description>
         <p>Documentation and AppStream metadata improvements</p>
