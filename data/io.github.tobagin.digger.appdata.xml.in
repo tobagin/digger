@@ -50,8 +50,8 @@
     </screenshot>
   </screenshots>
   
-  <url type="homepage">https://github.com/tobagin/digger-vala</url>
-  <url type="bugtracker">https://github.com/tobagin/digger-vala/issues</url>
+  <url type="homepage">https://github.com/tobagin/Digger</url>
+  <url type="bugtracker">https://github.com/tobagin/Digger/issues</url>
   
   <developer_name>Thiago Fernandes</developer_name>
   <update_contact>tobagin@example.com</update_contact>
@@ -65,6 +65,17 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.6" date="2025-08-17">
+      <description>
+        <p>Updated screenshots and corrected repository references</p>
+        <ul>
+          <li>Updated application screenshots with latest interface improvements</li>
+          <li>Fixed repository URLs to point to correct GitHub location</li>
+          <li>Corrected homepage and issue tracker links in AppData</li>
+          <li>Updated about dialog URLs for consistency</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.5" date="2025-08-17">
       <description>
         <p>Metadata corrections and Flathub compatibility improvements</p>

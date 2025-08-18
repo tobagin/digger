@@ -106,8 +106,8 @@ namespace Digger {
                 developers = developers,
                 copyright = "© 2025 Thiago Fernandes",
                 license_type = Gtk.License.GPL_3_0,
-                website = "https://github.com/tobagin/digger-vala",
-                issue_url = "https://github.com/tobagin/digger-vala/issues",
+                website = "https://github.com/tobagin/Digger",
+                issue_url = "https://github.com/tobagin/Digger/issues",
                 comments = comments
             };
 
