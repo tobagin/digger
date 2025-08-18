@@ -22,29 +22,30 @@
     </ul>
   </description>
   
+  
   <screenshots>
-    <screenshot type="default">
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/main.png</image>
+    <screenshot type="default" xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/main.png</image>
       <caption>Main application window showing DNS lookup interface</caption>
     </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/lookup.png</image>
+    <screenshot xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/lookup.png</image>
       <caption>DNS query results with detailed record information</caption>
     </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/autocomplete.png</image>
+    <screenshot xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/autocomplete.png</image>
       <caption>Domain autocomplete feature with suggestion dropdown</caption>
     </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/history.png</image>
+    <screenshot xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/history.png</image>
       <caption>Query history with search and filtering capabilities</caption>
     </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/preferences.png</image>
+    <screenshot xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/preferences.png</image>
       <caption>Preferences dialog for customizing application settings</caption>
     </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/tobagin/digger-vala/main/screenshots/about.png</image>
+    <screenshot xml:lang="en">
+      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/about.png</image>
       <caption>About dialog showing application information</caption>
     </screenshot>
   </screenshots>
