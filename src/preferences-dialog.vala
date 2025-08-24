@@ -22,7 +22,34 @@ namespace Digger {
         private unowned Adw.ComboRow default_record_type_row;
         
         [GtkChild]
+        private unowned Adw.ComboRow default_dns_server_row;
+        
+        [GtkChild]
         private unowned Adw.SpinRow query_history_limit_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow default_reverse_lookup_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow default_trace_path_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow default_short_output_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow auto_clear_form_row;
+        
+        [GtkChild]
+        private unowned Adw.SpinRow query_timeout_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow show_query_time_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow show_ttl_prominent_row;
+        
+        [GtkChild]
+        private unowned Adw.SwitchRow compact_results_row;
         
         private GLib.Settings settings;
         private ThemeManager theme_manager;
@@ -36,6 +63,8 @@ namespace Digger {
             
             setup_color_scheme();
             setup_dns_defaults();
+            setup_query_behavior();
+            setup_display_options();
             setup_output_settings();
             setup_history_settings();
             
@@ -53,20 +82,67 @@ namespace Digger {
         }
         
         private void setup_dns_defaults() {
+            // Setup record type dropdown using same source as query form
             var string_list = new Gtk.StringList(null);
-            string_list.append("A");
-            string_list.append("AAAA");
-            string_list.append("CNAME");
-            string_list.append("MX");
-            string_list.append("NS");
-            string_list.append("PTR");
-            string_list.append("SOA");
-            string_list.append("TXT");
-            string_list.append("SRV");
-            string_list.append("CAA");
+            var dns_presets = DnsPresets.get_instance();
+            var record_types = dns_presets.get_all_record_types ();
+            
+            // Sort by type name for consistent display (same as query form)
+            var sorted_types = new Gee.ArrayList<RecordTypeInfo> ();
+            sorted_types.add_all (record_types);
+            sorted_types.sort ((a, b) => {
+                // Put common types first
+                string[] common_order = {"A", "AAAA", "CNAME", "MX", "NS", "TXT"};
+                int pos_a = -1, pos_b = -1;
+                for (int i = 0; i < common_order.length; i++) {
+                    if (a.record_type == common_order[i]) pos_a = i;
+                    if (b.record_type == common_order[i]) pos_b = i;
+                }
+                
+                if (pos_a >= 0 && pos_b >= 0) return pos_a - pos_b;
+                if (pos_a >= 0) return -1;
+                if (pos_b >= 0) return 1;
+                return strcmp (a.record_type, b.record_type);
+            });
+            
+            foreach (var record_type in sorted_types) {
+                string_list.append(record_type.record_type);
+            }
             
             default_record_type_row.model = string_list;
             default_record_type_row.notify["selected"].connect(on_default_record_type_changed);
+            
+            // Setup DNS server dropdown
+            var dns_string_list = new Gtk.StringList(null);
+            dns_string_list.append("System Default");
+            
+            // Add DNS servers from presets (reuse existing dns_presets)
+            var dns_servers = dns_presets.get_dns_servers();
+            foreach (var server in dns_servers) {
+                dns_string_list.append(server.get_display_name());
+            }
+            
+            default_dns_server_row.model = dns_string_list;
+            default_dns_server_row.notify["selected"].connect(on_default_dns_server_changed);
+        }
+        
+        private void setup_query_behavior() {
+            // Set up switch row connections
+            default_reverse_lookup_row.notify["active"].connect(on_default_reverse_lookup_changed);
+            default_trace_path_row.notify["active"].connect(on_default_trace_path_changed);
+            default_short_output_row.notify["active"].connect(on_default_short_output_changed);
+            auto_clear_form_row.notify["active"].connect(on_auto_clear_form_changed);
+            
+            // Set up timeout spin row
+            query_timeout_row.set_range(5, 60);
+            query_timeout_row.notify["value"].connect(on_query_timeout_changed);
+        }
+        
+        private void setup_display_options() {
+            // Set up display option switch rows
+            show_query_time_row.notify["active"].connect(on_show_query_time_changed);
+            show_ttl_prominent_row.notify["active"].connect(on_show_ttl_prominent_changed);
+            compact_results_row.notify["active"].connect(on_compact_results_changed);
         }
         
         private void setup_output_settings() {
@@ -94,15 +170,63 @@ namespace Digger {
                     break;
             }
             
-            // Load default record type
+            // Load default record type using same dynamic list as setup
             var default_record_type = settings.get_string("default-record-type");
-            var record_types = new string[] {"A", "AAAA", "CNAME", "MX", "NS", "PTR", "SOA", "TXT", "SRV", "CAA"};
-            for (int i = 0; i < record_types.length; i++) {
-                if (record_types[i] == default_record_type) {
+            var presets_instance = DnsPresets.get_instance();
+            var record_types = presets_instance.get_all_record_types ();
+            
+            // Sort by type name for consistent display (same as setup)
+            var sorted_types = new Gee.ArrayList<RecordTypeInfo> ();
+            sorted_types.add_all (record_types);
+            sorted_types.sort ((a, b) => {
+                // Put common types first
+                string[] common_order = {"A", "AAAA", "CNAME", "MX", "NS", "TXT"};
+                int pos_a = -1, pos_b = -1;
+                for (int i = 0; i < common_order.length; i++) {
+                    if (a.record_type == common_order[i]) pos_a = i;
+                    if (b.record_type == common_order[i]) pos_b = i;
+                }
+                
+                if (pos_a >= 0 && pos_b >= 0) return pos_a - pos_b;
+                if (pos_a >= 0) return -1;
+                if (pos_b >= 0) return 1;
+                return strcmp (a.record_type, b.record_type);
+            });
+            
+            for (int i = 0; i < sorted_types.size; i++) {
+                if (sorted_types.get(i).record_type == default_record_type) {
                     default_record_type_row.selected = i;
                     break;
                 }
             }
+            
+            // Load default DNS server
+            var default_dns_server = settings.get_string("default-dns-server");
+            int dns_server_index = 0; // Default to System Default
+            
+            if (default_dns_server != "") {
+                var dns_servers = presets_instance.get_dns_servers();
+                for (int i = 0; i < dns_servers.size; i++) {
+                    var server = dns_servers.get(i);
+                    if (server.primary == default_dns_server || server.name == default_dns_server) {
+                        dns_server_index = i + 1; // +1 because System Default is at index 0
+                        break;
+                    }
+                }
+            }
+            default_dns_server_row.selected = dns_server_index;
+            
+            // Load query behavior settings
+            default_reverse_lookup_row.active = settings.get_boolean("default-reverse-lookup");
+            default_trace_path_row.active = settings.get_boolean("default-trace-path");
+            default_short_output_row.active = settings.get_boolean("default-short-output");
+            auto_clear_form_row.active = settings.get_boolean("auto-clear-form");
+            query_timeout_row.value = settings.get_int("query-timeout");
+            
+            // Load display option settings
+            show_query_time_row.active = settings.get_boolean("show-query-time");
+            show_ttl_prominent_row.active = settings.get_boolean("show-ttl-prominent");
+            compact_results_row.active = settings.get_boolean("compact-results");
             
             // Load history settings
             query_history_limit_row.value = settings.get_int("query-history-limit");
@@ -129,13 +253,83 @@ namespace Digger {
         }
         
         private void on_default_record_type_changed() {
-            var record_types = new string[] {"A", "AAAA", "CNAME", "MX", "NS", "PTR", "SOA", "TXT", "SRV", "CAA"};
-            if (default_record_type_row.selected < record_types.length) {
-                var selected_type = record_types[default_record_type_row.selected];
+            // Get dynamic record types using same logic as setup and load
+            var dns_presets = DnsPresets.get_instance();
+            var record_types = dns_presets.get_all_record_types ();
+            
+            // Sort by type name for consistent display
+            var sorted_types = new Gee.ArrayList<RecordTypeInfo> ();
+            sorted_types.add_all (record_types);
+            sorted_types.sort ((a, b) => {
+                // Put common types first
+                string[] common_order = {"A", "AAAA", "CNAME", "MX", "NS", "TXT"};
+                int pos_a = -1, pos_b = -1;
+                for (int i = 0; i < common_order.length; i++) {
+                    if (a.record_type == common_order[i]) pos_a = i;
+                    if (b.record_type == common_order[i]) pos_b = i;
+                }
+                
+                if (pos_a >= 0 && pos_b >= 0) return pos_a - pos_b;
+                if (pos_a >= 0) return -1;
+                if (pos_b >= 0) return 1;
+                return strcmp (a.record_type, b.record_type);
+            });
+            
+            if (default_record_type_row.selected < sorted_types.size) {
+                var selected_type = sorted_types.get((int)default_record_type_row.selected).record_type;
                 settings.set_string("default-record-type", selected_type);
             }
         }
         
+        
+        private void on_default_dns_server_changed() {
+            if (default_dns_server_row.selected == 0) {
+                // System Default selected
+                settings.set_string("default-dns-server", "");
+            } else {
+                // Get the selected DNS server
+                var dns_presets = DnsPresets.get_instance();
+                var dns_servers = dns_presets.get_dns_servers();
+                int server_index = (int)default_dns_server_row.selected - 1; // -1 because System Default is at index 0
+                
+                if (server_index >= 0 && server_index < dns_servers.size) {
+                    var server = dns_servers.get(server_index);
+                    settings.set_string("default-dns-server", server.primary);
+                }
+            }
+        }
+        
+        private void on_default_reverse_lookup_changed() {
+            settings.set_boolean("default-reverse-lookup", default_reverse_lookup_row.active);
+        }
+        
+        private void on_default_trace_path_changed() {
+            settings.set_boolean("default-trace-path", default_trace_path_row.active);
+        }
+        
+        private void on_default_short_output_changed() {
+            settings.set_boolean("default-short-output", default_short_output_row.active);
+        }
+        
+        private void on_auto_clear_form_changed() {
+            settings.set_boolean("auto-clear-form", auto_clear_form_row.active);
+        }
+        
+        private void on_query_timeout_changed() {
+            settings.set_int("query-timeout", (int)query_timeout_row.value);
+        }
+        
+        private void on_show_query_time_changed() {
+            settings.set_boolean("show-query-time", show_query_time_row.active);
+        }
+        
+        private void on_show_ttl_prominent_changed() {
+            settings.set_boolean("show-ttl-prominent", show_ttl_prominent_row.active);
+        }
+        
+        private void on_compact_results_changed() {
+            settings.set_boolean("compact-results", compact_results_row.active);
+        }
         
         private void on_history_limit_changed() {
             settings.set_int("query-history-limit", (int)query_history_limit_row.value);

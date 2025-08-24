@@ -13,8 +13,14 @@ namespace Digger {
         private const string DIG_COMMAND = "dig";
         private const int DEFAULT_TIMEOUT = 10; // seconds
         
+        private GLib.Settings settings;
+        
         public signal void query_completed (QueryResult result);
         public signal void query_failed (string error_message);
+        
+        public DnsQuery () {
+            settings = new GLib.Settings (Config.APP_ID);
+        }
 
         public async QueryResult? perform_query (string domain, RecordType record_type, 
                                                 string? dns_server = null,
@@ -127,8 +133,9 @@ namespace Digger {
                 args.add ("+short");
             }
 
-            // Timeout
-            args.add (@"+time=$DEFAULT_TIMEOUT");
+            // Timeout from settings
+            var timeout_seconds = settings.get_int ("query-timeout");
+            args.add (@"+time=$timeout_seconds");
 
             // Convert to string array safely
             string[] result_args = new string[args.size];

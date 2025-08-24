@@ -65,6 +65,25 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.1.0" date="2025-08-24">
+      <description>
+        <p>Major preferences overhaul with comprehensive customization options</p>
+        <ul>
+          <li>Fixed critical bug where default record type preference wasn't being applied on startup</li>
+          <li>Completely reorganized preferences into 4 logical pages: General, DNS Settings, Display, and Data</li>
+          <li>Added comprehensive DNS behavior defaults: reverse lookup, trace path, short output, auto-clear form</li>
+          <li>Added configurable query timeout setting (5-60 seconds) with real-time application</li>
+          <li>Added default DNS server preference with full preset integration</li>
+          <li>Added display customization: query time display, TTL highlighting, compact results layout</li>
+          <li>Synchronized record type lists between preferences and query form for consistency</li>
+          <li>Enhanced settings initialization with proper timing to prevent null reference errors</li>
+          <li>Added auto-clear form functionality to clear domain field after successful queries</li>
+          <li>Improved preferences loading and saving with dynamic record type support</li>
+          <li>Fixed GLib settings initialization issues in development builds</li>
+          <li>Added comprehensive preference validation and fallback mechanisms</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.9" date="2025-08-24">
       <description>
         <p>Improved release notes presentation with AlertDialog</p>

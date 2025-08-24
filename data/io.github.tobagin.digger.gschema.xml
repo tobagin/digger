@@ -26,6 +26,11 @@
       <summary>Last used DNS server</summary>
       <description>The last DNS server used for queries</description>
     </key>
+    <key name="default-dns-server" type="s">
+      <default>""</default>
+      <summary>Default DNS server</summary>
+      <description>The default DNS server to select when the application starts (empty for system default)</description>
+    </key>
     <key name="color-scheme" type="s">
       <default>"system"</default>
       <summary>Color scheme preference</summary>
@@ -40,6 +45,46 @@
       <default>""</default>
       <summary>Last version that showed what's new dialog</summary>
       <description>Version number of the last time the what's new dialog was shown</description>
+    </key>
+    <key name="default-reverse-lookup" type="b">
+      <default>false</default>
+      <summary>Default reverse lookup state</summary>
+      <description>Whether reverse lookup should be enabled by default for new queries</description>
+    </key>
+    <key name="default-trace-path" type="b">
+      <default>false</default>
+      <summary>Default trace path state</summary>
+      <description>Whether trace path should be enabled by default for new queries</description>
+    </key>
+    <key name="default-short-output" type="b">
+      <default>false</default>
+      <summary>Default short output state</summary>
+      <description>Whether short output should be enabled by default for new queries</description>
+    </key>
+    <key name="auto-clear-form" type="b">
+      <default>false</default>
+      <summary>Auto-clear form after query</summary>
+      <description>Whether to automatically clear the domain field after performing a query</description>
+    </key>
+    <key name="query-timeout" type="i">
+      <default>10</default>
+      <summary>Query timeout in seconds</summary>
+      <description>Maximum time to wait for DNS query responses</description>
+    </key>
+    <key name="show-query-time" type="b">
+      <default>true</default>
+      <summary>Show query execution time</summary>
+      <description>Whether to display how long queries take to complete</description>
+    </key>
+    <key name="show-ttl-prominent" type="b">
+      <default>true</default>
+      <summary>Show TTL prominently in results</summary>
+      <description>Whether to prominently display TTL values in query results</description>
+    </key>
+    <key name="compact-results" type="b">
+      <default>false</default>
+      <summary>Use compact result layout</summary>
+      <description>Whether to use a more condensed result display layout</description>
     </key>
   </schema>
 </schemalist>

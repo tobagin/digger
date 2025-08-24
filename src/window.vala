@@ -255,6 +255,12 @@ namespace Digger {
             if (result != null) {
                 result_view.show_result (result);
                 query_history.add_query (result);
+                
+                // Auto-clear form if preference is enabled
+                var settings = new GLib.Settings (Config.APP_ID);
+                if (settings.get_boolean ("auto-clear-form")) {
+                    query_form.clear_domain_only ();
+                }
             }
 
             query_in_progress = false;

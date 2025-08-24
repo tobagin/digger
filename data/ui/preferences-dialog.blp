@@ -17,6 +17,11 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
         subtitle: _("Choose the application color scheme");
       }
     }
+  }
+  
+  Adw.PreferencesPage {
+    title: _("DNS Settings");
+    icon-name: "network-workgroup-symbolic";
     
     Adw.PreferencesGroup {
       title: _("DNS Defaults");
@@ -26,10 +31,75 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
         title: _("Default Record Type");
         subtitle: _("The default DNS record type for new queries");
       }
+      
+      Adw.ComboRow default_dns_server_row {
+        title: _("Default DNS Server");
+        subtitle: _("The default DNS server for new queries");
+      }
     }
     
     Adw.PreferencesGroup {
-      title: _("History & Data");
+      title: _("Query Behavior");
+      description: _("Default behavior for DNS queries");
+      
+      Adw.SwitchRow default_reverse_lookup_row {
+        title: _("Enable Reverse Lookup");
+        subtitle: _("Enable reverse DNS lookup by default");
+      }
+      
+      Adw.SwitchRow default_trace_path_row {
+        title: _("Enable Trace Path");
+        subtitle: _("Enable DNS trace path by default");
+      }
+      
+      Adw.SwitchRow default_short_output_row {
+        title: _("Enable Short Output");
+        subtitle: _("Use short output format by default");
+      }
+      
+      Adw.SwitchRow auto_clear_form_row {
+        title: _("Auto-clear Form");
+        subtitle: _("Clear domain field after each query");
+      }
+      
+      Adw.SpinRow query_timeout_row {
+        title: _("Query Timeout");
+        subtitle: _("Maximum time to wait for DNS responses (seconds)");
+      }
+    }
+  }
+  
+  Adw.PreferencesPage {
+    title: _("Display");
+    icon-name: "preferences-desktop-display-symbolic";
+    
+    Adw.PreferencesGroup {
+      title: _("Result Display");
+      description: _("Customize how query results are displayed");
+      
+      Adw.SwitchRow show_query_time_row {
+        title: _("Show Query Time");
+        subtitle: _("Display how long queries take to complete");
+      }
+      
+      Adw.SwitchRow show_ttl_prominent_row {
+        title: _("Highlight TTL Values");
+        subtitle: _("Prominently display TTL in query results");
+      }
+      
+      Adw.SwitchRow compact_results_row {
+        title: _("Compact Results");
+        subtitle: _("Use condensed layout for query results");
+      }
+    }
+  }
+  
+  Adw.PreferencesPage {
+    title: _("Data");
+    icon-name: "folder-documents-symbolic";
+    
+    Adw.PreferencesGroup {
+      title: _("History &amp; Storage");
       description: _("Manage query history and data storage");
       
       Adw.SpinRow query_history_limit_row {

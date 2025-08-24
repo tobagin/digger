@@ -32,6 +32,7 @@ namespace Digger {
         private string current_dns_server = "";
         private bool signals_connected = false;
         private bool _query_in_progress = false;
+        private GLib.Settings settings;
         
         public signal void query_requested (string domain, RecordType record_type, string? dns_server);
         
@@ -59,6 +60,8 @@ namespace Digger {
         }
         
         construct {
+            // Initialize settings exactly like preferences dialog - moved here for later timing
+            settings = new GLib.Settings(Config.APP_ID);
             // This runs after the template is applied
             // Initialize the button to disabled state initially
             query_button.sensitive = false;
@@ -102,6 +105,7 @@ namespace Digger {
             setup_record_type_dropdown ();
             setup_dns_server_dropdown ();
             setup_quick_presets ();
+            load_default_preferences ();
         }
         
         private void setup_record_type_dropdown () {
@@ -132,7 +136,23 @@ namespace Digger {
             
             // Set up the dropdown model (template widget is already created)
             record_type_dropdown.model = model;
-            record_type_dropdown.selected = 0; // Default to first item (A record)
+            
+            // Load default record type from settings and find its index
+            var default_record_type = settings.get_string ("default-record-type");
+            if (default_record_type == "") {
+                default_record_type = "A"; // fallback to A if empty
+            }
+            int selected_index = 0; // fallback to first item
+            
+            for (uint i = 0; i < model.get_n_items (); i++) {
+                var display_name = model.get_string (i);
+                var type_code = display_name.split (" - ")[0];
+                if (type_code == default_record_type) {
+                    selected_index = (int)i;
+                    break;
+                }
+            }
+            record_type_dropdown.selected = selected_index;
             
             // Add tooltips based on selection
             record_type_dropdown.notify["selected"].connect (() => {
@@ -143,6 +163,13 @@ namespace Digger {
                     record_type_dropdown.tooltip_text = info.get_tooltip_text ();
                 }
             });
+        }
+        
+        private void load_default_preferences () {
+            // Load default switch states from preferences
+            reverse_lookup_switch.active = settings.get_boolean ("default-reverse-lookup");
+            trace_path_switch.active = settings.get_boolean ("default-trace-path");
+            short_output_switch.active = settings.get_boolean ("default-short-output");
         }
         
         private void setup_dns_server_dropdown () {
@@ -163,21 +190,37 @@ namespace Digger {
             model.append ("Custom DNS Server...");
             
             dns_server_dropdown.model = model;
-            dns_server_dropdown.selected = 0; // Default to System Default
+            
+            // Load default DNS server from settings and find its index
+            var default_dns_server = settings.get_string ("default-dns-server");
+            int selected_index = 0; // fallback to System Default
+            
+            if (default_dns_server != "") {
+                // Look for matching DNS server
+                for (int i = 0; i < all_servers.size; i++) {
+                    var server = all_servers.get (i);
+                    if (server.primary == default_dns_server || server.name == default_dns_server) {
+                        selected_index = i + 1; // +1 because System Default is at index 0
+                        break;
+                    }
+                }
+            }
+            
+            dns_server_dropdown.selected = selected_index;
             
             // Store the dns_servers list for quick access
             dns_server_dropdown.set_data ("dns_servers", dns_servers);
             
             // Add tooltips and handle selection changes
             dns_server_dropdown.notify["selected"].connect (() => {
-                var selected_index = dns_server_dropdown.selected;
-                var selected_text = model.get_string (selected_index);
+                var current_selected_index = dns_server_dropdown.selected;
+                var selected_text = model.get_string (current_selected_index);
                 
-                if (selected_index == 0) {
+                if (current_selected_index == 0) {
                     // System Default
                     current_dns_server = "";
                     dns_server_dropdown.tooltip_text = "Use system default DNS server";
-                } else if (selected_index == model.get_n_items () - 1) {
+                } else if (current_selected_index == model.get_n_items () - 1) {
                     // Custom DNS Server option
                     show_custom_dns_dialog ();
                 } else {
@@ -483,8 +526,56 @@ namespace Digger {
         
         public void clear_form () {
             domain_entry.text = "";
-            record_type_dropdown.selected = 0;
-            dns_server_dropdown.selected = 0; // System default
+            
+            // Reset record type to default from settings
+            var default_record_type = settings.get_string ("default-record-type");
+            if (default_record_type == "") {
+                default_record_type = "A"; // fallback
+            }
+            var model = (Gtk.StringList) record_type_dropdown.model;
+            int selected_index = 0; // fallback to first item
+            
+            for (uint i = 0; i < model.get_n_items (); i++) {
+                var display_name = model.get_string (i);
+                var type_code = display_name.split (" - ")[0];
+                if (type_code == default_record_type) {
+                    selected_index = (int)i;
+                    break;
+                }
+            }
+            
+            record_type_dropdown.selected = selected_index;
+            
+            // Reset DNS server to default from settings
+            var default_dns_server = settings.get_string ("default-dns-server");
+            int dns_selected_index = 0; // fallback to System Default
+            
+            if (default_dns_server != "") {
+                var dns_servers = dns_server_dropdown.get_data<Gee.ArrayList<DnsServer>> ("dns_servers");
+                if (dns_servers != null) {
+                    for (int i = 0; i < dns_servers.size; i++) {
+                        var server = dns_servers.get (i);
+                        if (server.primary == default_dns_server || server.name == default_dns_server) {
+                            dns_selected_index = i + 1; // +1 because System Default is at index 0
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            dns_server_dropdown.selected = dns_selected_index;
+            
+            // Reset switches to default preferences
+            reverse_lookup_switch.active = settings.get_boolean ("default-reverse-lookup");
+            trace_path_switch.active = settings.get_boolean ("default-trace-path");
+            short_output_switch.active = settings.get_boolean ("default-short-output");
+            
+            validate_input ();
+        }
+        
+        public void clear_domain_only () {
+            // Clear only the domain field, keep all other settings
+            domain_entry.text = "";
             validate_input ();
         }
         

@@ -26,8 +26,10 @@ namespace Digger {
         private QueryResult? current_result = null;
         
         private DnsPresets dns_presets;
+        private GLib.Settings settings;
         
         public EnhancedResultView () {
+            settings = new GLib.Settings (Config.APP_ID);
             dns_presets = DnsPresets.get_instance ();
             print (@"EnhancedResultView: dns_presets is $(dns_presets != null ? "not null" : "null")\n");
         }
@@ -169,7 +171,7 @@ namespace Digger {
             
             info.append (@" - $(result.get_summary ())");
             
-            if (result.query_time_ms > 0) {
+            if (result.query_time_ms > 0 && settings.get_boolean ("show-query-time")) {
                 info.append (@" ($((int)result.query_time_ms)ms)");
             }
             
@@ -323,7 +325,11 @@ namespace Digger {
             
             // Record name and TTL
             row.title = record.name;
-            row.subtitle = @"TTL: $(record.ttl)s";
+            if (settings.get_boolean ("show-ttl-prominent")) {
+                row.subtitle = @"TTL: $(record.ttl)s";
+            } else {
+                row.subtitle = record.value;
+            }
             
             // Add record type icon if available
             if (type_info != null) {
@@ -373,17 +379,19 @@ namespace Digger {
                 margin_bottom = 12
             };
             
-            // Query time
-            var time_row = new Adw.ActionRow () {
-                title = "Query Time",
-                subtitle = "Time taken to complete the DNS query"
-            };
-            var time_label = new Gtk.Label (@"$((int)result.query_time_ms) ms") {
-                halign = Gtk.Align.END
-            };
-            time_label.add_css_class ("monospace");
-            time_row.add_suffix (time_label);
-            stats_group.add (time_row);
+            // Query time (only if preference is enabled)
+            if (settings.get_boolean ("show-query-time")) {
+                var time_row = new Adw.ActionRow () {
+                    title = "Query Time",
+                    subtitle = "Time taken to complete the DNS query"
+                };
+                var time_label = new Gtk.Label (@"$((int)result.query_time_ms) ms") {
+                    halign = Gtk.Align.END
+                };
+                time_label.add_css_class ("monospace");
+                time_row.add_suffix (time_label);
+                stats_group.add (time_row);
+            }
             
             // Record counts
             var total_records = result.answer_section.size + result.authority_section.size + result.additional_section.size;
