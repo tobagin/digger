@@ -70,11 +70,14 @@
         <p>Streamlined About dialog and improved release notes experience</p>
         <ul>
           <li>Replaced separate What's New dialog with automatic About dialog display on version updates</li>
+          <li>Added comprehensive keyboard shortcuts including F1 for About and Ctrl+, for Preferences</li>
+          <li>Simplified keyboard shortcuts dialog with cleaner text-based display</li>
           <li>Added dynamic release notes loading from appdata/metainfo XML files</li>
           <li>Implemented automatic release notes version tracking and display</li>
           <li>Enhanced About dialog with developers, designers, and artists credits</li>
           <li>Updated website URL to new GitHub Pages location</li>
           <li>Added Source code link to About dialog for easy repository access</li>
+          <li>Added GTK Project Team and Contributors to acknowledgements</li>
           <li>Removed redundant What's New functionality in favor of unified About dialog</li>
           <li>Added application description (comments) field to About dialog</li>
           <li>Reorganized build scripts to scripts folder for better project structure</li>

@@ -75,6 +75,8 @@ namespace Digger {
             set_accels_for_action ("app.shortcuts", shortcuts_accels);
             string[] about_accels = {"F1"};
             set_accels_for_action ("app.about", about_accels);
+            string[] preferences_accels = {"<primary>comma"};
+            set_accels_for_action ("app.preferences", preferences_accels);
         }
         
         private void register_resources () {
@@ -134,7 +136,7 @@ namespace Digger {
             var about = new Adw.AboutDialog () {
                 application_name = app_name,
                 application_icon = app_id,
-                developer_name = "Thiago Fernandes",
+                developer_name = "The Digger Team",
                 version = Config.VERSION,
                 developers = developers,
                 designers = designers,
