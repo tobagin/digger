@@ -36,5 +36,10 @@
       <summary>Query history limit</summary>
       <description>Maximum number of queries to keep in history</description>
     </key>
+    <key name="last-version-shown" type="s">
+      <default>""</default>
+      <summary>Last version that showed what's new dialog</summary>
+      <description>Version number of the last time the what's new dialog was shown</description>
+    </key>
   </schema>
 </schemalist>

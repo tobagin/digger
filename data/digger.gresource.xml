@@ -9,5 +9,6 @@
     <file compressed="true" preprocess="xml-stripblanks">autocomplete-dropdown.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-history-search.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-popover.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
   </gresource>
 </gresources>

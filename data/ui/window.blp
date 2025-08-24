@@ -4,12 +4,24 @@ using Adw 1;
 menu main_menu {
   section {
     item {
+      label: "Preferences";
+      action: "app.preferences";
+    }
+  }
+  section {
+    item {
+      label: "Keyboard Shortcuts";
+      action: "app.shortcuts";
+    }
+    item {
       label: "About Digger";
       action: "app.about";
     }
+  }
+  section {
     item {
-      label: "Preferences";
-      action: "app.preferences";
+      label: "Quit";
+      action: "app.quit";
     }
   }
 }

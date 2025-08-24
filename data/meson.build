@@ -67,6 +67,7 @@ blueprint_files = [
   'ui/autocomplete-dropdown.blp',
   'ui/enhanced-history-search.blp',
   'ui/history-popover.blp',
+  'ui/shortcuts-dialog.blp',
 ]
 
 # Compile blueprint files to UI files

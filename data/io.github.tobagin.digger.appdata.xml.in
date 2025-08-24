@@ -65,6 +65,39 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.0.8" date="2025-08-24">
+      <description>
+        <p>Streamlined About dialog and improved release notes experience</p>
+        <ul>
+          <li>Replaced separate What's New dialog with automatic About dialog display on version updates</li>
+          <li>Added dynamic release notes loading from appdata/metainfo XML files</li>
+          <li>Implemented automatic release notes version tracking and display</li>
+          <li>Enhanced About dialog with developers, designers, and artists credits</li>
+          <li>Updated website URL to new GitHub Pages location</li>
+          <li>Added Source code link to About dialog for easy repository access</li>
+          <li>Removed redundant What's New functionality in favor of unified About dialog</li>
+          <li>Added application description (comments) field to About dialog</li>
+          <li>Reorganized build scripts to scripts folder for better project structure</li>
+          <li>Improved version detection for showing release notes on first run after update</li>
+        </ul>
+      </description>
+    </release>
+    <release version="2.0.7" date="2025-08-24">
+      <description>
+        <p>Complete user experience enhancement with keyboard shortcuts, reorganized navigation, and comprehensive support system</p>
+        <ul>
+          <li>Added comprehensive keyboard shortcuts dialog with individual key badges and Ctrl+? access</li>
+          <li>Completely reorganized main menu with logical grouping and visual separators</li>
+          <li>Implemented What's New dialog system that automatically shows new features on version updates</li>
+          <li>Enhanced About dialog with acknowledgements to GNOME, libadwaita, Vala, BIND, and GTK teams</li>
+          <li>Added support questions link to GitHub Discussions for community help</li>
+          <li>Integrated What's New access directly from About dialog for better discoverability</li>
+          <li>Enhanced keyboard shortcuts display with separate labels for each key combination</li>
+          <li>Improved dialog layouts with professional header bars and fixed action buttons</li>
+          <li>Added dynamic content loading from application metadata for future releases</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.6" date="2025-08-17">
       <description>
         <p>Updated screenshots and corrected repository references</p>

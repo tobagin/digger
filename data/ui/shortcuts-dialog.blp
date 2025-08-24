@@ -1,0 +1,200 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerShortcutsDialog : Adw.Dialog {
+  title: "Keyboard Shortcuts";
+  content-width: 480;
+  content-height: 600;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Keyboard Shortcuts";
+      };
+    }
+
+    ScrolledWindow {
+      hscrollbar-policy: never;
+      vscrollbar-policy: automatic;
+      propagate-natural-height: true;
+
+      Box {
+        orientation: vertical;
+        spacing: 18;
+        margin-top: 24;
+        margin-bottom: 24;
+        margin-start: 24;
+        margin-end: 24;
+
+        Adw.PreferencesGroup app_group {
+          title: "Application";
+
+          Adw.ActionRow quit_row {
+            title: "Quit";
+            activatable: false;
+
+            [suffix]
+            Box {
+              orientation: horizontal;
+              spacing: 3;
+
+              Label {
+                label: "Ctrl";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+
+              Label {
+                label: "+";
+                styles ["caption", "dim-label"]
+              }
+
+              Label {
+                label: "Q";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+            }
+          }
+        }
+
+        Adw.PreferencesGroup query_group {
+          title: "Query Operations";
+
+          Adw.ActionRow new_query_row {
+            title: "New Query";
+            activatable: false;
+
+            [suffix]
+            Box {
+              orientation: horizontal;
+              spacing: 3;
+
+              Label {
+                label: "Ctrl";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+
+              Label {
+                label: "+";
+                styles ["caption", "dim-label"]
+              }
+
+              Label {
+                label: "L";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+            }
+          }
+
+          Adw.ActionRow repeat_query_row {
+            title: "Repeat Last Query";
+            activatable: false;
+
+            [suffix]
+            Box {
+              orientation: horizontal;
+              spacing: 3;
+
+              Label {
+                label: "Ctrl";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+
+              Label {
+                label: "+";
+                styles ["caption", "dim-label"]
+              }
+
+              Label {
+                label: "R";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+            }
+          }
+
+          Adw.ActionRow clear_results_row {
+            title: "Clear Results";
+            activatable: false;
+
+            [suffix]
+            Box {
+              orientation: horizontal;
+              spacing: 3;
+
+              Label {
+                label: "Escape";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+            }
+          }
+        }
+
+        Adw.PreferencesGroup nav_group {
+          title: "Navigation";
+
+          Adw.ActionRow shortcuts_row {
+            title: "Show Shortcuts";
+            activatable: false;
+
+            [suffix]
+            Box {
+              orientation: horizontal;
+              spacing: 3;
+
+              Label {
+                label: "Ctrl";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+
+              Label {
+                label: "+";
+                styles ["caption", "dim-label"]
+              }
+
+              Label {
+                label: "?";
+                styles ["caption", "dim-label", "monospace", "card"]
+                margin-start: 6;
+                margin-end: 6;
+                margin-top: 3;
+                margin-bottom: 3;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
