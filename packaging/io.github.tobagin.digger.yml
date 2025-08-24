@@ -118,6 +118,6 @@ modules:
     buildsystem: meson
     sources:
       - type: git
-        url: https://github.com/tobagin/Digger.git
+        url: https://github.com/tobagin/digger.git
         tag: v2.1.0
         commit: b2096abae9d0b3b1aad3d196c1b9bae615956351

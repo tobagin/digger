@@ -42,7 +42,7 @@ A modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides 
 - ⌨️ **Keyboard Shortcuts**: Efficient navigation with comprehensive keyboard shortcuts
 - 🎨 **Modern Interface**: Clean, adaptive UI built with libadwaita and blueprint templates
 - 🌐 **Network Diagnostics**: Detailed error handling with proper NXDOMAIN, SERVFAIL, and timeout detection
-- ⚙️ **Preferences**: Customizable themes, default settings, and history management
+- ⚙️ **Comprehensive Preferences**: Multi-page preferences with DNS defaults, query behavior, display options, and history management
 - 🚀 **Performance**: Native Vala implementation for optimal speed and resource usage
 
 ## Installation
@@ -63,23 +63,23 @@ flatpak run io.github.tobagin.digger
 
 #### Using Build Scripts
 ```bash
-git clone https://github.com/tobagin/digger-vala.git
-cd digger-vala
+git clone https://github.com/tobagin/digger.git
+cd digger
 
 # Production build
-./build.sh
+./scripts/build.sh
 
 # Development build (with debug info)
-./build.sh --dev
+./scripts/build.sh --dev
 
 # Build and run development version
-./build.sh --dev --run
+./scripts/build.sh --dev --run
 ```
 
 #### Using Flatpak Builder (Manual)
 ```bash
-git clone https://github.com/tobagin/digger-vala.git
-cd digger-vala
+git clone https://github.com/tobagin/digger.git
+cd digger
 
 # Install Flatpak build dependencies
 sudo dnf install flatpak flatpak-builder  # Fedora/RHEL
@@ -104,7 +104,7 @@ flatpak run io.github.tobagin.digger.Devel
 
 ```bash
 # Quick development build and run
-./build.sh --dev --run
+./scripts/build.sh --dev --run
 
 # Manual development run
 flatpak run io.github.tobagin.digger.Devel
@@ -146,11 +146,14 @@ Expand the "Advanced Options" section to access:
 - **No Autocomplete Interference**: History selection won't trigger autocomplete popover
 - **Comprehensive Management**: Clear history or manage query limits in preferences
 
-### Preferences & Customization
+### Comprehensive Preferences
+- **4 Organized Pages**: General, DNS Settings, Display, and Data preferences
+- **DNS Behavior Defaults**: Set default record type, DNS server, reverse lookup, trace path, short output
+- **Auto-clear Form**: Automatically clear domain field after successful queries
+- **Configurable Timeout**: Set DNS query timeout from 5-60 seconds
+- **Display Customization**: Control query time display, TTL highlighting, and result layout
 - **Theme Selection**: Choose between system, light, or dark themes
-- **Default Settings**: Set default DNS record type and other preferences
 - **History Management**: Configure query history limits and behavior
-- **Modern Interface**: Clean preferences dialog with organized settings
 
 ## Architecture
 
@@ -224,12 +227,19 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### 🚀 Version 2.0.2 - AppStream Compliance & Enhanced Documentation
-- **AppStream Compliance**: Added OARS content rating and proper metadata validation
-- **Enhanced Screenshots**: Comprehensive visual showcase with 6 detailed application screenshots
-- **Improved Documentation**: Restructured README with accurate installation instructions
-- **Flatpak Optimization**: Removed unnecessary permissions and fixed screenshot bundling
-- **Build Improvements**: Streamlined build process with better dependency handling
+### 🎉 Version 2.1.0 - Major Preferences Overhaul (Latest)
+- **Fixed Critical Bug**: Default record type preference now correctly applied on startup
+- **4-Page Preferences**: Completely reorganized into General, DNS Settings, Display, and Data pages
+- **DNS Behavior Defaults**: Set defaults for reverse lookup, trace path, short output, auto-clear form
+- **Configurable Timeout**: Customizable DNS query timeout (5-60 seconds) with real-time application
+- **Default DNS Server**: Choose default DNS server from presets with full integration
+- **Display Customization**: Control query time display, TTL highlighting, and compact results layout
+- **Synchronized Settings**: Fixed record type mismatch between preferences and query form
+- **Enhanced Initialization**: Improved settings loading with proper timing and error handling
+
+### 🚀 Version 2.0.9 - Release Notes Enhancement
+- **Improved Release Notes**: Better presentation with AlertDialog and cleaner formatting
+- **Enhanced About Dialog**: Streamlined user experience with automatic version tracking
 
 ### 🚀 Version 2.0.0 - Complete Vala Rewrite
 - **Native Performance**: Complete rewrite from Python to Vala for optimal speed and resource usage
