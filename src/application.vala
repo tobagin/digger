@@ -73,6 +73,8 @@ namespace Digger {
             set_accels_for_action ("win.clear-results", clear_results_accels);
             string[] shortcuts_accels = {"<primary>question"};
             set_accels_for_action ("app.shortcuts", shortcuts_accels);
+            string[] about_accels = {"F1"};
+            set_accels_for_action ("app.about", about_accels);
         }
         
         private void register_resources () {
