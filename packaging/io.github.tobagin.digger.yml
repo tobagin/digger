@@ -119,5 +119,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/tobagin/Digger.git
-        tag: v2.0.9
-        commit: bb1e05785acd160a21cc43c2e50b19a9ad84f67e
+        tag: v2.1.0
+        commit: b2096abae9d0b3b1aad3d196c1b9bae615956351
