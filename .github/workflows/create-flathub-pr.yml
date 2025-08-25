@@ -131,8 +131,8 @@ jobs:
         # Push branch
         git push https://x-access-token:${GITHUB_TOKEN}@github.com/$FLATHUB_REPO.git "$BRANCH_NAME"
         
-        # Create pull request using GitHub CLI
-        gh auth login --with-token <<< "$GITHUB_TOKEN"
+        # Create pull request using GitHub CLI with explicit token
+        export GH_TOKEN="$GITHUB_TOKEN"
         
         gh pr create \
           --title "📦 Update Digger to ${{ steps.version.outputs.tag_name }}" \
