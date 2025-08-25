@@ -67,7 +67,8 @@ jobs:
             content = f.read()
         
         # Pattern to find and update the digger module's tag and commit
-        digger_section = r'(- name: digger.*?sources:.*?- type: git.*?url: https://github\.com/tobagin/digger\.git.*?tag: )v[0-9]+\.[0-9]+\.[0-9]+(.*?commit: )[a-f0-9]{40}'
+        # Handle both Digger.git and digger.git URLs (case insensitive)
+        digger_section = r'(- name: digger.*?sources:.*?- type: git.*?url: https://github\.com/tobagin/[Dd]igger\.git.*?tag: )v[0-9]+\.[0-9]+\.[0-9]+(.*?commit: )[a-f0-9]{40}'
         
         # Update both tag and commit in the digger module
         replacement = rf'\g<1>{tag_name}\g<2>{commit_hash}'
