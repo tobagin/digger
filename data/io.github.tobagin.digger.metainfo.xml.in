@@ -65,6 +65,19 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.1.4" date="2025-08-25">
+      <description>
+        <p>Streamlined automation workflow</p>
+        <ul>
+          <li>Simplified GitHub Actions to focus only on Flathub PRs</li>
+          <li>Eliminated complex git conflict handling</li>
+          <li>Cleaner separation between local development and Flathub submissions</li>
+          <li>More reliable and maintainable automation system</li>
+          <li>Manual control over local manifest updates</li>
+          <li>Reduced workflow complexity and improved debugging</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.3" date="2025-08-25">
       <description>
         <p>GitHub Actions workflow improvements</p>
