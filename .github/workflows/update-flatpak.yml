@@ -163,7 +163,7 @@ jobs:
         BRANCH_NAME="update-${{ steps.version.outputs.tag_name }}"
         
         echo "🔄 Cloning Flathub repository..."
-        git clone https://github.com/$FLATHUB_REPO.git flathub-repo
+        git clone https://x-access-token:${GITHUB_TOKEN}@github.com/$FLATHUB_REPO.git flathub-repo
         cd flathub-repo
         
         # Configure git
@@ -193,7 +193,7 @@ jobs:
         *This PR was automatically created by GitHub Actions*"
         
         # Push branch
-        git push origin "$BRANCH_NAME"
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/$FLATHUB_REPO.git "$BRANCH_NAME"
         
         # Create pull request using GitHub CLI
         gh auth login --with-token <<< "$GITHUB_TOKEN"
