@@ -93,11 +93,11 @@ namespace Digger {
 
             main_window.present ();
 
-            // Show release notes alert if this is a new version
+            // Show release notes if this is a new version
             if (should_show_release_notes ()) {
                 // Small delay to ensure main window is fully presented
                 Timeout.add (500, () => {
-                    show_release_notes_alert ();
+                    show_about_with_release_notes ();
                     return false;
                 });
             }
@@ -117,64 +117,49 @@ namespace Digger {
             return false;
         }
         
-        private void show_release_notes_alert () {
-            string release_notes_text = "";
-            
-            // Try to load release notes from appdata
-            try {
-                var appdata_path = Path.build_filename (Config.DATADIR, "metainfo", "%s.metainfo.xml".printf (app_id));
-                var file = File.new_for_path (appdata_path);
-                
-                if (file.query_exists ()) {
-                    uint8[] contents;
-                    file.load_contents (null, out contents, null);
-                    string xml_content = (string) contents;
-                    
-                    // Parse the XML to find the release matching Config.VERSION
-                    var parser = new Regex ("<release version=\"%s\"[^>]*>(.*?)</release>".printf (Regex.escape_string (Config.VERSION)), 
-                                           RegexCompileFlags.DOTALL | RegexCompileFlags.MULTILINE);
-                    MatchInfo match_info;
-                    
-                    if (parser.match (xml_content, 0, out match_info)) {
-                        string release_section = match_info.fetch (1);
-                        
-                        // Extract description content and convert to plain text
-                        var desc_parser = new Regex ("<description>(.*?)</description>", 
-                                                    RegexCompileFlags.DOTALL | RegexCompileFlags.MULTILINE);
-                        MatchInfo desc_match;
-                        
-                        if (desc_parser.match (release_section, 0, out desc_match)) {
-                            string release_html = desc_match.fetch (1).strip ();
-                            
-                            // Simple HTML to text conversion with better formatting
-                            release_notes_text = release_html
-                                .replace ("<p>", "")
-                                .replace ("</p>", "\n")
-                                .replace ("<ul>", "")
-                                .replace ("</ul>", "")
-                                .replace ("<li>", "• ")
-                                .replace ("</li>", "")
-                                .replace ("\n\n\n", "\n")
-                                .replace ("\n\n", "\n")
-                                .strip ();
-                        }
-                    }
+        private void simulate_tab_navigation () {
+            // Get the focused widget and try to move focus
+            var focused_widget = main_window.get_focus ();
+            if (focused_widget != null) {
+                // Use grab_focus to move to the next focusable widget
+                var parent = focused_widget.get_parent ();
+                if (parent != null) {
+                    // Try to move focus to the next sibling
+                    parent.child_focus (Gtk.DirectionType.TAB_FORWARD);
                 }
-            } catch (Error e) {
-                warning ("Could not load release notes: %s", e.message);
             }
+        }
+
+        private void simulate_enter_activation () {
+            // Get the currently focused widget and try to activate it
+            var focused_widget = main_window.get_focus ();
+            if (focused_widget != null) {
+                // If it's a button, click it
+                if (focused_widget is Gtk.Button) {
+                    ((Gtk.Button)focused_widget).activate ();
+                }
+                // For other widgets, try to activate the default action
+                else {
+                    focused_widget.activate_default ();
+                }
+            }
+        }
+
+        private void show_about_with_release_notes () {
+            // Open the about dialog first
+            on_about_action ();
             
-            // Create and show the alert dialog
-            var alert = new Adw.AlertDialog (
-                "What's New in Version %s".printf (Config.VERSION),
-                release_notes_text != "" ? release_notes_text : "This update includes bug fixes and performance improvements."
-            );
-            
-            alert.add_response ("ok", "_OK");
-            alert.set_response_appearance ("ok", Adw.ResponseAppearance.SUGGESTED);
-            alert.set_default_response ("ok");
-            
-            alert.present (main_window);
+            // Wait for the dialog to appear, then navigate to release notes
+            Timeout.add (300, () => {
+                simulate_tab_navigation ();
+                
+                // Simulate Enter key press after another delay to open release notes
+                Timeout.add (200, () => {
+                    simulate_enter_activation ();
+                    return false;
+                });
+                return false;
+            });
         }
 
         private void on_about_action () {

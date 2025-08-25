@@ -9,9 +9,9 @@ desktop_input = configure_file(
   }
 )
 
-appdata_input = configure_file(
-  input: 'io.github.tobagin.digger.appdata.xml.in',
-  output: app_id + '.appdata.xml.in',
+metainfo_input = configure_file(
+  input: 'io.github.tobagin.digger.metainfo.xml.in',
+  output: app_id + '.metainfo.xml.in',
   configuration: {
     'APP_ID': app_id
   }
@@ -27,10 +27,10 @@ desktop_file = i18n.merge_file(
   install_dir: join_paths(get_option('datadir'), 'applications')
 )
 
-# Appdata file
-appdata_file = i18n.merge_file(
-  input: appdata_input,
-  output: app_id + '.appdata.xml',
+# Metainfo file
+metainfo_file = i18n.merge_file(
+  input: metainfo_input,
+  output: app_id + '.metainfo.xml',
   type: 'xml',
   po_dir: join_paths(meson.current_source_dir(), '..', 'po'),
   install: true,
