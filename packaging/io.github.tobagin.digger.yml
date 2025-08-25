@@ -120,10 +120,4 @@ modules:
       - type: git
         url: https://github.com/tobagin/digger.git
         tag: v2.1.1
-        commit: 16bd7856990b850305dbd6a003ec8ac230f13e28
-        x-checker-data:
-          type: json
-          url: https://api.github.com/repos/tobagin/digger/releases/latest
-          tag-query: .tag_name
-          version-query: $tag | sub("^v"; "")
-          timestamp-query: .published_at
+        commit: a39758d2727ce23086a0e5483d3bdf46cf21b2c0

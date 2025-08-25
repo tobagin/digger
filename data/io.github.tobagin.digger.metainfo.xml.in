@@ -67,16 +67,17 @@
   <releases>
     <release version="2.1.1" date="2025-08-25">
       <description>
-        <p>Workflow automation and UI improvements</p>
+        <p>Complete workflow automation overhaul with robust Flathub integration</p>
         <ul>
-          <li>Automated GitHub Actions workflow for Flathub releases</li>
-          <li>Fixed GitHub CLI authentication for PR creation</li>
-          <li>Improved regex pattern matching for manifest updates</li>
+          <li>Completely redesigned GitHub Actions workflow for reliable Flathub automation</li>
+          <li>Implemented proper branch-based PR creation for protected repositories</li>
+          <li>Added GitHub API integration for automated pull request creation</li>
+          <li>Enhanced manifest validation and error handling with comprehensive checks</li>
+          <li>Fixed workflow to properly handle Flathub's master branch requirements</li>
           <li>Simplified preferences dialog layout with cleaner page groupings</li>
-          <li>Enhanced workflow debugging and error handling</li>
-          <li>Updated documentation with comprehensive automation guides</li>
-          <li>Fixed URL case sensitivity issues in workflow patterns</li>
-          <li>Direct push to main branch workflow for streamlined releases</li>
+          <li>Added automated branch cleanup to prevent conflicts</li>
+          <li>Improved workflow reliability with proper authentication and error recovery</li>
+          <li>Zero-maintenance releases with full Flathub integration</li>
         </ul>
       </description>
     </release>

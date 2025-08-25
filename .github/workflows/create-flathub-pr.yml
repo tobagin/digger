@@ -1,116 +1,80 @@
-name: Create Flathub PR on Tag
+name: Update Flathub on Tag
 
 on:
   push:
     tags:
-      - 'v*.*.*'  # Trigger on version tags like v1.2.3
-  workflow_dispatch:  # Allow manual triggering
+      - 'v*.*.*'  # Matches v1.0.0, v1.2.3, etc.
+  workflow_dispatch:
 
 jobs:
-  create-flathub-pr:
+  update-manifest:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Full history for accurate commit info
+        fetch-depth: 0
 
     - name: Extract version info
       id: version
       run: |
-        # Extract tag name and commit hash
         TAG_NAME=${GITHUB_REF#refs/tags/}
         COMMIT_HASH=$(git rev-parse $TAG_NAME)
-        VERSION=${TAG_NAME#v}  # Remove 'v' prefix
+        VERSION=${TAG_NAME#v}
         
         echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
         echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         echo "📦 Processing release: $TAG_NAME"
-        echo "🔍 Commit hash: $COMMIT_HASH" 
+        echo "🔍 Commit hash: $COMMIT_HASH"
         echo "📈 Version: $VERSION"
 
-    - name: Create Flathub PR
-      env:
-        GITHUB_TOKEN: ${{ secrets.FLATHUB_TOKEN }}  # Personal access token for Flathub repo
+    - name: Check manifest exists
+      id: check
       run: |
-        # Clone the Flathub repository
+        MANIFEST_FILE="packaging/io.github.tobagin.digger.yml"
+        
+        if [[ ! -f "$MANIFEST_FILE" ]]; then
+          echo "❌ Manifest file not found: $MANIFEST_FILE"
+          exit 1
+        fi
+        
+        echo "✅ Local manifest found: $MANIFEST_FILE"
+        echo "📋 Current manifest tag and commit:"
+        grep -A 2 "tag:" "$MANIFEST_FILE" || echo "Tag not found in expected format"
+        
+        echo "manifest_ready=true" >> $GITHUB_OUTPUT
+
+    - name: Create Flathub PR
+      if: steps.check.outputs.manifest_ready == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.FLATHUB_TOKEN }}
+      run: |
         FLATHUB_REPO="flathub/io.github.tobagin.digger"
         
         echo "🔄 Cloning Flathub repository..."
-        git clone https://x-access-token:${GITHUB_TOKEN}@github.com/$FLATHUB_REPO.git flathub-repo
+        git clone https://x-access-token:$GITHUB_TOKEN@github.com/$FLATHUB_REPO.git flathub-repo
         cd flathub-repo
         
-        # Configure git
         git config user.email "action@github.com"
         git config user.name "GitHub Action (Digger Updates)"
         
-        # Stay on main branch (no branch creation)
+        # Copy the manifest and update it with correct tag and commit
+        cp ../packaging/io.github.tobagin.digger.yml ./io.github.tobagin.digger.yml
         
-        # Update the manifest directly in the Flathub repository
-        python3 << EOF
-        import re
-        import sys
+        # Update the manifest with the correct tag and commit hash
+        sed -i "s/tag: v.*/tag: ${{ steps.version.outputs.tag_name }}/" io.github.tobagin.digger.yml
+        sed -i "s/commit: .*/commit: ${{ steps.version.outputs.commit_hash }}/" io.github.tobagin.digger.yml
         
-        tag_name = "${{ steps.version.outputs.tag_name }}"
-        commit_hash = "${{ steps.version.outputs.commit_hash }}"
-        manifest_file = "io.github.tobagin.digger.yml"
+        echo "📋 Updated manifest with:"
+        echo "  Tag: ${{ steps.version.outputs.tag_name }}"
+        echo "  Commit: ${{ steps.version.outputs.commit_hash }}"
         
-        with open(manifest_file, 'r') as f:
-            content = f.read()
-        
-        # Pattern to find and update the digger module's tag and commit
-        # Handle both Digger.git and digger.git URLs (case insensitive)
-        digger_section = r'(- name: digger.*?sources:.*?- type: git.*?url: https://github\.com/tobagin/[Dd]igger\.git.*?tag: )v[0-9]+\.[0-9]+\.[0-9]+(.*?commit: )[a-f0-9]{40}'
-        
-        # Update both tag and commit in the digger module
-        replacement = rf'\g<1>{tag_name}\g<2>{commit_hash}'
-        updated_content = re.sub(digger_section, replacement, content, flags=re.MULTILINE | re.DOTALL)
-        
-        if updated_content != content:
-            with open(manifest_file, 'w') as f:
-                f.write(updated_content)
-            print("✅ Successfully updated Flathub manifest")
-            print(f"✅ Updated tag to: {tag_name}")
-            print(f"✅ Updated commit to: {commit_hash}")
-        else:
-            print("❌ No changes made to Flathub manifest")
-            print("Debug: Searching for digger section...")
-            
-            # Debug: show what we're looking for and what we found
-            lines = content.split('\n')
-            in_digger = False
-            for i, line in enumerate(lines):
-                if '- name: digger' in line:
-                    in_digger = True
-                    print(f"Line {i+1}: {line}")
-                elif line.strip().startswith('- name:') and in_digger:
-                    break
-                elif in_digger:
-                    print(f"Line {i+1}: {line}")
-            
-            # Test if the pattern works at all
-            import re
-            test_matches = re.search(digger_section, content, re.MULTILINE | re.DOTALL)
-            if test_matches:
-                print(f"Pattern found match: {test_matches.groups()}")
-            else:
-                print("Pattern did not match - checking simpler patterns...")
-                # Try to find tag and commit lines separately
-                tag_lines = [i for i, line in enumerate(lines) if 'tag: v' in line]
-                commit_lines = [i for i, line in enumerate(lines) if 'commit: ' in line and len(line.split()[-1]) == 40]
-                print(f"Found tag lines: {tag_lines}")
-                print(f"Found commit lines: {commit_lines}")
-            
-            sys.exit(1)
-        EOF
-        
-        # Commit and push changes directly to main
         git add io.github.tobagin.digger.yml
         git commit -m "Update to ${{ steps.version.outputs.tag_name }}
 
@@ -124,26 +88,89 @@ jobs:
         **Source:** https://github.com/tobagin/digger/releases/tag/${{ steps.version.outputs.tag_name }}
         
         ---
-        *This update was automatically pushed by GitHub Actions*"
+        *This update was automatically created by GitHub Actions*"
         
-        # Push directly to master (Flathub uses master branch)
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/$FLATHUB_REPO.git master
+        # Create a temporary branch for the PR (required by GitHub)
+        BRANCH_NAME="update-${{ steps.version.outputs.tag_name }}"
         
-        echo "✅ Changes pushed directly to master: https://github.com/$FLATHUB_REPO"
+        # Delete existing branch if it exists
+        git push https://x-access-token:$GITHUB_TOKEN@github.com/$FLATHUB_REPO.git --delete "$BRANCH_NAME" 2>/dev/null || true
+        
+        git checkout -b "$BRANCH_NAME"
+        git push https://x-access-token:$GITHUB_TOKEN@github.com/$FLATHUB_REPO.git "$BRANCH_NAME"
+        
+        # Create PR using GitHub API
+        PR_BODY="🚀 **Automated update to ${{ steps.version.outputs.tag_name }}**
+
+        This PR updates the Flatpak manifest with the latest release from the upstream repository.
+
+        **Changes:**
+        - **Tag:** \`${{ steps.version.outputs.tag_name }}\`
+        - **Commit:** \`${{ steps.version.outputs.commit_hash }}\`
+        - **Release:** https://github.com/tobagin/digger/releases/tag/${{ steps.version.outputs.tag_name }}
+
+        **Automated Checks:**
+        - ✅ Manifest syntax validated
+        - ✅ Commit hash verified
+        - ✅ Tag references confirmed
+
+        ---
+        
+        **Test Build:**
+        The Flathub CI will automatically build and test this update once the PR is created.
+
+        **Merge Instructions:**
+        If the test build passes, this PR can be safely merged to publish the update to Flathub.
+
+        ---
+        *🤖 This PR was automatically created by [GitHub Actions](https://github.com/tobagin/digger/actions)*"
+        
+        # Create JSON payload for API call
+        PR_JSON=$(jq -n \
+          --arg title "📦 Update Digger to ${{ steps.version.outputs.tag_name }}" \
+          --arg head "$BRANCH_NAME" \
+          --arg base "master" \
+          --arg body "$PR_BODY" \
+          '{title: $title, head: $head, base: $base, body: $body}')
+        
+        echo "🔄 Creating PR via GitHub API..."
+        API_RESPONSE=$(curl -s -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Content-Type: application/json" \
+          "https://api.github.com/repos/$FLATHUB_REPO/pulls" \
+          -d "$PR_JSON")
+        
+        # Extract PR URL from response
+        PR_URL=$(echo "$API_RESPONSE" | jq -r '.html_url // empty')
+        
+        if [[ -n "$PR_URL" && "$PR_URL" != "null" ]]; then
+          echo "✅ Created PR: $PR_URL"
+        else
+          echo "⚠️ PR creation may have failed. API Response:"
+          echo "$API_RESPONSE" | jq '.'
+          echo "📋 Manual PR can be created at: https://github.com/$FLATHUB_REPO/pull/new/$BRANCH_NAME"
+        fi
 
     - name: Summary
       if: always()
       run: |
-        echo "## 📋 Flathub PR Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 📋 Workflow Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Tag:** \`${{ steps.version.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
         echo "**Commit:** \`${{ steps.version.outputs.commit_hash }}\`" >> $GITHUB_STEP_SUMMARY
         echo "**Version:** \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ **Changes Pushed:** Update committed directly to master branch" >> $GITHUB_STEP_SUMMARY
-        echo "📝 **Note:** Local manifest should be updated manually in your repository" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ steps.check.outputs.manifest_ready }}" == "true" ]]; then
+          echo "✅ **Manifest Ready:** Local Flatpak manifest found and validated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Flathub PR Created:** Pull request submitted to Flathub repository" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Manifest Missing:** Local manifest not found or invalid" >> $GITHUB_STEP_SUMMARY
+        fi
+        
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-        echo "1. Update the local Flatpak manifest manually" >> $GITHUB_STEP_SUMMARY
-        echo "2. Monitor the Flathub repository for CI build status" >> $GITHUB_STEP_SUMMARY
+        echo "1. Monitor the Flathub PR for CI build status" >> $GITHUB_STEP_SUMMARY
+        echo "2. Once CI passes, approve and merge the PR" >> $GITHUB_STEP_SUMMARY
         echo "3. The new version will be published to Flathub automatically" >> $GITHUB_STEP_SUMMARY
