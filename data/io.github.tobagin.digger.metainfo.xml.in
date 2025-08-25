@@ -65,6 +65,24 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.1.2" date="2025-08-25">
+      <description>
+        <p>Automation and standards compliance update</p>
+        <ul>
+          <li>Complete GitHub Actions automation for Flatpak releases</li>
+          <li>Automatic Flathub PR creation on tag push</li>
+          <li>External data checker for dependency updates</li>
+          <li>Professional What's New dialog with About integration</li>
+          <li>Convert appdata.xml to metainfo.xml format for standards compliance</li>
+          <li>Add x-checker-data for automatic version detection</li>
+          <li>Implement keyboard navigation simulation for release notes</li>
+          <li>Zero-maintenance releases - just push a tag!</li>
+          <li>Comprehensive Flatpak-Flathub automation guide for developers</li>
+          <li>Cross-repository PR creation to Flathub</li>
+          <li>Automatic commit hash and version tracking</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.0" date="2025-08-24">
       <description>
         <p>Major preferences overhaul with comprehensive customization options</p>
