@@ -67,59 +67,27 @@
   <releases>
     <release version="2.1.1" date="2025-08-25">
       <description>
-        <p>Complete workflow automation overhaul with robust Flathub integration</p>
+        <p>Complete workflow automation overhaul and standards compliance update</p>
         <ul>
-          <li>Completely redesigned GitHub Actions workflow for reliable Flathub automation</li>
+          <li>Complete GitHub Actions automation for Flatpak releases with zero-maintenance workflow</li>
+          <li>Automatic Flathub PR creation on tag push with cross-repository integration</li>
           <li>Implemented proper branch-based PR creation for protected repositories</li>
           <li>Added GitHub API integration for automated pull request creation</li>
           <li>Enhanced manifest validation and error handling with comprehensive checks</li>
           <li>Fixed workflow to properly handle Flathub's master branch requirements</li>
-          <li>Simplified preferences dialog layout with cleaner page groupings</li>
           <li>Added automated branch cleanup to prevent conflicts</li>
-          <li>Improved workflow reliability with proper authentication and error recovery</li>
-          <li>Zero-maintenance releases with full Flathub integration</li>
-        </ul>
-      </description>
-    </release>
-    <release version="2.1.4" date="2025-08-25">
-      <description>
-        <p>Streamlined automation workflow</p>
-        <ul>
-          <li>Simplified GitHub Actions to focus only on Flathub PRs</li>
-          <li>Eliminated complex git conflict handling</li>
-          <li>Cleaner separation between local development and Flathub submissions</li>
-          <li>More reliable and maintainable automation system</li>
-          <li>Manual control over local manifest updates</li>
-          <li>Reduced workflow complexity and improved debugging</li>
-        </ul>
-      </description>
-    </release>
-    <release version="2.1.3" date="2025-08-25">
-      <description>
-        <p>GitHub Actions workflow improvements</p>
-        <ul>
-          <li>Fixed git push conflicts in automation workflow</li>
-          <li>Improved branch handling for manifest updates</li>
-          <li>Better error handling for fast-forward issues</li>
-          <li>Enhanced workflow robustness and reliability</li>
-        </ul>
-      </description>
-    </release>
-    <release version="2.1.2" date="2025-08-25">
-      <description>
-        <p>Automation and standards compliance update</p>
-        <ul>
-          <li>Complete GitHub Actions automation for Flatpak releases</li>
-          <li>Automatic Flathub PR creation on tag push</li>
-          <li>External data checker for dependency updates</li>
+          <li>Fixed git push conflicts and improved branch handling for manifest updates</li>
+          <li>Better error handling for fast-forward issues and enhanced workflow robustness</li>
+          <li>Streamlined automation workflow with simplified GitHub Actions</li>
+          <li>Eliminated complex git conflict handling for cleaner development workflow</li>
+          <li>More reliable and maintainable automation system with manual control over updates</li>
+          <li>External data checker for dependency updates and automatic version detection</li>
           <li>Professional What's New dialog with About integration</li>
           <li>Convert appdata.xml to metainfo.xml format for standards compliance</li>
-          <li>Add x-checker-data for automatic version detection</li>
-          <li>Implement keyboard navigation simulation for release notes</li>
-          <li>Zero-maintenance releases - just push a tag!</li>
           <li>Comprehensive Flatpak-Flathub automation guide for developers</li>
-          <li>Cross-repository PR creation to Flathub</li>
           <li>Automatic commit hash and version tracking</li>
+          <li>Simplified preferences dialog layout with cleaner page groupings</li>
+          <li>Zero-maintenance releases with full Flathub integration - just push a tag!</li>
         </ul>
       </description>
     </release>
