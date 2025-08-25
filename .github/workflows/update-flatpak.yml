@@ -49,30 +49,46 @@ jobs:
         cp "$MANIFEST_FILE" "$MANIFEST_FILE.bak"
         
         # Update the digger module section
-        python3 << 'EOF'
+        python3 << EOF
         import re
         import sys
         
         tag_name = "${{ steps.version.outputs.tag_name }}"
         commit_hash = "${{ steps.version.outputs.commit_hash }}"
+        manifest_file = "$MANIFEST_FILE"
         
-        with open("$MANIFEST_FILE", 'r') as f:
+        with open(manifest_file, 'r') as f:
             content = f.read()
         
-        # Pattern to find the digger module's git source
-        pattern = r'(- name: digger.*?sources:\s*- type: git\s+url: https://github\.com/tobagin/digger\.git\s+tag: )v[\d.]+(\s+commit: )[a-f0-9]+'
+        # Pattern to find and update the digger module's tag and commit
+        # This pattern accounts for YAML indentation and targets only the digger module
+        digger_section = r'(- name: digger.*?sources:.*?- type: git.*?url: https://github\.com/tobagin/digger\.git.*?tag: )v[0-9]+\.[0-9]+\.[0-9]+(.*?commit: )[a-f0-9]{40}'
         
+        # Update both tag and commit in the digger module
         replacement = f'\\g<1>{tag_name}\\g<2>{commit_hash}'
-        
-        updated_content = re.sub(pattern, replacement, content, flags=re.MULTILINE | re.DOTALL)
+        updated_content = re.sub(digger_section, replacement, content, flags=re.MULTILINE | re.DOTALL)
         
         if updated_content != content:
-            with open("$MANIFEST_FILE", 'w') as f:
+            with open(manifest_file, 'w') as f:
                 f.write(updated_content)
             print("✅ Successfully updated manifest")
+            print(f"✅ Updated tag to: {tag_name}")
+            print(f"✅ Updated commit to: {commit_hash}")
             sys.exit(0)
         else:
             print("❌ No changes made - pattern not found")
+            print("Debug info:")
+            print(f"Looking for pattern: {digger_section}")
+            # Show relevant lines from manifest
+            lines = content.split('\n')
+            in_digger_section = False
+            for i, line in enumerate(lines):
+                if '- name: digger' in line:
+                    in_digger_section = True
+                elif line.startswith('  - name:') and in_digger_section:
+                    in_digger_section = False
+                elif in_digger_section:
+                    print(f"Line {i+1}: {line}")
             sys.exit(1)
         EOF
         
