@@ -104,14 +104,54 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        git add packaging/io.github.tobagin.digger.yml
-        git commit -m "📦 Update Flatpak manifest to ${{ steps.version.outputs.tag_name }}
+        # Switch to main branch and pull latest changes
+        git fetch origin main
+        git checkout main
+        git pull origin main
+        
+        # Re-apply the manifest update to the latest main branch
+        MANIFEST_FILE="packaging/io.github.tobagin.digger.yml"
+        
+        # Update the digger module section again on latest main
+        python3 << EOF
+        import re
+        import sys
+        
+        tag_name = "${{ steps.version.outputs.tag_name }}"
+        commit_hash = "${{ steps.version.outputs.commit_hash }}"
+        manifest_file = "$MANIFEST_FILE"
+        
+        with open(manifest_file, 'r') as f:
+            content = f.read()
+        
+        # Pattern to find and update the digger module's tag and commit
+        digger_section = r'(- name: digger.*?sources:.*?- type: git.*?url: https://github\.com/tobagin/digger\.git.*?tag: )v[0-9]+\.[0-9]+\.[0-9]+(.*?commit: )[a-f0-9]{40}'
+        
+        # Update both tag and commit in the digger module
+        replacement = f'\\g<1>{tag_name}\\g<2>{commit_hash}'
+        updated_content = re.sub(digger_section, replacement, content, flags=re.MULTILINE | re.DOTALL)
+        
+        if updated_content != content:
+            with open(manifest_file, 'w') as f:
+                f.write(updated_content)
+            print("✅ Successfully updated manifest on main branch")
+        else:
+            print("ℹ️ Manifest already up to date on main branch")
+        EOF
+        
+        # Check if there are changes to commit
+        if git diff --quiet; then
+          echo "ℹ️ No changes to commit (manifest already updated)"
+        else
+          git add packaging/io.github.tobagin.digger.yml
+          git commit -m "📦 Update Flatpak manifest to ${{ steps.version.outputs.tag_name }}
 
         - Updated tag to ${{ steps.version.outputs.tag_name }}
         - Updated commit hash to ${{ steps.version.outputs.commit_hash }}
         - Automated by GitHub Actions"
-        
-        git push origin HEAD:main
+          
+          git push origin main
+        fi
 
     - name: Create Flathub PR
       if: steps.update.outputs.manifest_updated == 'true'
