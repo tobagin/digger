@@ -119,8 +119,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/tobagin/digger.git
-        tag: v2.1.0
-        commit: b2096abae9d0b3b1aad3d196c1b9bae615956351
+        tag: v2.1.3
+        commit: fa1a3f19c01ba7ba9338713e45fb7ad8da81e063
         x-checker-data:
           type: json
           url: https://api.github.com/repos/tobagin/digger/releases/latest
