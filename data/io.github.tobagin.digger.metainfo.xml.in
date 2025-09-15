@@ -66,6 +66,17 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.1.2" date="2025-09-15">
+      <description>
+        <p>Critical bug fix for DNS server selection crashes</p>
+        <ul>
+          <li>Fixed application crash when changing DNS servers via combo row dropdown</li>
+          <li>Fixed application crash when using DNS quick preset buttons (Google, Cloudflare, Quad9)</li>
+          <li>Resolved index out of bounds error in DNS server selection handler</li>
+          <li>Improved DNS server dropdown stability and reliability</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.1" date="2025-08-25">
       <description>
         <p>Complete workflow automation overhaul and standards compliance update</p>

@@ -225,7 +225,7 @@ namespace Digger {
                     show_custom_dns_dialog ();
                 } else {
                     // Preset DNS server
-                    var server = dns_servers.get ((int)(selected_index - 1));
+                    var server = dns_servers.get ((int)(current_selected_index - 1));
                     current_dns_server = server.primary;
                     dns_server_dropdown.tooltip_text = server.get_tooltip_text ();
                 }
