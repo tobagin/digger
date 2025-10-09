@@ -32,6 +32,12 @@ template $DiggerEnhancedResultView : Box {
       halign: end;
       valign: center;
 
+      Button export_button {
+        icon-name: "document-save-symbolic";
+        tooltip-text: "Export results";
+        visible: false;
+      }
+
       Button raw_output_button {
         icon-name: "text-x-generic-symbolic";
         tooltip-text: "Show raw dig output";

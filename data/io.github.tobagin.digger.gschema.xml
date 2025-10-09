@@ -86,5 +86,30 @@
       <summary>Use compact result layout</summary>
       <description>Whether to use a more condensed result display layout</description>
     </key>
+    <key name="enable-doh" type="b">
+      <default>false</default>
+      <summary>Enable DNS-over-HTTPS</summary>
+      <description>Whether to use DNS-over-HTTPS for queries</description>
+    </key>
+    <key name="doh-provider" type="s">
+      <default>"cloudflare"</default>
+      <summary>DoH provider</summary>
+      <description>The DNS-over-HTTPS provider to use (cloudflare, google, quad9, custom)</description>
+    </key>
+    <key name="custom-doh-endpoint" type="s">
+      <default>""</default>
+      <summary>Custom DoH endpoint</summary>
+      <description>Custom DNS-over-HTTPS endpoint URL</description>
+    </key>
+    <key name="enable-dnssec" type="b">
+      <default>false</default>
+      <summary>Enable DNSSEC validation</summary>
+      <description>Whether to automatically validate DNS responses with DNSSEC</description>
+    </key>
+    <key name="show-dnssec-details" type="b">
+      <default>true</default>
+      <summary>Show DNSSEC details</summary>
+      <description>Whether to display detailed DNSSEC chain of trust information</description>
+    </key>
   </schema>
 </schemalist>

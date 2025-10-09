@@ -19,6 +19,11 @@ namespace Digger {
         TXT,
         SOA,
         SRV,
+        DNSKEY,
+        DS,
+        RRSIG,
+        NSEC,
+        NSEC3,
         ANY;
 
         public string to_string () {
@@ -32,6 +37,11 @@ namespace Digger {
                 case TXT: return "TXT";
                 case SOA: return "SOA";
                 case SRV: return "SRV";
+                case DNSKEY: return "DNSKEY";
+                case DS: return "DS";
+                case RRSIG: return "RRSIG";
+                case NSEC: return "NSEC";
+                case NSEC3: return "NSEC3";
                 case ANY: return "ANY";
                 default: return "UNKNOWN";
             }
@@ -48,8 +58,55 @@ namespace Digger {
                 case "TXT": return TXT;
                 case "SOA": return SOA;
                 case "SRV": return SRV;
+                case "DNSKEY": return DNSKEY;
+                case "DS": return DS;
+                case "RRSIG": return RRSIG;
+                case "NSEC": return NSEC;
+                case "NSEC3": return NSEC3;
                 case "ANY": return ANY;
                 default: return A; // Default fallback
+            }
+        }
+
+        public int to_wire_type () {
+            switch (this) {
+                case A: return 1;
+                case AAAA: return 28;
+                case CNAME: return 5;
+                case MX: return 15;
+                case NS: return 2;
+                case PTR: return 12;
+                case TXT: return 16;
+                case SOA: return 6;
+                case SRV: return 33;
+                case DNSKEY: return 48;
+                case DS: return 43;
+                case RRSIG: return 46;
+                case NSEC: return 47;
+                case NSEC3: return 50;
+                case ANY: return 255;
+                default: return 1;
+            }
+        }
+
+        public static RecordType from_wire_type (int wire_type) {
+            switch (wire_type) {
+                case 1: return A;
+                case 28: return AAAA;
+                case 5: return CNAME;
+                case 15: return MX;
+                case 2: return NS;
+                case 12: return PTR;
+                case 16: return TXT;
+                case 6: return SOA;
+                case 33: return SRV;
+                case 48: return DNSKEY;
+                case 43: return DS;
+                case 46: return RRSIG;
+                case 47: return NSEC;
+                case 50: return NSEC3;
+                case 255: return ANY;
+                default: return A;
             }
         }
     }

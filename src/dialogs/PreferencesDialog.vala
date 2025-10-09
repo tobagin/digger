@@ -50,7 +50,22 @@ namespace Digger {
         
         [GtkChild]
         private unowned Adw.SwitchRow compact_results_row;
-        
+
+        [GtkChild]
+        private unowned Adw.SwitchRow enable_doh_row;
+
+        [GtkChild]
+        private unowned Adw.ComboRow doh_provider_row;
+
+        [GtkChild]
+        private unowned Adw.EntryRow custom_doh_row;
+
+        [GtkChild]
+        private unowned Adw.SwitchRow enable_dnssec_row;
+
+        [GtkChild]
+        private unowned Adw.SwitchRow show_dnssec_details_row;
+
         private GLib.Settings settings;
         private ThemeManager theme_manager;
         
@@ -67,7 +82,8 @@ namespace Digger {
             setup_display_options();
             setup_output_settings();
             setup_history_settings();
-            
+            setup_advanced_settings();
+
             load_settings();
         }
         
@@ -333,6 +349,65 @@ namespace Digger {
         
         private void on_history_limit_changed() {
             settings.set_int("query-history-limit", (int)query_history_limit_row.value);
+        }
+
+        private void setup_advanced_settings() {
+            if (enable_doh_row == null || enable_dnssec_row == null) {
+                return;
+            }
+
+            var provider_list = new Gtk.StringList(null);
+            provider_list.append("Cloudflare (1.1.1.1)");
+            provider_list.append("Google (8.8.8.8)");
+            provider_list.append("Quad9 (9.9.9.9)");
+            provider_list.append("Custom");
+            doh_provider_row.model = provider_list;
+
+            enable_doh_row.active = settings.get_boolean("enable-doh");
+            enable_dnssec_row.active = settings.get_boolean("enable-dnssec");
+            show_dnssec_details_row.active = settings.get_boolean("show-dnssec-details");
+            custom_doh_row.text = settings.get_string("custom-doh-endpoint");
+
+            enable_doh_row.notify["active"].connect(() => {
+                settings.set_boolean("enable-doh", enable_doh_row.active);
+                doh_provider_row.sensitive = enable_doh_row.active;
+            });
+
+            enable_dnssec_row.notify["active"].connect(() => {
+                settings.set_boolean("enable-dnssec", enable_dnssec_row.active);
+            });
+
+            show_dnssec_details_row.notify["active"].connect(() => {
+                settings.set_boolean("show-dnssec-details", show_dnssec_details_row.active);
+            });
+
+            custom_doh_row.notify["text"].connect(() => {
+                settings.set_string("custom-doh-endpoint", custom_doh_row.text);
+            });
+
+            doh_provider_row.notify["selected"].connect(() => {
+                custom_doh_row.visible = (doh_provider_row.selected == 3);
+                var provider = "";
+                switch (doh_provider_row.selected) {
+                    case 0: provider = "cloudflare"; break;
+                    case 1: provider = "google"; break;
+                    case 2: provider = "quad9"; break;
+                    case 3: provider = "custom"; break;
+                }
+                settings.set_string("doh-provider", provider);
+            });
+
+            var current_provider = settings.get_string("doh-provider");
+            switch (current_provider) {
+                case "cloudflare": doh_provider_row.selected = 0; break;
+                case "google": doh_provider_row.selected = 1; break;
+                case "quad9": doh_provider_row.selected = 2; break;
+                case "custom": doh_provider_row.selected = 3; break;
+                default: doh_provider_row.selected = 0; break;
+            }
+
+            doh_provider_row.sensitive = enable_doh_row.active;
+            custom_doh_row.visible = (doh_provider_row.selected == 3);
         }
     }
 }

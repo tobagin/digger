@@ -20,6 +20,7 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Box content_box;
         [GtkChild] private unowned Gtk.ProgressBar progress_bar;
         [GtkChild] private unowned Gtk.Box buttons_box;
+        [GtkChild] private unowned Gtk.Button export_button;
         [GtkChild] private unowned Gtk.Button raw_output_button;
         [GtkChild] private unowned Gtk.Button clear_button;
         
@@ -39,39 +40,28 @@ namespace Digger {
         }
         
         private void setup_ui () {
-            // Debug: Check if buttons are found
-            print (@"raw_output_button is $(raw_output_button != null ? "not null" : "null")\n");
-            print (@"clear_button is $(clear_button != null ? "not null" : "null")\n");
-            print (@"buttons_box is $(buttons_box != null ? "not null" : "null")\n");
-            
-            if (raw_output_button != null) {
-                // Connect raw output button
-                raw_output_button.clicked.connect (() => {
-                    print ("Raw output button clicked\n");
+            if (export_button != null) {
+                export_button.clicked.connect (() => {
                     if (current_result != null) {
-                        print ("Showing raw output dialog\n");
-                        show_raw_output_dialog ();
-                    } else {
-                        print ("No current result\n");
+                        show_export_dialog ();
                     }
                 });
-                print ("Raw output button signal connected\n");
-            } else {
-                print ("ERROR: raw_output_button is null, cannot connect signal\n");
             }
-            
+
+            if (raw_output_button != null) {
+                raw_output_button.clicked.connect (() => {
+                    if (current_result != null) {
+                        show_raw_output_dialog ();
+                    }
+                });
+            }
+
             if (clear_button != null) {
-                // Connect clear button
                 clear_button.clicked.connect (() => {
-                    print ("Clear button clicked\n");
                     clear_results ();
                 });
-                print ("Clear button signal connected\n");
-            } else {
-                print ("ERROR: clear_button is null, cannot connect signal\n");
             }
-            
-            // Initially show welcome message
+
             show_welcome_message ();
         }
         
@@ -96,11 +86,12 @@ namespace Digger {
         public void show_result (QueryResult result) {
             current_result = result;
             progress_bar.visible = false;
-            
+
             // Show action buttons when we have a result
+            export_button.visible = true;
             raw_output_button.visible = true;
             clear_button.visible = true;
-            
+
             refresh_display ();
         }
         
@@ -136,28 +127,132 @@ namespace Digger {
                 add_enhanced_results_section ("Additional Section", current_result.additional_section, "info");
             }
             
+            // Add DNSSEC validation status if enabled
+            if (settings != null && settings.get_boolean ("enable-dnssec")) {
+                add_dnssec_validation (current_result.domain);
+            }
+
             // Add query statistics
             add_query_statistics (current_result);
         }
         
+        private void show_export_dialog () {
+            var file_dialog = new Gtk.FileDialog () {
+                title = "Export DNS Query Results",
+                modal = true
+            };
+
+            var filter_json = new Gtk.FileFilter ();
+            filter_json.set_filter_name ("JSON (*.json)");
+            filter_json.add_pattern ("*.json");
+
+            var filter_csv = new Gtk.FileFilter ();
+            filter_csv.set_filter_name ("CSV (*.csv)");
+            filter_csv.add_pattern ("*.csv");
+
+            var filter_txt = new Gtk.FileFilter ();
+            filter_txt.set_filter_name ("Plain Text (*.txt)");
+            filter_txt.add_pattern ("*.txt");
+
+            var filter_zone = new Gtk.FileFilter ();
+            filter_zone.set_filter_name ("DNS Zone File (*.zone)");
+            filter_zone.add_pattern ("*.zone");
+
+            var filters = new GLib.ListStore (typeof (Gtk.FileFilter));
+            filters.append (filter_json);
+            filters.append (filter_csv);
+            filters.append (filter_txt);
+            filters.append (filter_zone);
+            file_dialog.filters = filters;
+            file_dialog.default_filter = filter_json;
+
+            var suggested_name = @"$(current_result.domain)-$(current_result.query_type.to_string ()).json";
+            file_dialog.initial_name = suggested_name;
+
+            file_dialog.save.begin (this.get_root () as Gtk.Window, null, (obj, res) => {
+                try {
+                    var file = file_dialog.save.end (res);
+                    if (file != null) {
+                        export_result_to_file.begin (file);
+                    }
+                } catch (Error e) {
+                    if (!(e is Gtk.DialogError.DISMISSED)) {
+                        warning ("Export file selection error: %s", e.message);
+                    }
+                }
+            });
+        }
+
+        private async void export_result_to_file (File file) {
+            var file_path = file.get_path ();
+            ExportFormat format = ExportFormat.JSON;
+
+            if (file_path.has_suffix (".csv")) {
+                format = ExportFormat.CSV;
+            } else if (file_path.has_suffix (".txt")) {
+                format = ExportFormat.TEXT;
+            } else if (file_path.has_suffix (".zone")) {
+                format = ExportFormat.ZONE_FILE;
+            }
+
+            var export_manager = ExportManager.get_instance ();
+            var success = yield export_manager.export_result (current_result, file, format);
+
+            if (success) {
+                show_export_success_toast ();
+            } else {
+                show_export_error_toast ();
+            }
+        }
+
+        private void show_export_success_toast () {
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast ("Results exported successfully") {
+                    timeout = 3
+                };
+                toast_overlay.add_toast (toast);
+            }
+        }
+
+        private void show_export_error_toast () {
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast ("Failed to export results") {
+                    timeout = 3
+                };
+                toast_overlay.add_toast (toast);
+            }
+        }
+
         private void show_raw_output_dialog () {
             var dialog = new Adw.AlertDialog (
                 "Raw dig Output",
                 current_result.raw_output ?? "No raw output available"
             );
-            
+
             dialog.add_response ("copy", "Copy");
             dialog.add_response ("close", "Close");
             dialog.set_response_appearance ("copy", Adw.ResponseAppearance.SUGGESTED);
             dialog.set_default_response ("close");
-            
+
             dialog.response.connect ((response) => {
                 if (response == "copy") {
                     var clipboard = this.get_clipboard ();
                     clipboard.set_text (current_result.raw_output ?? "");
                 }
             });
-            
+
             dialog.present (this.get_root () as Gtk.Window);
         }
         
@@ -171,7 +266,7 @@ namespace Digger {
             
             info.append (@" - $(result.get_summary ())");
             
-            if (result.query_time_ms > 0 && settings.get_boolean ("show-query-time")) {
+            if (result.query_time_ms > 0 && settings != null && settings.get_boolean ("show-query-time")) {
                 info.append (@" ($((int)result.query_time_ms)ms)");
             }
             
@@ -325,7 +420,7 @@ namespace Digger {
             
             // Record name and TTL
             row.title = record.name;
-            if (settings.get_boolean ("show-ttl-prominent")) {
+            if (settings != null && settings.get_boolean ("show-ttl-prominent")) {
                 row.subtitle = @"TTL: $(record.ttl)s";
             } else {
                 row.subtitle = record.value;
@@ -380,7 +475,7 @@ namespace Digger {
             };
             
             // Query time (only if preference is enabled)
-            if (settings.get_boolean ("show-query-time")) {
+            if (settings != null && settings.get_boolean ("show-query-time")) {
                 var time_row = new Adw.ActionRow () {
                     title = "Query Time",
                     subtitle = "Time taken to complete the DNS query"
@@ -422,7 +517,7 @@ namespace Digger {
             while (parent != null && !(parent is Adw.ToastOverlay)) {
                 parent = parent.get_parent ();
             }
-            
+
             if (parent is Adw.ToastOverlay) {
                 var toast_overlay = (Adw.ToastOverlay) parent;
                 var toast = new Adw.Toast ("Copied to clipboard") {
@@ -431,15 +526,75 @@ namespace Digger {
                 toast_overlay.add_toast (toast);
             }
         }
+
+        private void add_dnssec_validation (string domain) {
+            var dnssec_group = new Adw.PreferencesGroup () {
+                title = "DNSSEC Validation",
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            var status_row = new Adw.ActionRow () {
+                title = "Validation Status",
+                subtitle = "Checking DNSSEC..."
+            };
+
+            var spinner = new Gtk.Spinner () {
+                spinning = true
+            };
+            status_row.add_suffix (spinner);
+
+            dnssec_group.add (status_row);
+            content_box.append (dnssec_group);
+
+            var validator = new DnssecValidator ();
+            validator.validate_domain.begin (domain, null, (obj, res) => {
+                try {
+                    var result = validator.validate_domain.end (res);
+
+                    status_row.remove (spinner);
+
+                    var icon = new Gtk.Image.from_icon_name (result.status.get_icon_name ()) {
+                        pixel_size = 24
+                    };
+
+                    status_row.subtitle = result.get_summary ();
+                    status_row.add_suffix (icon);
+
+                    if (result.is_dnssec_enabled ()) {
+                        var details_expander = new Adw.ExpanderRow () {
+                            title = "Chain of Trust"
+                        };
+
+                        foreach (var entry in result.chain_of_trust) {
+                            var entry_row = new Adw.ActionRow () {
+                                title = entry
+                            };
+                            entry_row.add_css_class ("monospace");
+                            details_expander.add_row (entry_row);
+                        }
+
+                        dnssec_group.add (details_expander);
+                    }
+                } catch (Error e) {
+                    warning ("DNSSEC validation error: %s", e.message);
+                    status_row.remove (spinner);
+                    status_row.subtitle = "Validation failed";
+                }
+            });
+        }
         
         public void clear_results () {
             current_result = null;
             progress_bar.visible = false;
-            
+
             // Hide action buttons when clearing results
+            export_button.visible = false;
             raw_output_button.visible = false;
             clear_button.visible = false;
-            
+
             show_welcome_message ();
         }
         

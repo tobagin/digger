@@ -81,18 +81,26 @@ namespace Digger {
 
         private void setup_actions () {
             var action_group = new SimpleActionGroup ();
-            
+
             var new_query_action = new SimpleAction ("new-query", null);
             new_query_action.activate.connect (focus_domain_entry);
             action_group.add_action (new_query_action);
-            
+
             var repeat_query_action = new SimpleAction ("repeat-query", null);
             repeat_query_action.activate.connect (repeat_last_query);
             action_group.add_action (repeat_query_action);
-            
+
             var clear_results_action = new SimpleAction ("clear-results", null);
             clear_results_action.activate.connect (clear_results);
             action_group.add_action (clear_results_action);
+
+            var batch_lookup_action = new SimpleAction ("batch-lookup", null);
+            batch_lookup_action.activate.connect (show_batch_lookup_dialog);
+            action_group.add_action (batch_lookup_action);
+
+            var compare_servers_action = new SimpleAction ("compare-servers", null);
+            compare_servers_action.activate.connect (show_comparison_dialog);
+            action_group.add_action (compare_servers_action);
 
             insert_action_group ("win", action_group);
         }
@@ -379,6 +387,16 @@ namespace Digger {
             query_form.set_reverse_lookup (result.reverse_lookup);
             query_form.set_trace_path (result.trace_path);
             query_form.set_short_output (result.short_output);
+        }
+
+        private void show_batch_lookup_dialog () {
+            var dialog = new BatchLookupDialog ();
+            dialog.present (this);
+        }
+
+        private void show_comparison_dialog () {
+            var dialog = new ComparisonDialog ();
+            dialog.present (this);
         }
     }
 }

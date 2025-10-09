@@ -18,17 +18,19 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Entry domain_entry;
         [GtkChild] private unowned Gtk.DropDown record_type_dropdown;
         [GtkChild] private unowned Gtk.Button query_button;
+        [GtkChild] private unowned Gtk.Button favorite_button;
         [GtkChild] private unowned Gtk.Button paste_button;
         [GtkChild] private unowned Gtk.DropDown dns_server_dropdown;
         [GtkChild] private unowned Gtk.Box quick_presets_box;
         [GtkChild] private unowned Gtk.Switch reverse_lookup_switch;
         [GtkChild] private unowned Gtk.Switch trace_path_switch;
         [GtkChild] private unowned Gtk.Switch short_output_switch;
-        
+
         private AutocompleteDropdown autocomplete_dropdown;
-        
+
         private DnsPresets dns_presets;
         private QueryHistory query_history;
+        private FavoritesManager favorites_manager;
         private string current_dns_server = "";
         private bool signals_connected = false;
         private bool _query_in_progress = false;
@@ -60,16 +62,16 @@ namespace Digger {
         }
         
         construct {
-            // Initialize settings exactly like preferences dialog - moved here for later timing
             settings = new GLib.Settings(Config.APP_ID);
-            // This runs after the template is applied
-            // Initialize the button to disabled state initially
+            favorites_manager = FavoritesManager.get_instance ();
             query_button.sensitive = false;
-            
+
             if (dns_presets != null) {
                 setup_ui ();
                 connect_signals ();
             }
+
+            update_favorite_button_state ();
         }
         
         public void set_dns_presets (DnsPresets presets) {
@@ -274,13 +276,17 @@ namespace Digger {
         }
         
         private void connect_signals () {
+            favorite_button.clicked.connect (on_favorite_clicked);
             paste_button.clicked.connect (paste_from_clipboard);
             domain_entry.activate.connect (on_query_requested);
             query_button.clicked.connect (on_query_requested);
-            
+
             // Real-time validation
-            domain_entry.changed.connect (validate_input);
-            
+            domain_entry.changed.connect (() => {
+                validate_input ();
+                update_favorite_button_state ();
+            });
+
             // Connect autocomplete signals if dropdown exists
             if (autocomplete_dropdown != null) {
                 autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
@@ -607,6 +613,81 @@ namespace Digger {
          */
         public void hide_suggestions () {
             autocomplete_dropdown.clear_suggestions ();
+        }
+
+        private void on_favorite_clicked () {
+            var domain = domain_entry.text.strip ();
+            if (domain.length == 0) {
+                return;
+            }
+
+            var record_type = get_record_type ();
+            var is_favorite = favorites_manager.is_favorite (domain, record_type);
+
+            if (is_favorite) {
+                var entry = favorites_manager.get_favorite (domain, record_type);
+                if (entry != null) {
+                    favorites_manager.remove_favorite (entry);
+                    show_favorite_removed_toast (domain);
+                }
+            } else {
+                var entry = new FavoriteEntry (domain, record_type);
+                entry.label = domain;
+                entry.dns_server = current_dns_server.length > 0 ? current_dns_server : null;
+                favorites_manager.add_favorite (entry);
+                show_favorite_added_toast (domain);
+            }
+
+            update_favorite_button_state ();
+        }
+
+        private void update_favorite_button_state () {
+            var domain = domain_entry.text.strip ();
+            if (domain.length == 0) {
+                favorite_button.icon_name = "starred-symbolic";
+                favorite_button.tooltip_text = "Add to favorites";
+                return;
+            }
+
+            var record_type = get_record_type ();
+            var is_favorite = favorites_manager.is_favorite (domain, record_type);
+            if (is_favorite) {
+                favorite_button.icon_name = "star-filled-symbolic";
+                favorite_button.tooltip_text = "Remove from favorites";
+            } else {
+                favorite_button.icon_name = "starred-symbolic";
+                favorite_button.tooltip_text = "Add to favorites";
+            }
+        }
+
+        private void show_favorite_added_toast (string domain) {
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast (@"Added $domain to favorites") {
+                    timeout = 2
+                };
+                toast_overlay.add_toast (toast);
+            }
+        }
+
+        private void show_favorite_removed_toast (string domain) {
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast (@"Removed $domain from favorites") {
+                    timeout = 2
+                };
+                toast_overlay.add_toast (toast);
+            }
         }
     }
 }

@@ -57,29 +57,38 @@ gnome.compile_schemas(build_by_default: true)
 # Import fs module
 fs = import('fs')
 
-# Blueprint files
+# Blueprint files - organized by category
 blueprint_files = [
+  # Main window
   'ui/window.blp',
-  'ui/preferences-dialog.blp',
-  'ui/enhanced-query-form.blp',
-  'ui/enhanced-result-view.blp',
-  'ui/advanced-options.blp',
-  'ui/autocomplete-dropdown.blp',
-  'ui/enhanced-history-search.blp',
-  'ui/history-popover.blp',
-  'ui/shortcuts-dialog.blp',
+  # Dialogs
+  'ui/dialogs/preferences-dialog.blp',
+  'ui/dialogs/shortcuts-dialog.blp',
+  'ui/dialogs/batch-lookup-dialog.blp',
+  'ui/dialogs/comparison-dialog.blp',
+  # Widgets
+  'ui/widgets/enhanced-query-form.blp',
+  'ui/widgets/enhanced-result-view.blp',
+  'ui/widgets/advanced-options.blp',
+  'ui/widgets/autocomplete-dropdown.blp',
+  'ui/widgets/enhanced-history-search.blp',
+  'ui/widgets/history-popover.blp',
 ]
 
 # Compile blueprint files to UI files
 ui_files = []
 foreach blueprint_file : blueprint_files
-  ui_file = fs.stem(blueprint_file) + '.ui'
+  # Get just the filename without .blp
+  filename = fs.stem(blueprint_file) + '.ui'
+
   ui_files += custom_target(
-    ui_file,
+    filename,
     input: blueprint_file,
-    output: ui_file,
+    output: filename,
     command: [blueprint_compiler, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
-    build_by_default: true
+    build_by_default: true,
+    install: true,
+    install_dir: join_paths(get_option('datadir'), 'digger', 'ui', fs.parent(blueprint_file).replace('ui/', ''))
   )
 endforeach
 

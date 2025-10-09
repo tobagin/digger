@@ -1,5 +1,5 @@
 project('digger-vala', 'vala', 'c',
-  version: '2.1.4',
+  version: '2.2.0',
   default_options: ['warning_level=1'],
   meson_version: '>= 0.58.0'
 )
@@ -24,6 +24,7 @@ libadwaita_dep = dependency('libadwaita-1', version: '>= 1.0')
 json_glib_dep = dependency('json-glib-1.0')
 gio_dep = dependency('gio-2.0')
 gee_dep = dependency('gee-0.8')
+soup_dep = dependency('libsoup-3.0')
 
 # Configuration data
 app_id = development ? 'io.github.tobagin.digger.Devel' : 'io.github.tobagin.digger'
@@ -38,8 +39,8 @@ conf_data.set('RESOURCE_PATH', '/' + app_id.replace('.', '/'))
 
 # Generate config file
 config_vala = configure_file(
-  input: 'src/config.vala.in',
-  output: 'config.vala',
+  input: 'src/Config.vala.in',
+  output: 'Config.vala',
   configuration: conf_data
 )
 
@@ -54,23 +55,32 @@ endif
 
 # Application executable
 executable('digger-vala',
-  'src/main.vala',
-  'src/application.vala',
-  'src/window.vala',
-  'src/preferences-dialog.vala',
-  'src/shortcuts-dialog.vala',
-  'src/dns-query.vala',
-  'src/dns-record.vala',
-  'src/query-history.vala',
-  'src/query-result-view.vala',
-  'src/advanced-options.vala',
-  'src/features/dns-presets.vala',
-  'src/features/domain-suggestions.vala',
-  'src/ui/enhanced-query-form.vala',
-  'src/ui/enhanced-result-view.vala',
-  'src/ui/autocomplete-dropdown.vala',
-  'src/ui/enhanced-history-search.vala',
-  'src/ui/theme-manager.vala',
+  'src/Main.vala',
+  'src/Application.vala',
+  'src/dialogs/Window.vala',
+  'src/dialogs/AboutDialog.vala',
+  'src/dialogs/PreferencesDialog.vala',
+  'src/dialogs/ShortcutsDialog.vala',
+  'src/dialogs/BatchLookupDialog.vala',
+  'src/dialogs/ComparisonDialog.vala',
+  'src/models/DnsRecord.vala',
+  'src/services/DnsQuery.vala',
+  'src/services/QueryHistory.vala',
+  'src/services/SecureDns.vala',
+  'src/services/DnssecValidator.vala',
+  'src/managers/ExportManager.vala',
+  'src/managers/FavoritesManager.vala',
+  'src/managers/BatchLookupManager.vala',
+  'src/managers/ComparisonManager.vala',
+  'src/widgets/QueryResultView.vala',
+  'src/widgets/AdvancedOptions.vala',
+  'src/widgets/EnhancedQueryForm.vala',
+  'src/widgets/EnhancedResultView.vala',
+  'src/widgets/AutocompleteDropdown.vala',
+  'src/widgets/EnhancedHistorySearch.vala',
+  'src/utils/ThemeManager.vala',
+  'src/utils/DnsPresets.vala',
+  'src/utils/DomainSuggestions.vala',
   config_vala,
   digger_resources,
   dependencies: [
@@ -78,7 +88,8 @@ executable('digger-vala',
     libadwaita_dep,
     json_glib_dep,
     gio_dep,
-    gee_dep
+    gee_dep,
+    soup_dep
   ],
   vala_args: vala_args,
   install: true,

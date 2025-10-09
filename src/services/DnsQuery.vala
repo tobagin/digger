@@ -134,7 +134,7 @@ namespace Digger {
             }
 
             // Timeout from settings
-            var timeout_seconds = settings.get_int ("query-timeout");
+            var timeout_seconds = (settings != null) ? settings.get_int ("query-timeout") : 10;
             args.add (@"+time=$timeout_seconds");
 
             // Convert to string array safely

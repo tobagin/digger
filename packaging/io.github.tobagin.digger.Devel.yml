@@ -1,6 +1,6 @@
 app-id: io.github.tobagin.digger.Devel
 runtime: org.gnome.Platform
-runtime-version: '48'
+runtime-version: '49'
 sdk: org.gnome.Sdk
 command: digger-vala
 finish-args:
@@ -24,16 +24,6 @@ cleanup:
   - '*.a'
 
 modules:
-  # Blueprint compiler (build-time only, cleaned up after)
-  - name: blueprint-compiler
-    buildsystem: meson
-    cleanup: ['*']
-    sources:
-      - type: git
-        url: https://gitlab.gnome.org/jwestman/blueprint-compiler.git
-        tag: v0.18.0
-        commit: 07c9c9df9cd1b6b4454ecba21ee58211e9144a4b
-    
   - name: libgee
     buildsystem: autotools
     config-opts:

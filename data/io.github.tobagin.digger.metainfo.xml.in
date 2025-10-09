@@ -69,6 +69,23 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.2.0" date="2025-10-09">
+      <description>
+        <p>Major feature release with advanced DNS capabilities and productivity enhancements</p>
+        <ul>
+          <li>Export Manager - Export query results to JSON, CSV, plain text, or DNS zone file formats</li>
+          <li>Favorites System - Star and save frequently queried domains with record types</li>
+          <li>Batch Lookup - Import and query multiple domains from CSV/TXT files with progress tracking</li>
+          <li>Server Comparison - Compare DNS responses across multiple servers with discrepancy detection</li>
+          <li>DNS-over-HTTPS (DoH) - Secure DNS queries with support for Cloudflare, Google, Quad9, and custom endpoints</li>
+          <li>DNSSEC Validation - Verify DNSSEC chain of trust with DNSKEY, DS, and RRSIG record validation</li>
+          <li>Advanced Preferences - Configure DoH providers and DNSSEC validation settings</li>
+          <li>Enhanced About Dialog - Comprehensive about dialog with automatic release notes display</li>
+          <li>Updated Keyboard Shortcuts - Migrated to Libadwaita 1.8 ShortcutsDialog API</li>
+          <li>Improved Stability - Added defensive null checks for GSettings to prevent runtime warnings</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.4" date="2025-09-18">
       <description>
         <p>Enhanced application metadata and improved discoverability</p>

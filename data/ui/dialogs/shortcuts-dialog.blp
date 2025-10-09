@@ -1,0 +1,57 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ShortcutsDialog shortcuts_dialog {
+  Adw.ShortcutsSection {
+    title: "General";
+
+    Adw.ShortcutsItem {
+      title: "New Query";
+      accelerator: "<Control>l";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Repeat Last Query";
+      accelerator: "<Control>r";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Clear Results";
+      accelerator: "Escape";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Batch Lookup";
+      accelerator: "<Control>b";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Compare Servers";
+      accelerator: "<Control>m";
+    }
+  }
+
+  Adw.ShortcutsSection {
+    title: "Application";
+
+    Adw.ShortcutsItem {
+      title: "Preferences";
+      accelerator: "<Control>comma";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Keyboard Shortcuts";
+      accelerator: "<Control>question";
+    }
+
+    Adw.ShortcutsItem {
+      title: "About Digger";
+      accelerator: "F1";
+    }
+
+    Adw.ShortcutsItem {
+      title: "Quit";
+      accelerator: "<Control>q";
+    }
+  }
+}

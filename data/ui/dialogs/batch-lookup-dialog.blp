@@ -1,0 +1,157 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerBatchLookupDialog : Adw.Dialog {
+  content-width: 800;
+  content-height: 600;
+  title: "Batch DNS Lookup";
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      [start]
+      Button cancel_button {
+        label: "Close";
+      }
+
+      [end]
+      Button execute_button {
+        label: "Execute";
+        styles ["suggested-action"]
+      }
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      Adw.PreferencesGroup {
+        title: "Import Domains";
+
+        Adw.ActionRow {
+          title: "Import from File";
+          subtitle: "Load domains from text or CSV file";
+
+          Button import_button {
+            icon-name: "document-open-symbolic";
+            valign: center;
+            tooltip-text: "Import domains from file";
+          }
+        }
+
+        Adw.ActionRow {
+          title: "Manual Entry";
+          subtitle: "Enter domains separated by newlines";
+
+          Button manual_button {
+            icon-name: "list-add-symbolic";
+            valign: center;
+            tooltip-text: "Add domains manually";
+          }
+        }
+      }
+
+      Adw.PreferencesGroup settings_group {
+        title: "Batch Settings";
+
+        Adw.ActionRow {
+          title: "Record Type";
+
+          DropDown record_type_dropdown {
+            valign: center;
+          }
+        }
+
+        Adw.ActionRow {
+          title: "DNS Server";
+
+          DropDown dns_server_dropdown {
+            valign: center;
+          }
+        }
+
+        Adw.ActionRow {
+          title: "Execution Mode";
+          subtitle: "Parallel mode is faster but uses more resources";
+
+          Switch parallel_switch {
+            valign: center;
+            active: true;
+          }
+        }
+      }
+
+      Box {
+        orientation: vertical;
+        spacing: 6;
+        vexpand: true;
+
+        Label domains_label {
+          label: "Domains to Query (0)";
+          halign: start;
+          styles ["heading"]
+        }
+
+        ScrolledWindow {
+          vexpand: true;
+          hscrollbar-policy: automatic;
+          vscrollbar-policy: automatic;
+
+          ListView domains_list {
+            styles ["boxed-list"]
+          }
+        }
+      }
+
+      ProgressBar progress_bar {
+        visible: false;
+        show-text: true;
+      }
+
+      Box results_box {
+        orientation: vertical;
+        spacing: 6;
+        visible: false;
+        vexpand: true;
+
+        Box {
+          orientation: horizontal;
+          spacing: 6;
+
+          Label results_label {
+            label: "Results";
+            halign: start;
+            hexpand: true;
+            styles ["heading"]
+          }
+
+          Button export_results_button {
+            icon-name: "document-save-symbolic";
+            tooltip-text: "Export results";
+            valign: center;
+          }
+
+          Button clear_results_button {
+            icon-name: "edit-clear-symbolic";
+            tooltip-text: "Clear results";
+            valign: center;
+          }
+        }
+
+        ScrolledWindow {
+          vexpand: true;
+          hscrollbar-policy: automatic;
+          vscrollbar-policy: automatic;
+
+          ListView results_list {
+            styles ["boxed-list"]
+          }
+        }
+      }
+    };
+  }
+}

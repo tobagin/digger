@@ -103,10 +103,50 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
     Adw.PreferencesGroup {
       title: _("History &amp; Storage");
       description: _("Manage query history and data storage");
-      
+
       Adw.SpinRow query_history_limit_row {
         title: _("Query History Limit");
         subtitle: _("Maximum number of queries to keep in history");
+      }
+    }
+  }
+
+  Adw.PreferencesPage {
+    title: _("Advanced");
+    icon-name: "preferences-system-symbolic";
+
+    Adw.PreferencesGroup {
+      title: _("DNS-over-HTTPS (DoH)");
+      description: _("Use encrypted DNS for enhanced privacy");
+
+      Adw.SwitchRow enable_doh_row {
+        title: _("Enable DoH");
+        subtitle: _("Use DNS-over-HTTPS for queries");
+      }
+
+      Adw.ComboRow doh_provider_row {
+        title: _("DoH Provider");
+        subtitle: _("Select a DNS-over-HTTPS provider");
+      }
+
+      Adw.EntryRow custom_doh_row {
+        title: _("Custom DoH Endpoint");
+        visible: false;
+      }
+    }
+
+    Adw.PreferencesGroup {
+      title: _("DNSSEC Validation");
+      description: _("Verify DNS responses with DNSSEC");
+
+      Adw.SwitchRow enable_dnssec_row {
+        title: _("Enable DNSSEC Validation");
+        subtitle: _("Automatically validate DNS responses");
+      }
+
+      Adw.SwitchRow show_dnssec_details_row {
+        title: _("Show DNSSEC Details");
+        subtitle: _("Display chain of trust information");
       }
     }
   }

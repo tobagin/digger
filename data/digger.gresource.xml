@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="@APP_ID_PATH@">
+    <!-- Main Window -->
     <file compressed="true" preprocess="xml-stripblanks">window.ui</file>
+
+    <!-- Dialogs -->
     <file compressed="true" preprocess="xml-stripblanks">preferences-dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">batch-lookup-dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">comparison-dialog.ui</file>
+
+    <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-result-view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">advanced-options.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">autocomplete-dropdown.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-history-search.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-popover.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
   </gresource>
 </gresources>
