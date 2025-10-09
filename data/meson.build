@@ -150,7 +150,7 @@ install_subdir('../assets/themes',
 )
 
 # Screenshots
-install_subdir('../screenshots',
+install_subdir('screenshots',
   install_dir: join_paths(get_option('datadir'), 'digger'),
   strip_directory: false
 )
