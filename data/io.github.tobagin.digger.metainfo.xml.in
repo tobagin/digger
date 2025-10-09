@@ -25,28 +25,28 @@
   
   <screenshots>
     <screenshot type="default" xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/main.png</image>
-      <caption>Main application window showing DNS lookup interface</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/main.png</image>
+      <caption>Main application window with DNS lookup interface and favorites system</caption>
     </screenshot>
     <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/lookup.png</image>
-      <caption>DNS query results with detailed record information</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/lookup.png</image>
+      <caption>DNS query results with DNSSEC validation and export capabilities</caption>
     </screenshot>
     <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/autocomplete.png</image>
-      <caption>Domain autocomplete feature with suggestion dropdown</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/autocomplete.png</image>
+      <caption>Smart autocomplete with domain suggestions and favorites integration</caption>
     </screenshot>
     <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/history.png</image>
-      <caption>Query history with search and filtering capabilities</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/history.png</image>
+      <caption>Query history with advanced search and filtering capabilities</caption>
     </screenshot>
     <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/preferences.png</image>
-      <caption>Preferences dialog for customizing application settings</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/preferences.png</image>
+      <caption>Comprehensive preferences with DoH providers and DNSSEC validation settings</caption>
     </screenshot>
     <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/Digger/main/screenshots/about.png</image>
-      <caption>About dialog showing application information</caption>
+      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/about.png</image>
+      <caption>About dialog with automatic release notes and application information</caption>
     </screenshot>
   </screenshots>
   
