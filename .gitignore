@@ -40,8 +40,8 @@ Thumbs.db
 # Log files
 *.log
 
+# Claude Code files
 .claude/
 .codex/
-.specify
-
+.specify/
 CLAUDE.md
