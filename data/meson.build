@@ -110,23 +110,19 @@ digger_resources = gnome.compile_resources(
   c_name: 'digger'
 )
 
-# Install app icons in all sizes
-icon_sizes = ['16x16', '22x22', '24x24', '32x32', '48x48', '64x64', '128x128', '256x256', '512x512']
+# Install main scalable SVG icon
+install_data(
+  join_paths('icons', 'hicolor', 'scalable', 'apps', 'io.github.tobagin.digger.svg'),
+  rename: app_id + '.svg',
+  install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
+)
 
-foreach size : icon_sizes
-  install_data(
-    join_paths('icons', 'hicolor', size, 'apps', 'io.github.tobagin.digger.png'),
-    rename: app_id + '.png',
-    install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', size, 'apps')
-  )
-endforeach
-
-# Install scalable icons
+# Install scalable symbolic icons
 scalable_icons = ['history-symbolic', 'copy-symbolic', 'error-symbolic', 'success-symbolic']
 foreach icon : scalable_icons
   # Use consistent naming for all symbolic icons
   output_name = app_id + '-' + icon + '.svg'
-  
+
   configure_file(
     input: join_paths('icons', 'hicolor', 'scalable', 'apps', 'io.github.tobagin.digger-' + icon + '.svg'),
     output: output_name,

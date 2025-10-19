@@ -223,7 +223,13 @@ Digger/
 │   ├── io.github.tobagin.digger.gschema.xml      # GSettings schemas
 │   ├── io.github.tobagin.digger.metainfo.xml.in  # AppStream metadata
 │   ├── io.github.tobagin.digger.desktop.in       # Desktop entry
-│   ├── icons/                              # Application icons
+│   ├── icons/                              # Application icons (SVG scalable)
+│   │   └── hicolor/scalable/apps/
+│   │       ├── io.github.tobagin.digger.svg                # Main app icon
+│   │       ├── io.github.tobagin.digger-history-symbolic.svg
+│   │       ├── io.github.tobagin.digger-copy-symbolic.svg
+│   │       ├── io.github.tobagin.digger-error-symbolic.svg
+│   │       └── io.github.tobagin.digger-success-symbolic.svg
 │   ├── screenshots/                        # Application screenshots
 │   └── presets/                            # DNS server presets
 ├── packaging/                              # Flatpak manifests
@@ -287,7 +293,20 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### 🎉 Version 2.2.0 - Major Feature Release (Latest)
+### 🎨 Version 2.2.1 - Icon Refresh (Latest)
+
+**Visual Improvements:**
+- **New SVG Application Icon**: Modern, scalable SVG icon for perfect rendering at all sizes
+- **Removed PNG Icons**: Replaced all PNG icon variants with a single scalable SVG
+- **Better Icon Quality**: SVG format ensures crisp display on high-DPI displays
+- **Smaller Package Size**: Single SVG icon reduces package size compared to multiple PNG variants
+
+**Technical Changes:**
+- Updated build system to install scalable SVG icon
+- Removed deprecated PNG icon installation from meson.build
+- Icon automatically adapts to all required sizes via desktop environment
+
+### 🎉 Version 2.2.0 - Major Feature Release
 
 **New Features:**
 - **Export Manager**: Export query results to JSON, CSV, plain text, or DNS zone file formats
