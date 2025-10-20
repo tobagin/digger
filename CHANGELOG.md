@@ -7,12 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2025-10-20
+
+### Added
+- **Custom Icons** - Added fastest-server, slowest-server, average-query-time, and query-time symbolic icons
+- **Semantic Record Type Icons** - Visual icons for DNS record types (A, AAAA, MX, CNAME, NS, TXT, SOA, PTR, SRV)
+- **System Default Display** - Shows "System Default (localhost)" for clarity when using default DNS server
+- **Menu Integration** - Added Batch Lookup and Compare DNS Servers to Tools menu for better discoverability
+
 ### Changed
+- **Redesigned Comparison Dialog** - Two-page architecture (Setup → Results) for cleaner, focused interface
+- **Sequential Async Queries** - Comparison uses 50ms yields between queries to keep UI fully responsive
+- **Reusable Rows Pattern** - Statistics rows created once and updated instead of removed/recreated
+- **Set-Based Discrepancy Detection** - Order-independent comparison eliminates false positives
 - Migrated from PNG to SVG application icon for better scalability
 - Updated build system to install scalable SVG icon
 - Removed PNG icon variants from build configuration
 
+### Fixed
+- **Critical UI Freeze** - Comparison dialog no longer freezes UI during multi-server queries
+- **Results Accumulation Bug** - Comparison results now properly clear between runs
+- **Discrepancy False Positives** - DNS records in different order no longer trigger false discrepancy warnings
+
 ### Improved
+- **Enhanced Export** - Full JSON/CSV/TXT export with smart filename generation for comparison results
+- **Performance Optimization** - Reusable widgets eliminate creation/destruction overhead in results display
 - Icon quality on high-DPI displays
 - Reduced package size by using single SVG icon instead of multiple PNG variants
 

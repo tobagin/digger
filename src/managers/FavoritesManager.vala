@@ -78,10 +78,12 @@ namespace Digger {
 
     public class FavoritesManager : Object {
         private static FavoritesManager? instance = null;
-        private Gee.ArrayList<FavoriteEntry> favorites;
+        private Gee.ArrayList<FavoriteEntry> favorites;  // For ordered display
+        private Gee.HashMap<string, FavoriteEntry> favorites_map;  // For O(1) lookups
         private File favorites_file;
 
         public signal void favorites_updated ();
+        public signal void error_occurred (string error_message);
 
         public static FavoritesManager get_instance () {
             if (instance == null) {
@@ -92,6 +94,7 @@ namespace Digger {
 
         private FavoritesManager () {
             favorites = new Gee.ArrayList<FavoriteEntry> ();
+            favorites_map = new Gee.HashMap<string, FavoriteEntry> ();
 
             var data_dir = File.new_for_path (Environment.get_user_data_dir ())
                 .get_child ("digger");
@@ -101,7 +104,9 @@ namespace Digger {
                     data_dir.make_directory_with_parents ();
                 }
             } catch (Error e) {
-                warning ("Failed to create data directory: %s", e.message);
+                // SEC-009: Log full error details, user-facing errors handled elsewhere
+                critical ("Failed to create data directory %s: %s", data_dir.get_path (), e.message);
+                error_occurred ("Failed to initialize favorites storage");
             }
 
             favorites_file = data_dir.get_child ("favorites.json");
@@ -124,18 +129,24 @@ namespace Digger {
                 if (root != null && root.get_node_type () == Json.NodeType.ARRAY) {
                     var array = root.get_array ();
                     favorites.clear ();
+                    favorites_map.clear ();  // Clear map as well
 
                     array.foreach_element ((arr, index, node) => {
                         if (node.get_node_type () == Json.NodeType.OBJECT) {
                             var entry = new FavoriteEntry.from_json (node.get_object ());
                             favorites.add (entry);
+                            // Add to hash map for O(1) lookup
+                            var key = make_key (entry.domain, entry.record_type);
+                            favorites_map[key] = entry;
                         }
                     });
 
                     favorites_updated ();
                 }
             } catch (Error e) {
-                warning ("Failed to load favorites: %s", e.message);
+                // SEC-009: Log full error with path for debugging
+                critical ("Failed to load favorites from %s: %s", favorites_file.get_path (), e.message);
+                error_occurred ("Failed to load favorites");
             }
         }
 
@@ -165,24 +176,31 @@ namespace Digger {
                     null
                 );
             } catch (Error e) {
-                warning ("Failed to save favorites: %s", e.message);
+                // SEC-009: Log full error with path for debugging
+                critical ("Failed to save favorites to %s: %s", favorites_file.get_path (), e.message);
+                error_occurred ("Failed to save favorites");
             }
         }
 
         public void add_favorite (FavoriteEntry entry) {
-            foreach (var fav in favorites) {
-                if (fav.domain == entry.domain && fav.record_type == entry.record_type) {
-                    return;
-                }
+            var key = make_key (entry.domain, entry.record_type);
+
+            // Check hash map instead of linear search - O(1) vs O(n)
+            if (favorites_map.has_key (key)) {
+                return;
             }
 
             favorites.add (entry);
+            favorites_map[key] = entry;  // Update map
             save_favorites.begin ();
             favorites_updated ();
         }
 
         public void remove_favorite (FavoriteEntry entry) {
+            var key = make_key (entry.domain, entry.record_type);
+
             favorites.remove (entry);
+            favorites_map.unset (key);  // Update map
             save_favorites.begin ();
             favorites_updated ();
         }
@@ -193,21 +211,26 @@ namespace Digger {
         }
 
         public bool is_favorite (string domain, RecordType record_type) {
-            foreach (var fav in favorites) {
-                if (fav.domain == domain && fav.record_type == record_type) {
-                    return true;
-                }
-            }
-            return false;
+            // O(1) hash map lookup instead of O(n) linear search
+            var key = make_key (domain, record_type);
+            return favorites_map.has_key (key);
         }
 
         public FavoriteEntry? get_favorite (string domain, RecordType record_type) {
-            foreach (var fav in favorites) {
-                if (fav.domain == domain && fav.record_type == record_type) {
-                    return fav;
-                }
+            // O(1) hash map lookup instead of O(n) linear search
+            var key = make_key (domain, record_type);
+            if (favorites_map.has_key (key)) {
+                return favorites_map[key];
             }
             return null;
+        }
+
+        /**
+         * Creates a unique key for hash map storage
+         * Combines domain and record type into a single string key
+         */
+        private string make_key (string domain, RecordType record_type) {
+            return @"$domain:$(record_type.to_string())";
         }
 
         public Gee.ArrayList<FavoriteEntry> get_all_favorites () {

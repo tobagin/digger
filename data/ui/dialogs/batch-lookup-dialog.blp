@@ -9,16 +9,16 @@ template $DiggerBatchLookupDialog : Adw.Dialog {
   Adw.ToolbarView {
     [top]
     Adw.HeaderBar {
-      [start]
-      Button cancel_button {
-        label: "Close";
-      }
+    }
 
-      [end]
-      Button execute_button {
-        label: "Execute";
-        styles ["suggested-action"]
-      }
+    [bottom]
+    Adw.HeaderBar {
+      show-end-title-buttons: false;
+
+      title-widget: Button execute_button {
+        label: "Execute Batch Lookup";
+        styles ["suggested-action", "pill"]
+      };
     }
 
     content: Box {

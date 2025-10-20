@@ -31,6 +31,7 @@ namespace Digger {
                 return false;
             }
 
+            // First check: different number of records
             int first_count = server_results[0].answer_section.size;
             foreach (var result in server_results) {
                 if (result.answer_section.size != first_count) {
@@ -38,17 +39,28 @@ namespace Digger {
                 }
             }
 
-            for (int i = 0; i < first_count; i++) {
-                var first_record = server_results[0].answer_section[i];
-                foreach (var result in server_results) {
-                    if (i >= result.answer_section.size) {
-                        return true;
-                    }
+            // Second check: compare sets of values (order-independent)
+            // Create a set of "record_type:value" strings for the first server
+            var first_set = new Gee.HashSet<string> ();
+            foreach (var record in server_results[0].answer_section) {
+                first_set.add (@"$(record.record_type):$(record.value)");
+            }
 
-                    var record = result.answer_section[i];
-                    if (record.value != first_record.value ||
-                        record.record_type != first_record.record_type) {
-                        return true;
+            // Compare each other server's set with the first
+            foreach (var result in server_results) {
+                var result_set = new Gee.HashSet<string> ();
+                foreach (var record in result.answer_section) {
+                    result_set.add (@"$(record.record_type):$(record.value)");
+                }
+
+                // Check if sets are equal (same records, regardless of order)
+                if (result_set.size != first_set.size) {
+                    return true;
+                }
+
+                foreach (var item in first_set) {
+                    if (!result_set.contains (item)) {
+                        return true;  // First set has something result set doesn't
                     }
                 }
             }
@@ -178,31 +190,40 @@ namespace Digger {
             }
 
             var comparison = new ComparisonResult (domain, record_type);
-            uint completed = 0;
-            uint total = dns_servers.size;
+            comparison_progress (0, dns_servers.size);
 
-            comparison_progress (0, total);
+            // Sequential execution with explicit yields to keep UI responsive
+            // This is slower than parallel, but guarantees the UI never freezes
+            for (int i = 0; i < dns_servers.size; i++) {
+                var server = dns_servers[i];
 
-            foreach (var server in dns_servers) {
-                try {
-                    var result = yield dns_query.perform_query (
-                        domain,
-                        record_type,
-                        server,
-                        reverse_lookup,
-                        trace_path,
-                        short_output
-                    );
+                // Perform async query (doesn't block main thread)
+                var result = yield dns_query.perform_query (
+                    domain,
+                    record_type,
+                    server,
+                    reverse_lookup,
+                    trace_path,
+                    short_output
+                );
 
-                    if (result != null) {
-                        comparison.add_result (result);
-                    }
-                } catch (Error e) {
-                    warning ("Comparison query failed for server %s: %s", server, e.message);
+                if (result != null) {
+                    comparison.add_result (result);
                 }
 
-                completed++;
-                comparison_progress (completed, total);
+                // Update progress after each query
+                comparison_progress (i + 1, dns_servers.size);
+
+                // CRITICAL: Explicit yield to GTK main loop
+                // This forces UI event processing between queries
+                // Without this, even async queries can appear to freeze the UI
+                if (i < dns_servers.size - 1) {  // Don't yield after last query
+                    Timeout.add (50, () => {
+                        compare_servers.callback ();
+                        return false;
+                    });
+                    yield;
+                }
             }
 
             comparison_completed (comparison);

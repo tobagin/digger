@@ -124,10 +124,12 @@ flatpak run io.github.tobagin.digger.Devel
 5. Monitor progress and export results
 
 ### Server Comparison
-1. Click the menu button → "Compare Servers" (or press `Ctrl+M`)
-2. Enter domain and select record type
+1. Click the menu button → "Tools" → "Compare DNS Servers" (or press `Ctrl+M`)
+2. Enter domain and select record type on the Setup page
 3. Choose DNS servers to compare (Google, Cloudflare, Quad9, OpenDNS, System)
-4. View response times and detect discrepancies
+4. Click "Compare DNS Servers" to begin comparison
+5. View response times, statistics, and detect discrepancies on the Results page
+6. Export comparison results to JSON, CSV, or TXT format
 
 ### DNS-over-HTTPS (DoH)
 1. Open Preferences → Advanced
@@ -225,11 +227,15 @@ Digger/
 │   ├── io.github.tobagin.digger.desktop.in       # Desktop entry
 │   ├── icons/                              # Application icons (SVG scalable)
 │   │   └── hicolor/scalable/apps/
-│   │       ├── io.github.tobagin.digger.svg                # Main app icon
+│   │       ├── io.github.tobagin.digger.svg                        # Main app icon
 │   │       ├── io.github.tobagin.digger-history-symbolic.svg
 │   │       ├── io.github.tobagin.digger-copy-symbolic.svg
 │   │       ├── io.github.tobagin.digger-error-symbolic.svg
-│   │       └── io.github.tobagin.digger-success-symbolic.svg
+│   │       ├── io.github.tobagin.digger-success-symbolic.svg
+│   │       ├── io.github.tobagin.digger-fastest-server-symbolic.svg
+│   │       ├── io.github.tobagin.digger-slowest-server-symbolic.svg
+│   │       ├── io.github.tobagin.digger-average-query-time-symbolic.svg
+│   │       └── io.github.tobagin.digger-query-time-symbolic.svg
 │   ├── screenshots/                        # Application screenshots
 │   └── presets/                            # DNS server presets
 ├── packaging/                              # Flatpak manifests
@@ -293,18 +299,23 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### 🎨 Version 2.2.1 - Icon Refresh (Latest)
+### ✨ Version 2.3.0 - UI/UX Improvements & Critical Fixes (Latest)
 
-**Visual Improvements:**
-- **New SVG Application Icon**: Modern, scalable SVG icon for perfect rendering at all sizes
-- **Removed PNG Icons**: Replaced all PNG icon variants with a single scalable SVG
-- **Better Icon Quality**: SVG format ensures crisp display on high-DPI displays
-- **Smaller Package Size**: Single SVG icon reduces package size compared to multiple PNG variants
+**UI/UX Enhancements:**
+- **Redesigned Comparison Dialog**: Two-page architecture (Setup → Results) for cleaner, more focused interface
+- **Custom Icons**: Added custom symbolic icons for fastest-server, slowest-server, average-query-time, and query-time
+- **Semantic Record Type Icons**: Visual icons replace colored text labels for DNS record types (A, AAAA, MX, CNAME, NS, TXT, SOA, PTR, SRV)
+- **System Default Display**: Shows "System Default (localhost)" for clarity when using default DNS server
+- **Menu Integration**: Added Batch Lookup and Compare DNS Servers to Tools menu for better discoverability
 
-**Technical Changes:**
-- Updated build system to install scalable SVG icon
-- Removed deprecated PNG icon installation from meson.build
-- Icon automatically adapts to all required sizes via desktop environment
+**Critical Bug Fixes:**
+- **Fixed UI Freeze**: Comparison dialog now uses sequential async with 50ms yields, keeping UI fully responsive during multi-server queries
+- **Fixed Results Accumulation**: Comparison results properly clear between runs using reusable rows pattern
+- **Fixed False Positives**: Set-based discrepancy detection eliminates false warnings when DNS records return in different order
+
+**Performance Improvements:**
+- **Reusable Widgets**: Statistics rows created once and updated instead of removed/recreated for better performance
+- **Enhanced Export**: Full JSON/CSV/TXT export with smart filename generation for comparison results
 
 ### 🎉 Version 2.2.0 - Major Feature Release
 

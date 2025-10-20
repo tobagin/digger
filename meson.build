@@ -1,5 +1,5 @@
 project('digger-vala', 'vala', 'c',
-  version: '2.2.0',
+  version: '2.3.0',
   default_options: ['warning_level=1'],
   meson_version: '>= 0.58.0'
 )
@@ -81,6 +81,9 @@ executable('digger-vala',
   'src/utils/ThemeManager.vala',
   'src/utils/DnsPresets.vala',
   'src/utils/DomainSuggestions.vala',
+  'src/utils/ValidationUtils.vala',
+  'src/utils/Constants.vala',
+  'src/utils/CollectionUtils.vala',
   config_vala,
   digger_resources,
   dependencies: [

@@ -16,6 +16,7 @@ namespace Digger {
         private Window? main_window = null;
         private QueryHistory query_history;
         private string app_id;
+        private uint release_notes_timeout_id = 0;
 
         public Application () {
             // Detect if we're running as development version by checking data files
@@ -100,10 +101,19 @@ namespace Digger {
             // Show release notes if this is a new version
             if (should_show_release_notes ()) {
                 // Small delay to ensure main window is fully presented
-                Timeout.add (500, () => {
+                release_notes_timeout_id = Timeout.add (Constants.RELEASE_NOTES_DELAY_MS, () => {
                     show_about_with_release_notes ();
+                    release_notes_timeout_id = 0;
                     return false;
                 });
+            }
+        }
+
+        ~Application () {
+            // Cancel timeout on destruction
+            if (release_notes_timeout_id > 0) {
+                Source.remove (release_notes_timeout_id);
+                release_notes_timeout_id = 0;
             }
         }
         

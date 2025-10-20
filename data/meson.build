@@ -118,7 +118,16 @@ install_data(
 )
 
 # Install scalable symbolic icons
-scalable_icons = ['history-symbolic', 'copy-symbolic', 'error-symbolic', 'success-symbolic']
+scalable_icons = [
+  'history-symbolic',
+  'copy-symbolic',
+  'error-symbolic',
+  'success-symbolic',
+  'fastest-server-symbolic',
+  'slowest-server-symbolic',
+  'average-query-time-symbolic',
+  'query-time-symbolic'
+]
 foreach icon : scalable_icons
   # Use consistent naming for all symbolic icons
   output_name = app_id + '-' + icon + '.svg'
@@ -140,7 +149,7 @@ install_data(
 )
 
 # CSS themes
-install_subdir('../assets/themes',
+install_subdir('themes',
   install_dir: join_paths(get_option('datadir'), 'digger'),
   strip_directory: false
 )

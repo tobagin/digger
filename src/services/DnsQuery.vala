@@ -11,8 +11,11 @@
 namespace Digger {
     public class DnsQuery : Object {
         private const string DIG_COMMAND = "dig";
-        private const int DEFAULT_TIMEOUT = 10; // seconds
-        
+        private const int DEFAULT_TIMEOUT = Constants.DEFAULT_QUERY_TIMEOUT_SECONDS;
+
+        // Cached dig availability check (SEC-003 Performance)
+        private static bool? dig_available_cache = null;
+
         private GLib.Settings settings;
         
         public signal void query_completed (QueryResult result);
@@ -37,8 +40,8 @@ namespace Digger {
                 return result;
             }
 
-            // Check if dig command exists
-            if (!check_dig_available ()) {
+            // Check if dig command exists (with caching)
+            if (!yield check_dig_available_async ()) {
                 var result = new QueryResult ();
                 result.domain = domain;
                 result.query_type = record_type;
@@ -75,7 +78,9 @@ namespace Digger {
 
                 if (!success) {
                     result.status = QueryStatus.NETWORK_ERROR;
-                    query_failed (@"Command execution failed: $standard_error");
+                    // SEC-009: Log full error, but send sanitized message to signal
+                    critical ("Command execution failed: %s", standard_error);
+                    query_failed ("Query execution failed. Please check your network connection.");
                     return result;
                 }
 
@@ -84,7 +89,9 @@ namespace Digger {
                     if (result.status == QueryStatus.SUCCESS) {
                         result.status = QueryStatus.SERVFAIL; // Fallback
                     }
-                    query_failed (@"Query failed with exit code $exit_status");
+                    // SEC-009: Log full error details
+                    critical ("Query failed with exit code %d: %s", exit_status, standard_error);
+                    query_failed ("DNS query failed. The domain may not exist or the server is unreachable.");
                     return result;
                 }
 
@@ -97,7 +104,9 @@ namespace Digger {
                 timer.stop ();
                 result.query_time_ms = timer.elapsed () * 1000;
                 result.status = QueryStatus.NETWORK_ERROR;
-                query_failed (@"Error executing query: $(e.message)");
+                // SEC-009: Log full error, send sanitized message
+                critical ("Error executing query for %s: %s", domain, e.message);
+                query_failed (ValidationUtils.get_user_friendly_error (e));
                 return result;
             }
         }
@@ -148,14 +157,86 @@ namespace Digger {
         private async bool run_command_async (string[] command_args, out string standard_output,
                                             out string standard_error, out int exit_status) throws Error {
             Subprocess process = new Subprocess.newv (command_args, SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE);
-            
+
             Bytes stdout_bytes, stderr_bytes;
             yield process.communicate_async (null, null, out stdout_bytes, out stderr_bytes);
             standard_output = (string) stdout_bytes.get_data();
             standard_error = (string) stderr_bytes.get_data();
             exit_status = process.get_exit_status ();
-            
+
             return true;
+        }
+
+        /**
+         * Synchronous version for use in background threads
+         * This blocks but that's OK since it runs in a separate thread
+         */
+        private bool run_command_sync (string[] command_args, out string standard_output,
+                                       out string standard_error, out int exit_status) throws Error {
+            Process.spawn_sync (null, command_args, null,
+                              SpawnFlags.SEARCH_PATH,
+                              null,
+                              out standard_output,
+                              out standard_error,
+                              out exit_status);
+            return true;
+        }
+
+        /**
+         * Synchronous query for use in background threads
+         * Does NOT use async/yield so it can run in a thread without event loop
+         */
+        public QueryResult? perform_query_sync (string domain, RecordType record_type,
+                                                string? dns_server = null,
+                                                bool reverse_lookup = false,
+                                                bool trace_path = false,
+                                                bool short_output = false) {
+            var result = new QueryResult ();
+            result.domain = domain;
+            result.query_type = record_type;
+            result.dns_server = dns_server ?? "System default";
+            result.reverse_lookup = reverse_lookup;
+            result.trace_path = trace_path;
+            result.short_output = short_output;
+
+            var timer = new Timer ();
+            timer.start ();
+
+            try {
+                string[] command_args = build_dig_command (domain, record_type, dns_server,
+                                                         reverse_lookup, trace_path, short_output);
+
+                string standard_output;
+                string standard_error;
+                int exit_status;
+
+                bool success = run_command_sync (command_args, out standard_output,
+                                                out standard_error, out exit_status);
+
+                timer.stop ();
+                result.query_time_ms = timer.elapsed () * 1000;
+                result.raw_output = standard_output;
+
+                if (!success) {
+                    result.status = QueryStatus.NETWORK_ERROR;
+                    return result;
+                }
+
+                if (exit_status != 0) {
+                    result.status = QueryStatus.NETWORK_ERROR;
+                    return result;
+                }
+
+                parse_dig_output (standard_output, result);
+                return result;
+
+            } catch (Error e) {
+                timer.stop ();
+                result.query_time_ms = timer.elapsed () * 1000;
+                result.status = QueryStatus.NETWORK_ERROR;
+                warning ("Error executing sync query for %s: %s", domain, e.message);
+                return result;
+            }
         }
 
         private void parse_dig_output (string output, QueryResult result) {
@@ -253,7 +334,7 @@ namespace Digger {
         private DnsRecord? parse_dns_record_line (string line) {
             var parts = line.split_set (" \t");
             var clean_parts = new Gee.ArrayList<string> ();
-            
+
             // Remove empty parts
             foreach (string part in parts) {
                 if (part.strip ().length > 0) {
@@ -261,22 +342,32 @@ namespace Digger {
                 }
             }
 
-            if (clean_parts.size < 4) {
+            // SEC-004: Enhanced bounds checking - minimum 5 fields expected:
+            // name, TTL, class (IN), type, value
+            if (clean_parts.size < Constants.MIN_DNS_RECORD_FIELDS) {
+                if (clean_parts.size > 0) {
+                    warning ("Skipping malformed DNS record line (insufficient fields): %s", line);
+                }
                 return null;
             }
 
+            // SEC-004: Safe array access with bounds checking
             string name = clean_parts[0];
             string ttl_str = clean_parts[1];
+            // clean_parts[2] is typically class (IN, CH, etc.) - skip it
             string type_str = clean_parts[3];
-            
+
             int ttl = int.parse (ttl_str);
             RecordType record_type = RecordType.from_string (type_str);
 
-            // Get the value (everything after the record type)
+            // SEC-004: Get the value (everything after the record type) with bounds check
             var value_parts = new Gee.ArrayList<string> ();
-            for (int i = 4; i < clean_parts.size; i++) {
-                value_parts.add (clean_parts[i]);
+            if (clean_parts.size > 4) {
+                for (int i = 4; i < clean_parts.size; i++) {
+                    value_parts.add (clean_parts[i]);
+                }
             }
+
             // Convert to string array safely
             string[] value_array = new string[value_parts.size];
             for (int i = 0; i < value_parts.size; i++) {
@@ -284,21 +375,33 @@ namespace Digger {
             }
             string value = string.joinv (" ", value_array);
 
-            // Handle MX records specially for priority
+            // SEC-004: Handle MX records specially for priority with bounds checking
             int priority = -1;
-            if (record_type == RecordType.MX && clean_parts.size >= 5) {
-                priority = int.parse (clean_parts[4]);
-                if (clean_parts.size >= 6) {
+            if (record_type == RecordType.MX) {
+                if (clean_parts.size >= 5) {
+                    priority = int.parse (clean_parts[4]);
                     value_parts.clear ();
-                    for (int i = 5; i < clean_parts.size; i++) {
-                        value_parts.add (clean_parts[i]);
+
+                    // SEC-004: Bounds check before accessing index 5
+                    if (clean_parts.size >= 6) {
+                        for (int i = 5; i < clean_parts.size; i++) {
+                            value_parts.add (clean_parts[i]);
+                        }
+                        // Convert to string array safely
+                        string[] mx_value_array = new string[value_parts.size];
+                        for (int i = 0; i < value_parts.size; i++) {
+                            mx_value_array[i] = value_parts[i];
+                        }
+                        value = string.joinv (" ", mx_value_array);
+                    } else {
+                        // Malformed MX record - has priority but no hostname
+                        warning ("Skipping malformed MX record (missing hostname): %s", line);
+                        return null;
                     }
-                    // Convert to string array safely
-                    string[] mx_value_array = new string[value_parts.size];
-                    for (int i = 0; i < value_parts.size; i++) {
-                        mx_value_array[i] = value_parts[i];
-                    }
-                    value = string.joinv (" ", mx_value_array);
+                } else {
+                    // Malformed MX record - no value at all
+                    warning ("Skipping malformed MX record (no priority/value): %s", line);
+                    return null;
                 }
             }
 
@@ -370,30 +473,129 @@ namespace Digger {
             }
         }
 
+        /**
+         * Checks if dig command is available with session-level caching
+         * Performance: Eliminates repeated 'which' system calls
+         */
+        private async bool check_dig_available_async () {
+            // Check cache first - O(1) return if already checked
+            if (dig_available_cache != null) {
+                return dig_available_cache;
+            }
+
+            // Perform async check if cache is empty
+            try {
+                string standard_output;
+                string standard_error;
+                int exit_status;
+
+                yield run_command_async ({"which", DIG_COMMAND},
+                                        out standard_output,
+                                        out standard_error,
+                                        out exit_status);
+
+                // Cache the result for session lifetime
+                dig_available_cache = (exit_status == 0);
+
+                if (dig_available_cache) {
+                    message ("dig command found and cached");
+                } else {
+                    warning ("dig command not found");
+                }
+
+                return dig_available_cache;
+            } catch (Error e) {
+                // Cache negative result
+                dig_available_cache = false;
+                warning ("Error checking dig availability: %s", e.message);
+                return false;
+            }
+        }
+
+        /**
+         * Legacy synchronous wrapper (deprecated, use async version)
+         */
         private bool check_dig_available () {
+            if (dig_available_cache != null) {
+                return dig_available_cache;
+            }
+
             try {
                 string standard_output;
                 int exit_status;
-                
-                Process.spawn_command_line_sync ("which " + DIG_COMMAND, 
-                                               out standard_output, 
-                                               null, 
+
+                Process.spawn_command_line_sync ("which " + DIG_COMMAND,
+                                               out standard_output,
+                                               null,
                                                out exit_status);
-                return exit_status == 0;
+                dig_available_cache = (exit_status == 0);
+                return dig_available_cache;
             } catch (SpawnError e) {
+                dig_available_cache = false;
                 return false;
             }
         }
 
         private bool is_valid_domain (string domain) {
-            // Basic domain validation
-            if (domain.length == 0 || domain.length > 253) {
+            // SEC-003: Strengthened domain validation per RFC 1123/1035
+            if (domain.length == 0 || domain.length > Constants.MAX_DOMAIN_LENGTH) {
                 return false;
             }
 
-            // Check for valid characters and format
-            return Regex.match_simple ("^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$", domain) ||
-                   Regex.match_simple ("^[a-zA-Z0-9]$", domain);
+            // SEC-003: Check for consecutive dots (not allowed)
+            if (domain.contains ("..")) {
+                return false;
+            }
+
+            // SEC-003: Check for starting/ending with dot or hyphen (not allowed per RFC)
+            if (domain.has_prefix (".") || domain.has_suffix (".") ||
+                domain.has_prefix ("-") || domain.has_suffix ("-")) {
+                return false;
+            }
+
+            // Split into labels and validate each
+            string[] labels = domain.split (".");
+
+            // SEC-003: Empty labels not allowed
+            if (labels.length == 0) {
+                return false;
+            }
+
+            foreach (string label in labels) {
+                // SEC-003: Empty labels not allowed
+                if (label.length == 0) {
+                    return false;
+                }
+
+                // SEC-003: Per-label length validation (max 63 characters per RFC 1035)
+                if (label.length > Constants.MAX_LABEL_LENGTH) {
+                    return false;
+                }
+
+                // SEC-003: Labels must start and end with alphanumeric character
+                unichar first = label.get_char (0);
+                unichar last = label.get_char (label.length - 1);
+
+                if (!first.isalnum () || !last.isalnum ()) {
+                    return false;
+                }
+
+                // Check label contains only valid characters (alphanumeric and hyphen)
+                for (int i = 0; i < label.length; i++) {
+                    unichar c = label.get_char (i);
+                    if (!c.isalnum () && c != '-') {
+                        return false;
+                    }
+                }
+            }
+
+            // Basic format validation with improved regex
+            try {
+                return Regex.match_simple ("^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$", domain) ||
+                       Regex.match_simple ("^[a-zA-Z0-9]$", domain);
+            } catch (RegexError e) {
+                return false;
+            }
         }
 
         private enum ParseSection {

@@ -6,6 +6,9 @@ _build/
 # Flatpak build artifacts
 .flatpak-builder/
 repo/
+build-dir/
+build-dev/
+build-dir-dev/
 
 # Meson files
 meson-logs/

@@ -369,25 +369,37 @@ namespace Digger {
         
         private void show_custom_dns_dialog () {
             var dialog = new Adw.AlertDialog ("Custom DNS Server", "Enter a custom DNS server address:");
-            
+
             var entry = new Gtk.Entry () {
                 placeholder_text = "e.g., 1.1.1.1 or dns.example.com"
             };
-            
+
             dialog.set_extra_child (entry);
             dialog.add_response ("cancel", "Cancel");
             dialog.add_response ("ok", "OK");
             dialog.set_response_appearance ("ok", Adw.ResponseAppearance.SUGGESTED);
             dialog.set_default_response ("ok");
-            
+
             var window = get_root () as Gtk.Window;
-            
+            if (window == null) {
+                warning ("Cannot show dialog: no parent window found");
+                return;
+            }
+
             dialog.response.connect_after ((response) => {
                 if (response == "ok") {
                     var custom_server = entry.text.strip ();
                     if (custom_server.length > 0) {
-                        // Add custom server to the model
-                        add_custom_dns_server (custom_server);
+                        // Validate DNS server address (SEC-001)
+                        if (ValidationUtils.validate_dns_server (custom_server)) {
+                            // Add custom server to the model
+                            add_custom_dns_server (custom_server);
+                        } else {
+                            // Show validation error
+                            show_dns_validation_error (custom_server);
+                            // Go back to system default
+                            dns_server_dropdown.selected = 0;
+                        }
                     } else {
                         // Go back to system default if empty
                         dns_server_dropdown.selected = 0;
@@ -397,8 +409,24 @@ namespace Digger {
                     dns_server_dropdown.selected = 0;
                 }
             });
-            
+
             dialog.present (window);
+        }
+
+        private void show_dns_validation_error (string invalid_server) {
+            var error_message = ValidationUtils.get_dns_server_error_message (invalid_server);
+            var window = get_root () as Gtk.Window;
+            if (window == null) {
+                warning ("Cannot show error dialog: no parent window found");
+                return;
+            }
+
+            var error_dialog = new Adw.AlertDialog ("Invalid DNS Server", error_message);
+            error_dialog.add_response ("ok", "OK");
+            error_dialog.set_response_appearance ("ok", Adw.ResponseAppearance.DESTRUCTIVE);
+            error_dialog.set_default_response ("ok");
+
+            error_dialog.present (window);
         }
         
         private void add_custom_dns_server (string server_ip) {
@@ -669,7 +697,7 @@ namespace Digger {
             if (parent is Adw.ToastOverlay) {
                 var toast_overlay = (Adw.ToastOverlay) parent;
                 var toast = new Adw.Toast (@"Added $domain to favorites") {
-                    timeout = 2
+                    timeout = Constants.TOAST_TIMEOUT_SECONDS
                 };
                 toast_overlay.add_toast (toast);
             }
@@ -684,7 +712,7 @@ namespace Digger {
             if (parent is Adw.ToastOverlay) {
                 var toast_overlay = (Adw.ToastOverlay) parent;
                 var toast = new Adw.Toast (@"Removed $domain from favorites") {
-                    timeout = 2
+                    timeout = Constants.TOAST_TIMEOUT_SECONDS
                 };
                 toast_overlay.add_toast (toast);
             }

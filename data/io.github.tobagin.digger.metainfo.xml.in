@@ -69,6 +69,23 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   
   <releases>
+    <release version="2.3.0" date="2025-10-20">
+      <description>
+        <p>Major UI/UX improvements and critical bug fixes for DNS Server Comparison</p>
+        <ul>
+          <li>Redesigned Comparison Dialog - Two-page architecture (Setup → Results) for cleaner, focused interface</li>
+          <li>Fixed Critical UI Freeze - Comparison now uses sequential async with 50ms yields, keeping UI fully responsive</li>
+          <li>Fixed Results Accumulation Bug - Implemented reusable rows pattern preventing result duplication</li>
+          <li>Improved Discrepancy Detection - Set-based comparison eliminates false positives from record order differences</li>
+          <li>Custom Icons - Added fastest-server, slowest-server, average-query-time, and query-time icons</li>
+          <li>Semantic Record Type Icons - Visual icons replace colored text labels for A, AAAA, MX, CNAME, NS, TXT, SOA, PTR, SRV</li>
+          <li>Enhanced Export - Full JSON/CSV/TXT export with smart filename generation for comparison results</li>
+          <li>System Default Display - Shows "System Default (localhost)" for clarity when using default DNS</li>
+          <li>Menu Integration - Added Batch Lookup and Compare DNS Servers to Tools menu for better discoverability</li>
+          <li>Performance Optimization - Reusable widgets eliminate creation/destruction overhead in results display</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.2.0" date="2025-10-09">
       <description>
         <p>Major feature release with advanced DNS capabilities and productivity enhancements</p>

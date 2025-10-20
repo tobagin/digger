@@ -65,7 +65,7 @@ namespace Digger {
 
         public SecureDnsQuery () {
             session = new Soup.Session ();
-            session.timeout = 30;
+            session.timeout = Constants.DOH_QUERY_TIMEOUT_SECONDS;
             session.user_agent = "Digger/" + Config.VERSION;
         }
 
@@ -74,6 +74,13 @@ namespace Digger {
             result.domain = domain;
             result.query_type = record_type;
             result.dns_server = doh_endpoint;
+
+            // SEC-006: Enforce HTTPS-only for DoH endpoints
+            if (!ValidationUtils.is_https_url (doh_endpoint)) {
+                result.status = QueryStatus.NETWORK_ERROR;
+                critical ("DoH endpoint must use HTTPS: %s", doh_endpoint);
+                return result;
+            }
 
             var timer = new Timer ();
             timer.start ();
@@ -134,7 +141,7 @@ namespace Digger {
         }
 
         private void parse_dns_response (uint8[] data, QueryResult result) {
-            if (data.length < 12) {
+            if (data.length < Constants.MIN_DNS_PACKET_SIZE) {
                 result.status = QueryStatus.NETWORK_ERROR;
                 return;
             }
@@ -243,7 +250,7 @@ namespace Digger {
             }
 
             var hex = new StringBuilder ();
-            for (int i = 0; i < length && i < 64; i++) {
+            for (int i = 0; i < length && i < Constants.MAX_RECORD_DATA_DISPLAY_LENGTH; i++) {
                 hex.append_printf ("%02x", data[offset + i]);
             }
             return hex.str;

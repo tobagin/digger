@@ -4,167 +4,235 @@ using Adw 1;
 template $DiggerComparisonDialog : Adw.Dialog {
   content-width: 900;
   content-height: 700;
-  title: "DNS Server Comparison";
 
   Adw.ToolbarView {
     [top]
-    Adw.HeaderBar {
+    Adw.HeaderBar header_bar {
       [start]
-      Button close_button {
-        label: "Close";
+      Button back_button {
+        icon-name: "go-previous-symbolic";
+        tooltip-text: "Back to configuration";
+        visible: false;
       }
 
-      [end]
-      Button compare_button {
-        label: "Compare";
-        styles ["suggested-action"]
+      [title]
+      Adw.ViewSwitcherTitle view_switcher_title {
+        stack: view_stack;
+        title: "DNS Server Comparison";
       }
     }
 
-    content: Box {
-      orientation: vertical;
-      spacing: 12;
-      margin-top: 12;
-      margin-bottom: 12;
-      margin-start: 12;
-      margin-end: 12;
+    content: Adw.ViewStack view_stack {
+      // PAGE 1: Configuration
+      Adw.ViewStackPage {
+        name: "config";
+        title: "Setup";
+        icon-name: "preferences-system-symbolic";
 
-      Adw.PreferencesGroup {
-        title: "Query Settings";
+        child: Adw.ToolbarView {
+          [bottom]
+          Adw.HeaderBar {
+            show-end-title-buttons: false;
 
-        Adw.ActionRow {
-          title: "Domain or IP Address";
-
-          Entry domain_entry {
-            placeholder-text: "example.com";
-            valign: center;
-            hexpand: true;
-          }
-        }
-
-        Adw.ActionRow {
-          title: "Record Type";
-
-          DropDown record_type_dropdown {
-            valign: center;
-          }
-        }
-      }
-
-      Adw.PreferencesGroup {
-        title: "DNS Servers to Compare";
-        description: "Select at least 2 servers to compare";
-
-        Adw.ActionRow google_row {
-          title: "Google DNS";
-          subtitle: "8.8.8.8";
-
-          Switch google_switch {
-            valign: center;
-            active: true;
-          }
-        }
-
-        Adw.ActionRow cloudflare_row {
-          title: "Cloudflare DNS";
-          subtitle: "1.1.1.1";
-
-          Switch cloudflare_switch {
-            valign: center;
-            active: true;
-          }
-        }
-
-        Adw.ActionRow quad9_row {
-          title: "Quad9 DNS";
-          subtitle: "9.9.9.9";
-
-          Switch quad9_switch {
-            valign: center;
-            active: true;
-          }
-        }
-
-        Adw.ActionRow opendns_row {
-          title: "OpenDNS";
-          subtitle: "208.67.222.222";
-
-          Switch opendns_switch {
-            valign: center;
-          }
-        }
-
-        Adw.ActionRow system_row {
-          title: "System Default";
-          subtitle: "Your system's configured DNS server";
-
-          Switch system_switch {
-            valign: center;
-          }
-        }
-      }
-
-      ProgressBar progress_bar {
-        visible: false;
-        show-text: true;
-      }
-
-      Box results_box {
-        orientation: vertical;
-        spacing: 12;
-        visible: false;
-        vexpand: true;
-
-        Box summary_box {
-          orientation: horizontal;
-          spacing: 12;
-
-          Label {
-            label: "Results Summary";
-            halign: start;
-            hexpand: true;
-            styles ["heading"]
+            title-widget: Button compare_button {
+              label: "Compare DNS Servers";
+              styles ["suggested-action", "pill"]
+            };
           }
 
-          Button export_button {
-            icon-name: "document-save-symbolic";
-            tooltip-text: "Export comparison results";
-            valign: center;
-          }
-        }
-
-        Adw.PreferencesGroup stats_group {
-          title: "Performance Statistics";
-        }
-
-        Adw.PreferencesGroup discrepancy_group {
-          title: "Discrepancies Detected";
-          visible: false;
-        }
-
-        Box {
-          orientation: vertical;
-          spacing: 6;
-
-          Label {
-            label: "Server Results";
-            halign: start;
-            styles ["heading"]
-          }
-
-          ScrolledWindow {
-            vexpand: true;
-            hscrollbar-policy: automatic;
+          content: ScrolledWindow {
+            hscrollbar-policy: never;
             vscrollbar-policy: automatic;
 
-            Box results_container {
+            Box {
               orientation: vertical;
               spacing: 12;
-              margin-top: 6;
-              margin-bottom: 6;
+              margin-top: 12;
+              margin-bottom: 12;
+              margin-start: 12;
+              margin-end: 12;
+
+              Adw.PreferencesGroup {
+                title: "Query Settings";
+
+                Adw.ActionRow {
+                  title: "Domain or IP Address";
+
+                  Entry domain_entry {
+                    placeholder-text: "example.com";
+                    valign: center;
+                    hexpand: true;
+                  }
+                }
+
+                Adw.ActionRow {
+                  title: "Record Type";
+
+                  DropDown record_type_dropdown {
+                    valign: center;
+                  }
+                }
+              }
+
+              Adw.PreferencesGroup {
+                title: "DNS Servers to Compare";
+                description: "Select at least 2 servers to compare";
+
+                Adw.ActionRow google_row {
+                  title: "Google DNS";
+                  subtitle: "8.8.8.8";
+
+                  Switch google_switch {
+                    valign: center;
+                    active: true;
+                  }
+                }
+
+                Adw.ActionRow cloudflare_row {
+                  title: "Cloudflare DNS";
+                  subtitle: "1.1.1.1";
+
+                  Switch cloudflare_switch {
+                    valign: center;
+                    active: true;
+                  }
+                }
+
+                Adw.ActionRow quad9_row {
+                  title: "Quad9 DNS";
+                  subtitle: "9.9.9.9";
+
+                  Switch quad9_switch {
+                    valign: center;
+                    active: true;
+                  }
+                }
+
+                Adw.ActionRow opendns_row {
+                  title: "OpenDNS";
+                  subtitle: "208.67.222.222";
+
+                  Switch opendns_switch {
+                    valign: center;
+                  }
+                }
+
+                Adw.ActionRow system_row {
+                  title: "System Default";
+                  subtitle: "Your system's configured DNS server";
+
+                  Switch system_switch {
+                    valign: center;
+                  }
+                }
+              }
+            }
+          };
+        };
+      }
+
+      // PAGE 2: Results
+      Adw.ViewStackPage {
+        name: "results";
+        title: "Results";
+        icon-name: "document-properties-symbolic";
+
+        child: Adw.ToolbarView {
+          [bottom]
+          Adw.HeaderBar {
+            show-end-title-buttons: false;
+
+            title-widget: Button new_comparison_button {
+              label: "New Comparison";
+              styles ["suggested-action", "pill"]
+            };
+
+            [end]
+            Button export_button {
+              icon-name: "document-save-symbolic";
+              tooltip-text: "Export comparison results";
+              styles ["flat"]
             }
           }
-        }
+
+          content: Box {
+            orientation: vertical;
+            spacing: 0;
+
+            // Progress bar (shown during comparison)
+            ProgressBar progress_bar {
+              visible: false;
+              show-text: true;
+            }
+
+            // Results area
+            Box results_box {
+              orientation: vertical;
+              spacing: 0;
+              vexpand: true;
+
+              Box summary_box {
+                orientation: horizontal;
+                spacing: 12;
+                margin-start: 12;
+                margin-end: 12;
+                margin-top: 12;
+                margin-bottom: 12;
+
+                Label summary_label {
+                  label: "Comparison Results";
+                  halign: start;
+                  hexpand: true;
+                  styles ["title-2"]
+                }
+
+                Label domain_label {
+                  halign: end;
+                  styles ["dim-label"]
+                }
+              }
+
+              Separator {
+                orientation: horizontal;
+              }
+
+              ScrolledWindow {
+                vexpand: true;
+                hscrollbar-policy: never;
+                vscrollbar-policy: automatic;
+
+                Box {
+                  orientation: vertical;
+                  spacing: 18;
+                  margin-top: 18;
+                  margin-bottom: 18;
+                  margin-start: 12;
+                  margin-end: 12;
+
+                  Adw.PreferencesGroup stats_group {
+                    title: "Performance Statistics";
+                  }
+
+                  Adw.PreferencesGroup discrepancy_group {
+                    title: "Discrepancies Detected";
+                    visible: false;
+                  }
+
+                  Adw.PreferencesGroup results_group {
+                    title: "Server Results";
+
+                    Box results_container {
+                      orientation: vertical;
+                      spacing: 12;
+                      margin-top: 12;
+                      margin-bottom: 12;
+                    }
+                  }
+                }
+              }
+            }
+          };
+        };
       }
     };
   }

@@ -382,7 +382,28 @@ namespace Digger {
             });
 
             custom_doh_row.notify["text"].connect(() => {
-                settings.set_string("custom-doh-endpoint", custom_doh_row.text);
+                string endpoint = custom_doh_row.text.strip ();
+
+                // SEC-006: Validate HTTPS-only for DoH endpoints
+                if (endpoint.length > 0) {
+                    // Auto-prepend https:// if no protocol specified
+                    if (!endpoint.has_prefix ("http://") && !endpoint.has_prefix ("https://")) {
+                        endpoint = "https://" + endpoint;
+                        custom_doh_row.text = endpoint;
+                    }
+
+                    // Reject HTTP URLs with error indication
+                    if (endpoint.has_prefix ("http://") && !endpoint.has_prefix ("https://")) {
+                        custom_doh_row.add_css_class ("error");
+                        custom_doh_row.tooltip_text = "DoH endpoints must use HTTPS for security";
+                        return;
+                    } else {
+                        custom_doh_row.remove_css_class ("error");
+                        custom_doh_row.tooltip_text = "Enter a custom DoH endpoint (HTTPS required)";
+                    }
+                }
+
+                settings.set_string("custom-doh-endpoint", endpoint);
             });
 
             doh_provider_row.notify["selected"].connect(() => {

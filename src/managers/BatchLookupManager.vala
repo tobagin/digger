@@ -34,6 +34,14 @@ namespace Digger {
         private uint total_count = 0;
         private Cancellable? cancellable = null;
 
+        // Adaptive parallelism tracking (PERF-004)
+        private int current_batch_size = Constants.PARALLEL_BATCH_SIZE;
+        private uint recent_errors = 0;
+        private uint recent_successes = 0;
+        private const uint TUNING_WINDOW_SIZE = 20; // Number of queries to consider for tuning
+        private int64 last_tuning_time = 0;
+        private const int64 TUNING_INTERVAL_MS = 5000; // Tune every 5 seconds at most
+
         public signal void progress_updated (uint completed, uint total);
         public signal void task_completed (BatchLookupTask task);
         public signal void batch_completed (Gee.ArrayList<BatchLookupTask> results);
@@ -67,37 +75,179 @@ namespace Digger {
         }
 
         public async bool import_from_file (File file, RecordType default_record_type, string? default_dns_server = null) {
+            // Using centralized constants (SEC-002)
+            const int MAX_FILE_SIZE_BYTES = Constants.MAX_BATCH_FILE_SIZE_BYTES;
+            const int MAX_LINE_COUNT = Constants.MAX_BATCH_LINES;
+
             try {
+                // SEC-002: Check file size before loading
+                FileInfo file_info = yield file.query_info_async (
+                    FileAttribute.STANDARD_SIZE,
+                    FileQueryInfoFlags.NONE,
+                    Priority.DEFAULT,
+                    null
+                );
+
+                int64 file_size = file_info.get_size ();
+                if (file_size > MAX_FILE_SIZE_BYTES) {
+                    string size_mb = "%.1f".printf ((double)file_size / (1024 * 1024));
+                    batch_error ("File too large: %s MB (maximum %d MB)".printf (size_mb, Constants.MAX_BATCH_FILE_SIZE_MB));
+                    return false;
+                }
+
                 uint8[] contents;
                 yield file.load_contents_async (null, out contents, null);
                 string text = (string) contents;
 
                 var lines = text.split ("\n");
+
+                // SEC-002: Check line count
+                if (lines.length > MAX_LINE_COUNT) {
+                    batch_error ("Too many lines: %u (maximum %d)".printf (lines.length, Constants.MAX_BATCH_LINES));
+                    return false;
+                }
+
+                uint skipped_count = 0;
+                uint processed_count = 0;
+                uint line_number = 0;
+
                 foreach (var line in lines) {
+                    line_number++;
                     var trimmed = line.strip ();
-                    if (trimmed.length > 0 && !trimmed.has_prefix ("#")) {
-                        var parts = trimmed.split (",");
-                        string domain = parts[0].strip ();
 
-                        RecordType record_type = default_record_type;
-                        string? dns_server = default_dns_server;
-
-                        if (parts.length > 1) {
-                            record_type = RecordType.from_string (parts[1].strip ());
-                        }
-                        if (parts.length > 2 && parts[2].strip ().length > 0) {
-                            dns_server = parts[2].strip ();
-                        }
-
-                        var task = new BatchLookupTask (domain, record_type, dns_server);
-                        add_task (task);
+                    // Skip empty lines and comments
+                    if (trimmed.length == 0 || trimmed.has_prefix ("#")) {
+                        continue;
                     }
+
+                    var parts = trimmed.split (",");
+                    if (parts.length == 0) {
+                        continue;
+                    }
+
+                    // SEC-002: Sanitize and validate domain field
+                    string domain = parts[0].strip ();
+
+                    // Check for prohibited characters (SEC-002)
+                    if (domain.contains (";") || domain.contains ("|") ||
+                        domain.contains ("&") || domain.contains ("`") ||
+                        domain.contains ("$") || domain.contains ("(") ||
+                        domain.contains (")")) {
+                        warning ("Line %u: Skipped domain with prohibited characters: %s", line_number, domain);
+                        skipped_count++;
+                        continue;
+                    }
+
+                    // Validate domain format (SEC-002)
+                    if (!is_valid_batch_domain (domain)) {
+                        warning ("Line %u: Skipped invalid domain: %s", line_number, domain);
+                        skipped_count++;
+                        continue;
+                    }
+
+                    RecordType record_type = default_record_type;
+                    string? dns_server = default_dns_server;
+
+                    // Validate record type field
+                    if (parts.length > 1) {
+                        string record_type_str = parts[1].strip ();
+                        if (record_type_str.length > 0) {
+                            record_type = RecordType.from_string (record_type_str);
+                        }
+                    }
+
+                    // SEC-002: Validate DNS server field
+                    if (parts.length > 2) {
+                        string dns_server_str = parts[2].strip ();
+                        if (dns_server_str.length > 0) {
+                            // Check for prohibited characters
+                            if (dns_server_str.contains (";") || dns_server_str.contains ("|") ||
+                                dns_server_str.contains ("&") || dns_server_str.contains ("`")) {
+                                warning ("Line %u: Skipped entry with invalid DNS server: %s", line_number, dns_server_str);
+                                skipped_count++;
+                                continue;
+                            }
+
+                            // Validate DNS server format
+                            if (!ValidationUtils.validate_dns_server (dns_server_str)) {
+                                warning ("Line %u: Skipped entry with invalid DNS server format: %s", line_number, dns_server_str);
+                                skipped_count++;
+                                continue;
+                            }
+
+                            dns_server = dns_server_str;
+                        }
+                    }
+
+                    var task = new BatchLookupTask (domain, record_type, dns_server);
+                    add_task (task);
+                    processed_count++;
+                }
+
+                // Report statistics
+                if (skipped_count > 0) {
+                    message ("Batch import: processed %u entries, skipped %u invalid entries", processed_count, skipped_count);
+                }
+
+                if (processed_count == 0) {
+                    batch_error ("No valid entries found in file");
+                    return false;
                 }
 
                 return true;
             } catch (Error e) {
-                warning ("Failed to import batch file: %s", e.message);
-                batch_error ("Failed to import file: %s".printf (e.message));
+                // SEC-009: Sanitize error message (don't expose full path)
+                critical ("Failed to import batch file %s: %s", file.get_basename (), e.message);
+                batch_error ("Failed to import file. Please check the file format.");
+                return false;
+            }
+        }
+
+        // SEC-002: Domain validation helper for batch import
+        private bool is_valid_batch_domain (string domain) {
+            if (domain.length == 0 || domain.length > Constants.MAX_DOMAIN_LENGTH) {
+                return false;
+            }
+
+            // Check for consecutive dots
+            if (domain.contains ("..")) {
+                return false;
+            }
+
+            // Check for starting/ending with dot or hyphen
+            if (domain.has_prefix (".") || domain.has_suffix (".") ||
+                domain.has_prefix ("-") || domain.has_suffix ("-")) {
+                return false;
+            }
+
+            // Split into labels and validate each
+            string[] labels = domain.split (".");
+            foreach (string label in labels) {
+                // Empty labels not allowed
+                if (label.length == 0) {
+                    return false;
+                }
+
+                // Per-label length validation (max 63 characters) - SEC-003
+                if (label.length > Constants.MAX_LABEL_LENGTH) {
+                    return false;
+                }
+
+                // Labels must start and end with alphanumeric
+                unichar first = label.get_char (0);
+                unichar last = label.get_char (label.length - 1);
+
+                if (!first.isalnum () || !last.isalnum ()) {
+                    return false;
+                }
+            }
+
+            // Basic format validation
+            try {
+                return Regex.match_simple ("^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$", domain) ||
+                       Regex.match_simple ("^[a-zA-Z0-9]$", domain) ||
+                       Regex.match_simple ("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", domain); // IPv4
+            } catch (RegexError e) {
                 return false;
             }
         }
@@ -147,7 +297,7 @@ namespace Digger {
                 progress_updated (completed_count, total_count);
                 task_completed (task);
 
-                Timeout.add (100, () => {
+                Timeout.add (Constants.BATCH_SEQUENTIAL_DELAY_MS, () => {
                     execute_sequential.callback ();
                     return false;
                 });
@@ -156,11 +306,19 @@ namespace Digger {
         }
 
         private async void execute_parallel (bool reverse_lookup, bool trace_path, bool short_output) {
-            int batch_size = 5;
+            // Initialize adaptive batch size (PERF-004)
+            current_batch_size = Constants.PARALLEL_BATCH_SIZE;
+            recent_errors = 0;
+            recent_successes = 0;
+            last_tuning_time = get_monotonic_time () / 1000; // Convert to milliseconds
+
             int current_index = 0;
 
             while (current_index < tasks.size && !cancellable.is_cancelled ()) {
-                var batch_end = int.min (current_index + batch_size, tasks.size);
+                // Apply adaptive tuning before each batch (PERF-004)
+                tune_batch_size ();
+
+                var batch_end = int.min (current_index + current_batch_size, tasks.size);
                 var parallel_tasks = new Gee.ArrayList<BatchLookupTask> ();
 
                 for (int i = current_index; i < batch_end; i++) {
@@ -173,11 +331,18 @@ namespace Digger {
                         completed_count++;
                         progress_updated (completed_count, total_count);
                         task_completed (task);
+
+                        // Track error rate for adaptive tuning (PERF-004)
+                        if (task.failed) {
+                            recent_errors++;
+                        } else {
+                            recent_successes++;
+                        }
                     });
                 }
 
                 while (completed_count < batch_end && !cancellable.is_cancelled ()) {
-                    Timeout.add (100, () => {
+                    Timeout.add (Constants.BATCH_SEQUENTIAL_DELAY_MS, () => {
                         execute_parallel.callback ();
                         return false;
                     });
@@ -217,6 +382,54 @@ namespace Digger {
                 task.failed = true;
                 task.error_message = e.message;
             }
+        }
+
+        /**
+         * Adaptive parallelism tuning (PERF-004)
+         * Adjusts batch size based on error rates and performance
+         */
+        private void tune_batch_size () {
+            int64 current_time = get_monotonic_time () / 1000;
+
+            // Only tune if enough time has passed and we have sufficient data
+            if (current_time - last_tuning_time < TUNING_INTERVAL_MS) {
+                return;
+            }
+
+            uint total_recent = recent_errors + recent_successes;
+            if (total_recent < TUNING_WINDOW_SIZE) {
+                return; // Not enough data yet
+            }
+
+            last_tuning_time = current_time;
+
+            // Calculate error rate
+            double error_rate = (double)recent_errors / (double)total_recent;
+
+            int old_batch_size = current_batch_size;
+
+            // Adaptive logic:
+            // - High error rate (>20%): Reduce parallelism to avoid overwhelming resources
+            // - Low error rate (<5%): Increase parallelism for better performance
+            // - Medium error rate: Keep current setting
+            if (error_rate > 0.20) {
+                // High error rate: reduce parallelism
+                current_batch_size = int.max (Constants.PARALLEL_BATCH_SIZE_LOW, current_batch_size - 2);
+                debug ("Batch auto-tune: High error rate (%.1f%%), reducing batch size: %d -> %d",
+                       error_rate * 100, old_batch_size, current_batch_size);
+            } else if (error_rate < 0.05 && current_batch_size < Constants.PARALLEL_BATCH_SIZE_HIGH) {
+                // Low error rate: increase parallelism
+                current_batch_size = int.min (Constants.PARALLEL_BATCH_SIZE_HIGH, current_batch_size + 1);
+                debug ("Batch auto-tune: Low error rate (%.1f%%), increasing batch size: %d -> %d",
+                       error_rate * 100, old_batch_size, current_batch_size);
+            } else {
+                debug ("Batch auto-tune: Normal error rate (%.1f%%), keeping batch size: %d",
+                       error_rate * 100, current_batch_size);
+            }
+
+            // Reset counters for next tuning window
+            recent_errors = 0;
+            recent_successes = 0;
         }
 
         public void cancel_batch () {

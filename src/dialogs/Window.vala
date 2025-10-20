@@ -34,18 +34,30 @@ namespace Digger {
         public Window (Gtk.Application app, QueryHistory history) {
             Object (application: app);
             query_history = history;
-            
+
             // Initialize enhanced components
             dns_presets = DnsPresets.get_instance ();
             theme_manager = ThemeManager.get_instance ();
-            
+
             setup_ui ();
             setup_actions ();
             connect_signals ();
-            
+
             dns_query = new DnsQuery ();
             dns_query.query_completed.connect (on_query_completed);
             dns_query.query_failed.connect (on_query_failed);
+
+            // Connect error signals from managers (SEC-009: Enhanced Error Handling)
+            query_history.error_occurred.connect ((error_message) => {
+                warning ("QueryHistory error: %s", error_message);
+                show_error_toast (error_message);
+            });
+
+            var favorites_manager = FavoritesManager.get_instance ();
+            favorites_manager.error_occurred.connect ((error_message) => {
+                warning ("FavoritesManager error: %s", error_message);
+                show_error_toast (error_message);
+            });
         }
 
         private void setup_ui () {
@@ -289,6 +301,16 @@ namespace Digger {
             toast_overlay.add_toast (toast);
         }
 
+        /**
+         * Shows an error toast with extended timeout for important error messages (SEC-009)
+         */
+        private void show_error_toast (string message) {
+            var toast = new Adw.Toast (message);
+            toast.timeout = Constants.ERROR_TOAST_TIMEOUT_SECONDS;
+            toast.priority = Adw.ToastPriority.HIGH;
+            toast_overlay.add_toast (toast);
+        }
+
         private void update_history_list () {
             // Clear existing items
             var child = history_listbox.get_first_child ();
@@ -396,6 +418,7 @@ namespace Digger {
 
         private void show_comparison_dialog () {
             var dialog = new ComparisonDialog ();
+            dialog.set_query_history (query_history);
             dialog.present (this);
         }
     }

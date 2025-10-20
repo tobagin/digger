@@ -15,7 +15,6 @@ namespace Digger {
     [GtkTemplate (ui = "/io/github/tobagin/digger/batch-lookup-dialog.ui")]
 #endif
     public class BatchLookupDialog : Adw.Dialog {
-        [GtkChild] private unowned Gtk.Button cancel_button;
         [GtkChild] private unowned Gtk.Button execute_button;
         [GtkChild] private unowned Gtk.Button import_button;
         [GtkChild] private unowned Gtk.Button manual_button;
@@ -52,6 +51,10 @@ namespace Digger {
             var factory = new Gtk.SignalListItemFactory ();
             factory.setup.connect ((list_item) => {
                 var item = list_item as Gtk.ListItem;
+                if (item == null) {
+                    warning ("Null list item in factory setup");
+                    return;
+                }
                 item.child = new Gtk.Label ("") {
                     halign = Gtk.Align.START,
                     xalign = 0
@@ -59,8 +62,19 @@ namespace Digger {
             });
             factory.bind.connect ((list_item) => {
                 var item = list_item as Gtk.ListItem;
+                if (item == null) {
+                    warning ("Null list item in factory bind");
+                    return;
+                }
                 var label = item.child as Gtk.Label;
                 var string_object = item.item as Gtk.StringObject;
+
+                // Null safety for type casts
+                if (label == null || string_object == null) {
+                    warning ("Null label or string_object in factory bind");
+                    return;
+                }
+
                 label.label = string_object.string;
             });
             domains_list.factory = factory;
@@ -74,13 +88,27 @@ namespace Digger {
             var results_factory = new Gtk.SignalListItemFactory ();
             results_factory.setup.connect ((list_item) => {
                 var item = list_item as Gtk.ListItem;
+                if (item == null) {
+                    warning ("Null list item in results factory setup");
+                    return;
+                }
                 var row = new Adw.ActionRow ();
                 item.child = row;
             });
             results_factory.bind.connect ((list_item) => {
                 var item = list_item as Gtk.ListItem;
+                if (item == null) {
+                    warning ("Null list item in results factory bind");
+                    return;
+                }
                 var row = item.child as Adw.ActionRow;
                 var task = item.item as BatchLookupTask;
+
+                // Null safety for type casts
+                if (row == null || task == null) {
+                    warning ("Null row or task in results factory bind");
+                    return;
+                }
 
                 row.title = task.domain;
                 if (task.completed) {
@@ -128,10 +156,6 @@ namespace Digger {
         }
 
         private void connect_signals () {
-            cancel_button.clicked.connect (() => {
-                close ();
-            });
-
             execute_button.clicked.connect (execute_batch);
             import_button.clicked.connect (import_from_file);
             manual_button.clicked.connect (show_manual_entry_dialog);

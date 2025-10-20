@@ -4,6 +4,16 @@ using Adw 1;
 menu main_menu {
   section {
     item {
+      label: "Batch Lookup";
+      action: "win.batch-lookup";
+    }
+    item {
+      label: "Compare DNS Servers";
+      action: "win.compare-servers";
+    }
+  }
+  section {
+    item {
       label: "Preferences";
       action: "app.preferences";
     }
@@ -36,6 +46,10 @@ template $DiggerWindow : Adw.ApplicationWindow {
       orientation: vertical;
 
       Adw.HeaderBar header_bar {
+        title-widget: Adw.WindowTitle {
+          title: _("Digger");
+          subtitle: _("A friendly GUI for dig.");
+        };
         Button history_button {
           icon-name: "document-open-recent-symbolic";
           tooltip-text: "Query History";

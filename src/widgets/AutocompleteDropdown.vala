@@ -21,13 +21,16 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Box main_box;
         [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
         [GtkChild] private unowned Gtk.ListBox suggestion_listbox;
-        
+
         private Gtk.Entry target_entry;
         private DomainSuggestionEngine suggestion_engine;
         private Gee.ArrayList<DomainSuggestion> current_suggestions;
         private int selected_index = -1;
         private bool showing_suggestions = false;
         private bool suggestions_enabled = true;
+
+        // Timeout cancellation support
+        private uint hide_timeout_id = 0;
         
         public signal void suggestion_selected (string domain);
         
@@ -115,15 +118,29 @@ namespace Digger {
         }
         
         private void on_entry_focus_out () {
+            // Cancel any existing timeout
+            if (hide_timeout_id > 0) {
+                Source.remove (hide_timeout_id);
+                hide_timeout_id = 0;
+            }
+
             // Delay hiding to allow for mouse clicks on suggestions
-            // Use a slightly longer delay to ensure click events are processed
-            Timeout.add (150, () => {
+            hide_timeout_id = Timeout.add (Constants.DROPDOWN_HIDE_DELAY_MS, () => {
                 // Only hide if we're still showing suggestions and don't have focus
                 if (showing_suggestions && !target_entry.has_focus) {
                     hide_suggestions ();
                 }
+                hide_timeout_id = 0;
                 return false;
             });
+        }
+
+        ~AutocompleteDropdown () {
+            // Cancel timeout on destruction
+            if (hide_timeout_id > 0) {
+                Source.remove (hide_timeout_id);
+                hide_timeout_id = 0;
+            }
         }
         
         private void on_suggestion_activated (Gtk.ListBoxRow row) {
