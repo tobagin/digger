@@ -40,6 +40,7 @@ A powerful and modern DNS lookup tool built with Vala, GTK4, and libadwaita. Dig
 - 🔒 **DNS-over-HTTPS (DoH)**: Secure DNS queries with support for Cloudflare, Google, Quad9, and custom endpoints
 - 🛡️ **DNSSEC Validation**: Verify DNSSEC chain of trust with DNSKEY, DS, and RRSIG record validation
 - 🔄 **Server Comparison**: Compare DNS responses across multiple servers with automatic discrepancy detection
+- 📋 **WHOIS Integration**: Automatic domain registration information lookup with caching and comprehensive details
 
 ### Productivity Features
 - ⭐ **Favorites System**: Star and save frequently queried domains with their record types
@@ -51,7 +52,8 @@ A powerful and modern DNS lookup tool built with Vala, GTK4, and libadwaita. Dig
 ### User Experience
 - 📋 **Clipboard Integration**: One-click copying of DNS record values and raw dig output
 - ⌨️ **Keyboard Shortcuts**: Comprehensive keyboard shortcuts for efficient navigation
-- 🎨 **Modern Interface**: Clean, adaptive UI built with libadwaita 1.8 and blueprint templates
+- 🎨 **Modern Interface**: Clean, adaptive UI built with libadwaita 1.6+ and blueprint templates
+- 📱 **Responsive Design**: Fully adaptive layout supporting desktop (>1024px), tablet (768-1024px), and mobile (<768px) form factors
 - 🌐 **Network Diagnostics**: Detailed error handling with NXDOMAIN, SERVFAIL, and timeout detection
 - ⚙️ **Comprehensive Preferences**: Multi-page preferences with DNS defaults, DoH configuration, and DNSSEC settings
 - 🚀 **Native Performance**: Vala implementation for optimal speed and resource usage

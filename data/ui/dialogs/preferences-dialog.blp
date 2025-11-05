@@ -5,7 +5,8 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
   title: _("Preferences");
   content-width: 600;
   content-height: 500;
-  
+
+
   Adw.PreferencesPage {
     title: _("General");
     icon-name: "preferences-system-symbolic";
@@ -147,6 +148,32 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
       Adw.SwitchRow show_dnssec_details_row {
         title: _("Show DNSSEC Details");
         subtitle: _("Display chain of trust information");
+      }
+    }
+
+    Adw.PreferencesGroup {
+      title: _("WHOIS Lookup");
+      description: _("Domain registration information");
+
+      Adw.SwitchRow auto_whois_lookup_row {
+        title: _("Enable Automatic WHOIS Lookup");
+        subtitle: _("Fetch WHOIS data when performing DNS queries");
+      }
+
+      Adw.SpinRow whois_timeout_row {
+        title: _("WHOIS Timeout");
+        subtitle: _("Maximum time to wait for WHOIS responses (seconds)");
+      }
+
+      Adw.SpinRow whois_cache_ttl_row {
+        title: _("WHOIS Cache TTL");
+        subtitle: _("How long to cache WHOIS results (hours)");
+      }
+
+      Adw.ActionRow clear_whois_cache_row {
+        title: _("Clear WHOIS Cache");
+        subtitle: _("Remove all cached WHOIS data");
+        activatable: true;
       }
     }
   }

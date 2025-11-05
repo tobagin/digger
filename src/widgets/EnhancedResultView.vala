@@ -16,11 +16,11 @@ namespace Digger {
 #endif
     public class EnhancedResultView : Gtk.Box {
         [GtkChild] private unowned Gtk.Label summary_label;
-        [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
         [GtkChild] private unowned Gtk.Box content_box;
         [GtkChild] private unowned Gtk.ProgressBar progress_bar;
         [GtkChild] private unowned Gtk.Box buttons_box;
         [GtkChild] private unowned Gtk.Button export_button;
+        [GtkChild] private unowned Gtk.Button copy_command_button;
         [GtkChild] private unowned Gtk.Button raw_output_button;
         [GtkChild] private unowned Gtk.Button clear_button;
         
@@ -44,6 +44,14 @@ namespace Digger {
                 export_button.clicked.connect (() => {
                     if (current_result != null) {
                         show_export_dialog ();
+                    }
+                });
+            }
+
+            if (copy_command_button != null) {
+                copy_command_button.clicked.connect (() => {
+                    if (current_result != null) {
+                        copy_dig_command_to_clipboard ();
                     }
                 });
             }
@@ -89,6 +97,7 @@ namespace Digger {
 
             // Show action buttons when we have a result
             export_button.visible = true;
+            copy_command_button.visible = true;
             raw_output_button.visible = true;
             clear_button.visible = true;
 
@@ -130,6 +139,11 @@ namespace Digger {
             // Add DNSSEC validation status if enabled
             if (settings != null && settings.get_boolean ("enable-dnssec")) {
                 add_dnssec_validation (current_result.domain);
+            }
+
+            // Add WHOIS information if available
+            if (current_result.whois_data != null) {
+                add_whois_section (current_result.whois_data);
             }
 
             // Add query statistics
@@ -527,6 +541,130 @@ namespace Digger {
             }
         }
 
+        private void add_whois_section (WhoisData whois) {
+            var whois_group = new Adw.PreferencesGroup () {
+                title = "WHOIS Information",
+                description = whois.from_cache ? "Cached data" : "Fresh data",
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            // Registrar
+            if (whois.registrar != null) {
+                var registrar_row = new Adw.ActionRow () {
+                    title = "Registrar",
+                    subtitle = whois.registrar
+                };
+                var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
+                    valign = Gtk.Align.CENTER,
+                    tooltip_text = "Copy to clipboard"
+                };
+                copy_button.add_css_class ("flat");
+                copy_button.clicked.connect (() => {
+                    copy_to_clipboard (whois.registrar);
+                });
+                registrar_row.add_suffix (copy_button);
+                whois_group.add (registrar_row);
+            }
+
+            // Created date
+            if (whois.created_date != null) {
+                var created_row = new Adw.ActionRow () {
+                    title = "Created",
+                    subtitle = whois.created_date
+                };
+                whois_group.add (created_row);
+            }
+
+            // Updated date
+            if (whois.updated_date != null) {
+                var updated_row = new Adw.ActionRow () {
+                    title = "Last Updated",
+                    subtitle = whois.updated_date
+                };
+                whois_group.add (updated_row);
+            }
+
+            // Expires date
+            if (whois.expires_date != null) {
+                var expires_row = new Adw.ActionRow () {
+                    title = "Expires",
+                    subtitle = whois.expires_date
+                };
+                whois_group.add (expires_row);
+            }
+
+            // Nameservers
+            if (whois.nameservers.size > 0) {
+                var ns_expander = new Adw.ExpanderRow () {
+                    title = "Nameservers",
+                    subtitle = @"$(whois.nameservers.size) server(s)"
+                };
+
+                foreach (var ns in whois.nameservers) {
+                    var ns_row = new Adw.ActionRow () {
+                        title = ns
+                    };
+                    ns_row.add_css_class ("monospace");
+                    var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
+                        valign = Gtk.Align.CENTER,
+                        tooltip_text = "Copy to clipboard"
+                    };
+                    copy_button.add_css_class ("flat");
+                    copy_button.clicked.connect (() => {
+                        copy_to_clipboard (ns);
+                    });
+                    ns_row.add_suffix (copy_button);
+                    ns_expander.add_row (ns_row);
+                }
+
+                whois_group.add (ns_expander);
+            }
+
+            // Domain status
+            if (whois.status.size > 0) {
+                var status_expander = new Adw.ExpanderRow () {
+                    title = "Domain Status",
+                    subtitle = @"$(whois.status.size) status code(s)"
+                };
+
+                foreach (var status in whois.status) {
+                    var status_row = new Adw.ActionRow () {
+                        title = status
+                    };
+                    status_expander.add_row (status_row);
+                }
+
+                whois_group.add (status_expander);
+            }
+
+            // Privacy protection notice
+            if (whois.privacy_protected) {
+                var privacy_row = new Adw.ActionRow () {
+                    title = "Privacy Protection",
+                    subtitle = "Contact information is redacted"
+                };
+                var icon = new Gtk.Image.from_icon_name ("security-high-symbolic") {
+                    pixel_size = 24
+                };
+                privacy_row.add_suffix (icon);
+                whois_group.add (privacy_row);
+            }
+
+            // Show message if no parsed data available
+            if (!whois.has_parsed_data ()) {
+                var no_data_row = new Adw.ActionRow () {
+                    title = "Limited Information",
+                    subtitle = "WHOIS data could not be parsed or is unavailable for this domain"
+                };
+                whois_group.add (no_data_row);
+            }
+
+            content_box.append (whois_group);
+        }
+
         private void add_dnssec_validation (string domain) {
             var dnssec_group = new Adw.PreferencesGroup () {
                 title = "DNSSEC Validation",
@@ -586,12 +724,39 @@ namespace Digger {
             });
         }
         
+        private void copy_dig_command_to_clipboard () {
+            var export_manager = ExportManager.get_instance ();
+            string command = export_manager.export_as_dig_command (current_result);
+
+            var clipboard = this.get_clipboard ();
+            clipboard.set_text (command);
+
+            show_command_copy_toast ();
+        }
+
+        private void show_command_copy_toast () {
+            // Find the parent AdwToastOverlay if available
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast ("Command copied to clipboard") {
+                    timeout = 2
+                };
+                toast_overlay.add_toast (toast);
+            }
+        }
+
         public void clear_results () {
             current_result = null;
             progress_bar.visible = false;
 
             // Hide action buttons when clearing results
             export_button.visible = false;
+            copy_command_button.visible = false;
             raw_output_button.visible = false;
             clear_button.visible = false;
 

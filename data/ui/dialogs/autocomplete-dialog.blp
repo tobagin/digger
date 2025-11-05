@@ -1,0 +1,30 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerAutocompleteDialog : Adw.Dialog {
+  title: "Domain Suggestions";
+  content-width: 360;
+  content-height: 400;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: true;
+    }
+
+    content: ScrolledWindow {
+      hscrollbar-policy: never;
+      vscrollbar-policy: automatic;
+      vexpand: true;
+      margin-top: 6;
+      margin-bottom: 6;
+      margin-start: 6;
+      margin-end: 6;
+
+      ListBox suggestion_listbox {
+        selection-mode: single;
+        styles ["boxed-list"]
+      }
+    };
+  }
+}

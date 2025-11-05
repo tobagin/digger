@@ -31,14 +31,14 @@ namespace Digger {
 
         // Timeout cancellation support
         private uint hide_timeout_id = 0;
-        
+
         public signal void suggestion_selected (string domain);
-        
+
         public AutocompleteDropdown (Gtk.Entry entry) {
             target_entry = entry;
             suggestion_engine = DomainSuggestionEngine.get_instance ();
             current_suggestions = new Gee.ArrayList<DomainSuggestion> ();
-            
+
             connect_signals ();
         }
         
@@ -304,7 +304,7 @@ namespace Digger {
                 popup ();
             }
         }
-        
+
         private void hide_suggestions () {
             if (showing_suggestions) {
                 showing_suggestions = false;

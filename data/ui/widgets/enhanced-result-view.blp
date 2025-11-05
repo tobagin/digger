@@ -1,4 +1,5 @@
 using Gtk 4.0;
+using Adw 1;
 
 template $DiggerEnhancedResultView : Box {
   orientation: vertical;
@@ -7,6 +8,19 @@ template $DiggerEnhancedResultView : Box {
   margin-bottom: 12;
   margin-start: 12;
   margin-end: 12;
+
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      summary_box.orientation: vertical;
+      summary_box.spacing: 12;
+      buttons_box.halign: fill;
+      export_button.height-request: 44;
+      copy_command_button.height-request: 44;
+      raw_output_button.height-request: 44;
+      clear_button.height-request: 44;
+    }
+  }
 
   ProgressBar progress_bar {
     visible: false;
@@ -38,6 +52,12 @@ template $DiggerEnhancedResultView : Box {
         visible: false;
       }
 
+      Button copy_command_button {
+        icon-name: "utilities-terminal-symbolic";
+        tooltip-text: "Copy as dig command";
+        visible: false;
+      }
+
       Button raw_output_button {
         icon-name: "text-x-generic-symbolic";
         tooltip-text: "Show raw dig output";
@@ -52,14 +72,8 @@ template $DiggerEnhancedResultView : Box {
     }
   }
 
-  ScrolledWindow scrolled_window {
-    hscrollbar-policy: automatic;
-    vscrollbar-policy: automatic;
-    vexpand: true;
-
-    Box content_box {
-      orientation: vertical;
-      spacing: 12;
-    }
+  Box content_box {
+    orientation: vertical;
+    spacing: 12;
   }
 }

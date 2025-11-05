@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Digger
+Name=@APP_NAME@
 Comment=DNS lookup tool with an intuitive GTK interface
 Exec=digger-vala
 Icon=@APP_ID@

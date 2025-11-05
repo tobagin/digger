@@ -48,12 +48,17 @@ namespace Digger {
 
     public class ExportManager : Object {
         private static ExportManager? instance = null;
+        private CommandGenerator command_generator;
 
         public static ExportManager get_instance () {
             if (instance == null) {
                 instance = new ExportManager ();
             }
             return instance;
+        }
+
+        construct {
+            command_generator = CommandGenerator.get_instance ();
         }
 
         public async bool export_result (QueryResult result, File file, ExportFormat format) {
@@ -127,7 +132,7 @@ namespace Digger {
                     break;
 
                 case ExportFormat.CSV:
-                    builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value\n");
+                    builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires\n");
                     foreach (var result in results) {
                         builder.append (generate_csv_rows (result));
                     }
@@ -173,10 +178,67 @@ namespace Digger {
 
             builder.append ("  \"additionalSection\": [\n");
             append_records_json (builder, result.additional_section);
-            builder.append ("  ]\n");
+            builder.append ("  ]");
 
-            builder.append ("}");
+            // Add WHOIS data if available
+            if (result.whois_data != null) {
+                builder.append (",\n");
+                append_whois_json (builder, result.whois_data);
+            }
+
+            builder.append ("\n}");
             return builder.str;
+        }
+
+        private void append_whois_json (StringBuilder builder, WhoisData whois) {
+            builder.append ("  \"whois\": {\n");
+            builder.append_printf ("    \"domain\": \"%s\",\n", escape_json_string (whois.domain));
+
+            if (whois.registrar != null) {
+                builder.append_printf ("    \"registrar\": \"%s\",\n", escape_json_string (whois.registrar));
+            }
+
+            if (whois.created_date != null) {
+                builder.append_printf ("    \"createdDate\": \"%s\",\n", escape_json_string (whois.created_date));
+            }
+
+            if (whois.updated_date != null) {
+                builder.append_printf ("    \"updatedDate\": \"%s\",\n", escape_json_string (whois.updated_date));
+            }
+
+            if (whois.expires_date != null) {
+                builder.append_printf ("    \"expiresDate\": \"%s\",\n", escape_json_string (whois.expires_date));
+            }
+
+            builder.append_printf ("    \"privacyProtected\": %s,\n", whois.privacy_protected ? "true" : "false");
+            builder.append_printf ("    \"fromCache\": %s,\n", whois.from_cache ? "true" : "false");
+
+            if (whois.nameservers.size > 0) {
+                builder.append ("    \"nameservers\": [\n");
+                for (int i = 0; i < whois.nameservers.size; i++) {
+                    builder.append_printf ("      \"%s\"", escape_json_string (whois.nameservers[i]));
+                    if (i < whois.nameservers.size - 1) {
+                        builder.append (",");
+                    }
+                    builder.append ("\n");
+                }
+                builder.append ("    ],\n");
+            }
+
+            if (whois.status.size > 0) {
+                builder.append ("    \"status\": [\n");
+                for (int i = 0; i < whois.status.size; i++) {
+                    builder.append_printf ("      \"%s\"", escape_json_string (whois.status[i]));
+                    if (i < whois.status.size - 1) {
+                        builder.append (",");
+                    }
+                    builder.append ("\n");
+                }
+                builder.append ("    ],\n");
+            }
+
+            builder.append_printf ("    \"timestamp\": \"%s\"\n", whois.timestamp.format ("%Y-%m-%d %H:%M:%S"));
+            builder.append ("  }");
         }
 
         private void append_records_json (StringBuilder builder, Gee.ArrayList<DnsRecord> records) {
@@ -202,22 +264,34 @@ namespace Digger {
 
         private string generate_csv (QueryResult result) {
             var builder = new StringBuilder ();
-            builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value\n");
+            builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires\n");
             builder.append (generate_csv_rows (result));
             return builder.str;
         }
 
         private string generate_csv_rows (QueryResult result) {
             var builder = new StringBuilder ();
+
+            // WHOIS fields for CSV
+            string whois_registrar = result.whois_data != null && result.whois_data.registrar != null ?
+                                      result.whois_data.registrar : "N/A";
+            string whois_created = result.whois_data != null && result.whois_data.created_date != null ?
+                                    result.whois_data.created_date : "N/A";
+            string whois_expires = result.whois_data != null && result.whois_data.expires_date != null ?
+                                    result.whois_data.expires_date : "N/A";
+
             var base_info = @"\"$(escape_csv (result.domain))\",\"$(result.query_type.to_string ())\",\"$(result.status.to_string ())\",\"$(result.query_time_ms)\",\"$(escape_csv (result.dns_server))\",\"$(result.timestamp.format ("%Y-%m-%d %H:%M:%S"))\"";
 
             foreach (var record in result.answer_section) {
                 builder.append (base_info);
-                builder.append_printf (",\"%s\",%d,\"%s\",\"%s\"\n",
+                builder.append_printf (",\"%s\",%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
                     escape_csv (record.name),
                     record.ttl,
                     record.record_type.to_string (),
-                    escape_csv (record.value));
+                    escape_csv (record.value),
+                    escape_csv (whois_registrar),
+                    escape_csv (whois_created),
+                    escape_csv (whois_expires));
             }
 
             return builder.str;
@@ -261,9 +335,60 @@ namespace Digger {
                     builder.append_printf ("%-30s %6d IN %-8s %s\n",
                         record.name, record.ttl, record.record_type.to_string (), record.value);
                 }
+                builder.append ("\n");
+            }
+
+            // Add WHOIS information if available
+            if (result.whois_data != null) {
+                append_whois_text (builder, result.whois_data);
             }
 
             return builder.str;
+        }
+
+        private void append_whois_text (StringBuilder builder, WhoisData whois) {
+            builder.append ("WHOIS Information");
+            if (whois.from_cache) {
+                builder.append (" (Cached)");
+            }
+            builder.append ("\n");
+            builder.append (string.nfill (60, '=') + "\n\n");
+
+            if (whois.registrar != null) {
+                builder.append_printf ("Registrar: %s\n", whois.registrar);
+            }
+
+            if (whois.created_date != null) {
+                builder.append_printf ("Created: %s\n", whois.created_date);
+            }
+
+            if (whois.updated_date != null) {
+                builder.append_printf ("Updated: %s\n", whois.updated_date);
+            }
+
+            if (whois.expires_date != null) {
+                builder.append_printf ("Expires: %s\n", whois.expires_date);
+            }
+
+            if (whois.nameservers.size > 0) {
+                builder.append ("\nNameservers:\n");
+                foreach (var ns in whois.nameservers) {
+                    builder.append_printf ("  - %s\n", ns);
+                }
+            }
+
+            if (whois.status.size > 0) {
+                builder.append ("\nDomain Status:\n");
+                foreach (var status in whois.status) {
+                    builder.append_printf ("  - %s\n", status);
+                }
+            }
+
+            if (whois.privacy_protected) {
+                builder.append ("\nPrivacy: Protected (contact information redacted)\n");
+            }
+
+            builder.append ("\n");
         }
 
         private string generate_zone_file (QueryResult result) {
@@ -294,6 +419,79 @@ namespace Digger {
                 return str.replace ("\"", "\"\"");
             }
             return str;
+        }
+
+        /**
+         * Generate dig command from query result
+         * @param result The query result to convert to a dig command
+         * @return The equivalent dig command string
+         */
+        public string export_as_dig_command (QueryResult result) {
+            if (result.reverse_lookup) {
+                return command_generator.generate_reverse_dig_command (
+                    result.domain,
+                    result.dns_server
+                );
+            } else {
+                return command_generator.generate_dig_command (result);
+            }
+        }
+
+        /**
+         * Generate DoH curl command from query result
+         * @param result The query result
+         * @param doh_endpoint The DoH endpoint URL or preset name
+         * @return The equivalent curl command string
+         */
+        public string export_as_doh_curl (QueryResult result, string doh_endpoint) {
+            string endpoint_url = command_generator.get_doh_endpoint_from_preset (doh_endpoint);
+            bool use_dnssec = command_generator.has_dnssec_records (result);
+
+            return command_generator.generate_doh_curl_command (
+                result.domain,
+                result.query_type,
+                endpoint_url,
+                use_dnssec
+            );
+        }
+
+        /**
+         * Generate batch script from multiple query results
+         * @param results List of query results
+         * @param file Output file for the script
+         * @param include_comments Whether to include explanatory comments
+         * @return Success status
+         */
+        public async bool export_batch_commands (Gee.ArrayList<QueryResult> results,
+                                                 File file, bool include_comments = true) {
+            try {
+                string content = command_generator.generate_batch_script (results, include_comments);
+                yield file.replace_contents_async (
+                    content.data,
+                    null,
+                    false,
+                    FileCreateFlags.REPLACE_DESTINATION,
+                    null,
+                    null
+                );
+
+                // Set executable permissions on Unix-like systems
+                try {
+                    FileInfo info = file.query_info (FileAttribute.UNIX_MODE, FileQueryInfoFlags.NONE);
+                    uint32 mode = info.get_attribute_uint32 (FileAttribute.UNIX_MODE);
+                    mode |= 0x0040 | 0x0008 | 0x0001; // Add execute permissions (user, group, others)
+                    info.set_attribute_uint32 (FileAttribute.UNIX_MODE, mode);
+                    file.set_attributes_from_info (info, FileQueryInfoFlags.NONE);
+                } catch (Error e) {
+                    // Non-critical error, continue anyway
+                    debug ("Could not set executable permissions: %s", e.message);
+                }
+
+                return true;
+            } catch (Error e) {
+                warning ("Batch export failed: %s", e.message);
+                return false;
+            }
         }
     }
 }

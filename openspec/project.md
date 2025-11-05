@@ -11,7 +11,7 @@ Digger is an advanced DNS lookup tool that provides a modern, user-friendly grap
 ## Tech Stack
 - **Language**: Vala (compiles to C for native performance)
 - **UI Framework**: GTK4 (>= 4.6.0)
-- **UI Components**: libadwaita 1.8+ (modern GNOME design)
+- **UI Components**: libadwaita 1.6+ (modern GNOME design with responsive breakpoint support)
 - **UI Templates**: Blueprint (declarative UI markup)
 - **Build System**: Meson (>= 0.58.0)
 - **Distribution**: Flatpak (GNOME Platform/SDK 49)
@@ -94,7 +94,7 @@ Digger is an advanced DNS lookup tool that provides a modern, user-friendly grap
 - **Flatpak-First**: Build and distribution designed around Flatpak
 - **GNOME Platform 49**: Runtime dependency on specific GNOME platform version
 - **dig Dependency**: Requires BIND dig command (embedded in Flatpak)
-- **libadwaita 1.8+**: Uses modern libadwaita features (ShortcutsDialog API)
+- **libadwaita 1.6+**: Uses modern libadwaita features (Breakpoint system, ShortcutsDialog API)
 - **Vala Compilation**: Code must be valid Vala that compiles to C
 
 ### Design Constraints

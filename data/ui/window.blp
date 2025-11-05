@@ -41,6 +41,15 @@ template $DiggerWindow : Adw.ApplicationWindow {
   default-height: 700;
   title: "Digger";
 
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      history_popover.width-request: 320;
+      history_button.height-request: 44;
+      menu_button.height-request: 44;
+    }
+  }
+
   Adw.ToastOverlay toast_overlay {
     Box main_box {
       orientation: vertical;
@@ -105,18 +114,28 @@ template $DiggerWindow : Adw.ApplicationWindow {
         }
       }
 
-      $DiggerEnhancedQueryForm query_form {
-        margin-top: 12;
-        margin-start: 12;
-        margin-end: 12;
-        margin-bottom: 6;
-      }
+      ScrolledWindow content_scroll {
+        hscrollbar-policy: never;
+        vscrollbar-policy: automatic;
+        vexpand: true;
 
-      Separator {
-        orientation: horizontal;
-      }
+        Box content_box {
+          orientation: vertical;
 
-      $DiggerEnhancedResultView result_view {}
+          $DiggerEnhancedQueryForm query_form {
+            margin-top: 12;
+            margin-start: 12;
+            margin-end: 12;
+            margin-bottom: 6;
+          }
+
+          Separator {
+            orientation: horizontal;
+          }
+
+          $DiggerEnhancedResultView result_view {}
+        }
+      }
     }
   }
 }

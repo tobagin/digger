@@ -20,7 +20,7 @@ endif
 
 # Dependencies
 gtk4_dep = dependency('gtk4', version: '>= 4.6.0')
-libadwaita_dep = dependency('libadwaita-1', version: '>= 1.0')
+libadwaita_dep = dependency('libadwaita-1', version: '>= 1.6')
 json_glib_dep = dependency('json-glib-1.0')
 gio_dep = dependency('gio-2.0')
 gee_dep = dependency('gee-0.8')
@@ -28,12 +28,14 @@ soup_dep = dependency('libsoup-3.0')
 
 # Configuration data
 app_id = development ? 'io.github.tobagin.digger.Devel' : 'io.github.tobagin.digger'
+app_name = development ? 'Digger (Devel)' : 'Digger'
 conf_data = configuration_data()
 conf_data.set('VERSION', meson.project_version())
 conf_data.set('GETTEXT_PACKAGE', meson.project_name())
 conf_data.set('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
 conf_data.set('DATADIR', join_paths(get_option('prefix'), get_option('datadir')))
 conf_data.set('APP_ID', app_id)
+conf_data.set('APP_NAME', app_name)
 conf_data.set('DEVELOPMENT', development.to_string())
 conf_data.set('RESOURCE_PATH', '/' + app_id.replace('.', '/'))
 
@@ -63,15 +65,19 @@ executable('digger-vala',
   'src/dialogs/ShortcutsDialog.vala',
   'src/dialogs/BatchLookupDialog.vala',
   'src/dialogs/ComparisonDialog.vala',
+  'src/dialogs/HistoryDialog.vala',
+  'src/dialogs/AutocompleteDialog.vala',
   'src/models/DnsRecord.vala',
   'src/services/DnsQuery.vala',
   'src/services/QueryHistory.vala',
   'src/services/SecureDns.vala',
   'src/services/DnssecValidator.vala',
+  'src/services/WhoisService.vala',
   'src/managers/ExportManager.vala',
   'src/managers/FavoritesManager.vala',
   'src/managers/BatchLookupManager.vala',
   'src/managers/ComparisonManager.vala',
+  'src/managers/PresetManager.vala',
   'src/widgets/QueryResultView.vala',
   'src/widgets/AdvancedOptions.vala',
   'src/widgets/EnhancedQueryForm.vala',
@@ -84,6 +90,7 @@ executable('digger-vala',
   'src/utils/ValidationUtils.vala',
   'src/utils/Constants.vala',
   'src/utils/CollectionUtils.vala',
+  'src/utils/CommandGenerator.vala',
   config_vala,
   digger_resources,
   dependencies: [

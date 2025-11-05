@@ -48,7 +48,7 @@ modules:
       - --disable-static
       - --enable-shared
 
-  # BIND dig command using older version to avoid crypto issues  
+  # BIND dig command using older version to avoid crypto issues
   - name: bind-dig
     buildsystem: autotools
     sources:
@@ -90,7 +90,7 @@ modules:
     build-commands:
       # Build only what we need for dig
       - make -C lib/isc
-      - make -C lib/dns  
+      - make -C lib/dns
       - make -C lib/bind9
       - make -C bin/dig
     cleanup:
@@ -104,6 +104,17 @@ modules:
       - '/bin/rndc*'
       - '/bin/dnssec*'
       - '/sbin'
+
+  # whois command for domain registration lookups
+  - name: whois
+    buildsystem: simple
+    sources:
+      - type: archive
+        url: https://github.com/rfc1036/whois/archive/refs/tags/v5.5.22.tar.gz
+        sha256: b7de4288700951b141420e2b4408f0906eaf4e97409cf5043aee80ef4d31e2b4
+    build-commands:
+      - make whois
+      - install -Dm755 whois /app/bin/whois
 
   - name: digger-vala
     buildsystem: meson

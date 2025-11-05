@@ -166,6 +166,34 @@ namespace Digger {
         }
     }
 
+    public class WhoisData : Object {
+        public string domain { get; set; }
+        public string? registrar { get; set; }
+        public string? created_date { get; set; }
+        public string? updated_date { get; set; }
+        public string? expires_date { get; set; }
+        public Gee.ArrayList<string> nameservers { get; set; }
+        public Gee.ArrayList<string> status { get; set; }
+        public string? registrant_name { get; set; }
+        public string? registrant_email { get; set; }
+        public string? registrant_org { get; set; }
+        public bool privacy_protected { get; set; default = false; }
+        public string raw_output { get; set; }
+        public DateTime timestamp { get; set; }
+        public bool from_cache { get; set; default = false; }
+
+        public WhoisData () {
+            nameservers = new Gee.ArrayList<string> ();
+            status = new Gee.ArrayList<string> ();
+            timestamp = new DateTime.now_local ();
+        }
+
+        public bool has_parsed_data () {
+            return registrar != null || created_date != null ||
+                   nameservers.size > 0 || status.size > 0;
+        }
+    }
+
     public class QueryResult : Object {
         public string domain { get; set; }
         public RecordType query_type { get; set; }
@@ -173,7 +201,7 @@ namespace Digger {
         public double query_time_ms { get; set; }
         public QueryStatus status { get; set; }
         public DateTime timestamp { get; set; }
-        
+
         // Result sections
         public Gee.ArrayList<DnsRecord> answer_section { get; set; }
         public Gee.ArrayList<DnsRecord> authority_section { get; set; }
@@ -186,6 +214,9 @@ namespace Digger {
 
         // Raw dig output for debugging
         public string raw_output { get; set; }
+
+        // WHOIS data
+        public WhoisData? whois_data { get; set; default = null; }
 
         public QueryResult () {
             answer_section = new Gee.ArrayList<DnsRecord> ();

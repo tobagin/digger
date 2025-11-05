@@ -1,0 +1,44 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerHistoryDialog : Adw.Dialog {
+  title: "Query History";
+  content-width: 360;
+  content-height: 600;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: true;
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      SearchEntry history_search_entry {
+        placeholder-text: "Search history...";
+      }
+
+      ScrolledWindow {
+        hscrollbar-policy: never;
+        vscrollbar-policy: automatic;
+        vexpand: true;
+
+        ListBox history_listbox {
+          styles ["boxed-list"]
+        }
+      }
+
+      Button clear_button {
+        label: "Clear History";
+        height-request: 44;
+        styles ["destructive-action", "pill"]
+      }
+    };
+  }
+}

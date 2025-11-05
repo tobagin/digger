@@ -5,6 +5,29 @@ template $DiggerEnhancedQueryForm : Adw.PreferencesGroup {
   title: "DNS Query";
   description: "Enter a domain or IP address to look up DNS records";
 
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      query_button.width-request: -1;
+      query_button.height-request: 44;
+      favorite_button.height-request: 44;
+      favorite_button.width-request: 44;
+      paste_button.height-request: 44;
+      paste_button.width-request: 44;
+      quick_presets_box.orientation: vertical;
+      quick_presets_box.spacing: 6;
+    }
+  }
+
+  Adw.ActionRow preset_dropdown_row {
+    title: "Query Presets";
+
+    DropDown preset_dropdown {
+      tooltip-text: "Select a query preset to quickly configure common DNS lookups";
+      valign: center;
+    }
+  }
+
   Adw.ActionRow domain_row {
     title: "Domain or IP Address";
 

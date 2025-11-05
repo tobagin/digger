@@ -9,6 +9,8 @@
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">batch-lookup-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">comparison-dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">history-dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">autocomplete-dialog.ui</file>
 
     <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>

@@ -5,7 +5,8 @@ desktop_input = configure_file(
   input: 'io.github.tobagin.digger.desktop.in',
   output: app_id + '.desktop.in',
   configuration: {
-    'APP_ID': app_id
+    'APP_ID': app_id,
+    'APP_NAME': app_name
   }
 )
 
@@ -66,6 +67,8 @@ blueprint_files = [
   'ui/dialogs/shortcuts-dialog.blp',
   'ui/dialogs/batch-lookup-dialog.blp',
   'ui/dialogs/comparison-dialog.blp',
+  'ui/dialogs/history-dialog.blp',
+  'ui/dialogs/autocomplete-dialog.blp',
   # Widgets
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',

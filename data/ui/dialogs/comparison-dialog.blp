@@ -5,6 +5,14 @@ template $DiggerComparisonDialog : Adw.Dialog {
   content-width: 900;
   content-height: 700;
 
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      compare_button.height-request: 44;
+      back_button.height-request: 44;
+    }
+  }
+
   Adw.ToolbarView {
     [top]
     Adw.HeaderBar header_bar {

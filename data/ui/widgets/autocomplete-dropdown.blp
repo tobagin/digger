@@ -1,4 +1,5 @@
 using Gtk 4.0;
+using Adw 1;
 
 template $DiggerAutocompleteDropdown : Popover {
   position: bottom;
@@ -7,8 +8,25 @@ template $DiggerAutocompleteDropdown : Popover {
   width-request: 400;
   height-request: 300;
 
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      main_box.width-request: 260;
+      scrolled_window.height-request: 150;
+    }
+  }
+
+  Adw.Breakpoint {
+    condition ("max-width: 400sp")
+    setters {
+      main_box.width-request: 180;
+      scrolled_window.height-request: 130;
+    }
+  }
+
   Box main_box {
     orientation: vertical;
+    width-request: 400;
 
     ScrolledWindow scrolled_window {
       hscrollbar-policy: never;

@@ -17,6 +17,7 @@ namespace Digger {
     public class EnhancedQueryForm : Adw.PreferencesGroup {
         [GtkChild] private unowned Gtk.Entry domain_entry;
         [GtkChild] private unowned Gtk.DropDown record_type_dropdown;
+        [GtkChild] private unowned Gtk.DropDown preset_dropdown;
         [GtkChild] private unowned Gtk.Button query_button;
         [GtkChild] private unowned Gtk.Button favorite_button;
         [GtkChild] private unowned Gtk.Button paste_button;
@@ -31,10 +32,13 @@ namespace Digger {
         private DnsPresets dns_presets;
         private QueryHistory query_history;
         private FavoritesManager favorites_manager;
+        private PresetManager preset_manager;
         private string current_dns_server = "";
         private bool signals_connected = false;
         private bool _query_in_progress = false;
         private GLib.Settings settings;
+        private QueryPreset? active_preset = null;
+        private bool applying_preset = false;
         
         public signal void query_requested (string domain, RecordType record_type, string? dns_server);
         
@@ -64,6 +68,7 @@ namespace Digger {
         construct {
             settings = new GLib.Settings(Config.APP_ID);
             favorites_manager = FavoritesManager.get_instance ();
+            preset_manager = PresetManager.get_instance ();
             query_button.sensitive = false;
 
             if (dns_presets != null) {
@@ -106,6 +111,7 @@ namespace Digger {
             
             setup_record_type_dropdown ();
             setup_dns_server_dropdown ();
+            setup_preset_dropdown ();
             setup_quick_presets ();
             load_default_preferences ();
         }
@@ -234,6 +240,144 @@ namespace Digger {
             });
         }
         
+        private void setup_preset_dropdown () {
+            var model = new Gtk.StringList (null);
+
+            // Add "No preset" option
+            model.append ("No preset selected");
+
+            // Add separator marker
+            model.append ("─ System Presets ─");
+
+            // Add system presets
+            var system_presets = preset_manager.get_system_presets ();
+            foreach (var preset in system_presets) {
+                model.append (preset.get_display_name ());
+            }
+
+            // Add user presets if any exist
+            var user_presets = preset_manager.get_user_presets ();
+            if (user_presets.size > 0) {
+                model.append ("─ Custom Presets ─");
+                foreach (var preset in user_presets) {
+                    model.append (preset.get_display_name ());
+                }
+            }
+
+            preset_dropdown.model = model;
+            preset_dropdown.selected = 0; // Start with "No preset selected"
+
+            // Handle preset selection
+            preset_dropdown.notify["selected"].connect (on_preset_selected);
+
+            // Listen for preset updates
+            preset_manager.presets_updated.connect (() => {
+                refresh_preset_dropdown ();
+            });
+        }
+
+        private void refresh_preset_dropdown () {
+            var model = new Gtk.StringList (null);
+
+            // Add "No preset" option
+            model.append ("No preset selected");
+
+            // Add separator marker
+            model.append ("─ System Presets ─");
+
+            // Add system presets
+            var system_presets = preset_manager.get_system_presets ();
+            foreach (var preset in system_presets) {
+                model.append (preset.get_display_name ());
+            }
+
+            // Add user presets if any exist
+            var user_presets = preset_manager.get_user_presets ();
+            if (user_presets.size > 0) {
+                model.append ("─ Custom Presets ─");
+                foreach (var preset in user_presets) {
+                    model.append (preset.get_display_name ());
+                }
+            }
+
+            preset_dropdown.model = model;
+        }
+
+        private void on_preset_selected () {
+            if (applying_preset) {
+                return; // Avoid recursion when we're programmatically changing settings
+            }
+
+            var model = preset_dropdown.model as Gtk.StringList;
+            var selected_index = preset_dropdown.selected;
+            var selected_text = model.get_string (selected_index);
+
+            // Check if it's the "No preset" or separator option
+            if (selected_index == 0 || selected_text.has_prefix ("─")) {
+                active_preset = null;
+                if (selected_text.has_prefix ("─")) {
+                    // User clicked a separator, reset to "No preset"
+                    preset_dropdown.selected = 0;
+                }
+                return;
+            }
+
+            // Find the preset by name
+            var all_presets = preset_manager.get_all_presets ();
+            QueryPreset? found_preset = null;
+
+            foreach (var preset in all_presets) {
+                if (preset.get_display_name () == selected_text) {
+                    found_preset = preset;
+                    break;
+                }
+            }
+
+            if (found_preset != null) {
+                apply_preset (found_preset);
+            }
+        }
+
+        private void apply_preset (QueryPreset preset) {
+            applying_preset = true;
+            active_preset = preset;
+
+            // Apply record type
+            set_record_type (preset.record_type);
+
+            // Apply DNS server
+            if (preset.dns_server != null && preset.dns_server.length > 0) {
+                set_dns_server (preset.dns_server);
+            } else {
+                set_dns_server (""); // System default
+            }
+
+            // Apply switches
+            reverse_lookup_switch.active = preset.reverse_lookup;
+            trace_path_switch.active = preset.trace_path;
+            short_output_switch.active = preset.short_output;
+
+            applying_preset = false;
+
+            // Show a toast notification
+            show_preset_applied_toast (preset.name);
+        }
+
+        private void show_preset_applied_toast (string preset_name) {
+            var parent = get_parent ();
+            while (parent != null && !(parent is Adw.ToastOverlay)) {
+                parent = parent.get_parent ();
+            }
+
+            if (parent is Adw.ToastOverlay) {
+                var toast_overlay = (Adw.ToastOverlay) parent;
+                var toast = new Adw.Toast (@"Applied preset: $preset_name") {
+                    timeout = Constants.TOAST_TIMEOUT_SECONDS
+                };
+                toast_overlay.add_toast (toast);
+            }
+        }
+
         private void setup_quick_presets () {
             // Clear any existing preset buttons first
             var child = quick_presets_box.get_first_child ();
@@ -242,15 +386,15 @@ namespace Digger {
                 quick_presets_box.remove (child);
                 child = next;
             }
-            
+
             // quick_presets_box is from template, just add buttons to it
-            
+
             // Add Google DNS preset
             add_quick_preset_button ("Google", "8.8.8.8");
-            
+
             // Add Cloudflare DNS preset
             add_quick_preset_button ("Cloudflare", "1.1.1.1");
-            
+
             // Add Quad9 DNS preset
             add_quick_preset_button ("Quad9", "9.9.9.9");
         }

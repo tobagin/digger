@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Responsive Mobile UI** - Full adaptive layout support for mobile devices
+  - libadwaita 1.6+ breakpoint system for desktop, tablet, and mobile form factors
+  - Responsive layouts adapt to screen widths from 360px to 1920px+
+  - Touch-friendly 44x44px minimum button sizes on mobile
+  - Vertical stacking of controls on narrow screens (<768px)
+  - Adaptive dialogs and popovers for mobile usability
+  - Full feature parity across all screen sizes
+  - Tested at mobile (360x640), tablet (768x600), and desktop (900x700+) breakpoints
+  - Main content area with vertical scrolling for mobile navigation
+  - DNS Quick Presets buttons stack vertically on mobile to prevent UI overflow
+  - Autocomplete suggestions sized appropriately for narrow screens (260x150px tablet, 180x130px mobile, centered to prevent overflow)
+  - Removed nested ScrolledWindows for clean, predictable scrolling behavior
+  - **Native mobile bottom sheet for history**: Conditional presentation of query history as bottom sheet dialog on mobile (<768px) and popover on desktop (≥768px)
+  - History dialog with search, filtering, and quick domain selection on mobile
+  - Autocomplete popover sized progressively for screen size - keeps consistent UX without disruptive full-screen dialogs
+  - Width-aware history UI automatically switches between mobile and desktop presentations
+- **WHOIS Integration** - Comprehensive domain registration information lookup
+  - Automatic WHOIS lookup option for DNS queries (opt-in via preferences)
+  - Intelligent caching system with configurable TTL (default: 24 hours)
+  - Rich WHOIS data display in results view with expandable sections
+  - Registrar, creation/update/expiration dates, nameservers, and domain status
+  - Privacy protection detection for redacted WHOIS records
+  - Cache/fresh data indicators
+  - Full export support in JSON, CSV, and text formats
+  - Configurable timeout settings (5-120 seconds)
+  - Cache management with clear cache option in preferences
+  - Copy buttons for individual WHOIS fields
+  - Bundled whois command (v5.5.22) for Flatpak sandbox compatibility
+  - Graceful degradation when whois command is unavailable
+  - Async operation that doesn't block DNS query completion
+- **Command Export Feature** - Generate equivalent dig and DoH curl commands from GUI queries
+  - "Copy as dig command" button in results view with terminal icon
+  - Full support for all query parameters (record types, servers, DNSSEC, trace, short output)
+  - Shell-safe command escaping for special characters
+  - Batch script generation with executable permissions
+  - DoH curl command generation for Cloudflare, Google, and Quad9 endpoints
+  - Toast notifications for successful clipboard copy
+  - Educational tool to help users transition from GUI to CLI
+
+### Fixed
+- Development build now shows "Digger (Devel)" in application launchers to differentiate from production version
+
 ## [2.3.0] - 2025-10-20
 
 ### Added

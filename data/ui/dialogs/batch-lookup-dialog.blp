@@ -6,6 +6,15 @@ template $DiggerBatchLookupDialog : Adw.Dialog {
   content-height: 600;
   title: "Batch DNS Lookup";
 
+  Adw.Breakpoint {
+    condition ("max-width: 768sp")
+    setters {
+      execute_button.height-request: 44;
+      import_button.height-request: 44;
+      manual_button.height-request: 44;
+    }
+  }
+
   Adw.ToolbarView {
     [top]
     Adw.HeaderBar {

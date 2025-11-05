@@ -66,8 +66,21 @@ namespace Digger {
         [GtkChild]
         private unowned Adw.SwitchRow show_dnssec_details_row;
 
+        [GtkChild]
+        private unowned Adw.SwitchRow auto_whois_lookup_row;
+
+        [GtkChild]
+        private unowned Adw.SpinRow whois_timeout_row;
+
+        [GtkChild]
+        private unowned Adw.SpinRow whois_cache_ttl_row;
+
+        [GtkChild]
+        private unowned Adw.ActionRow clear_whois_cache_row;
+
         private GLib.Settings settings;
         private ThemeManager theme_manager;
+        private WhoisService? whois_service = null;
         
         public PreferencesDialog(Gtk.Window parent) {
             Object();
@@ -429,6 +442,75 @@ namespace Digger {
 
             doh_provider_row.sensitive = enable_doh_row.active;
             custom_doh_row.visible = (doh_provider_row.selected == 3);
+
+            // WHOIS settings
+            if (auto_whois_lookup_row != null && whois_timeout_row != null && whois_cache_ttl_row != null) {
+                auto_whois_lookup_row.active = settings.get_boolean("auto-whois-lookup");
+                whois_timeout_row.value = settings.get_int("whois-timeout");
+                // Convert seconds to hours for display
+                whois_cache_ttl_row.value = settings.get_int("whois-cache-ttl") / 3600.0;
+
+                // Configure spin rows
+                whois_timeout_row.adjustment = new Gtk.Adjustment (30, 5, 120, 5, 10, 0);
+                whois_cache_ttl_row.adjustment = new Gtk.Adjustment (24, 1, 168, 1, 12, 0);
+
+                auto_whois_lookup_row.notify["active"].connect(() => {
+                    settings.set_boolean("auto-whois-lookup", auto_whois_lookup_row.active);
+                });
+
+                whois_timeout_row.notify["value"].connect(() => {
+                    settings.set_int("whois-timeout", (int)whois_timeout_row.value);
+                });
+
+                whois_cache_ttl_row.notify["value"].connect(() => {
+                    // Convert hours back to seconds
+                    settings.set_int("whois-cache-ttl", (int)(whois_cache_ttl_row.value * 3600));
+                });
+
+                if (clear_whois_cache_row != null) {
+                    clear_whois_cache_row.activated.connect(() => {
+                        on_clear_whois_cache();
+                    });
+                }
+            }
+        }
+
+        private void on_clear_whois_cache() {
+            if (whois_service == null) {
+                whois_service = new WhoisService ();
+            }
+
+            var dialog = new Adw.AlertDialog (
+                "Clear WHOIS Cache?",
+                "This will remove all cached WHOIS data. WHOIS lookups will fetch fresh data on next query."
+            );
+
+            dialog.add_response ("cancel", "Cancel");
+            dialog.add_response ("clear", "Clear Cache");
+            dialog.set_response_appearance ("clear", Adw.ResponseAppearance.DESTRUCTIVE);
+            dialog.set_default_response ("cancel");
+            dialog.set_close_response ("cancel");
+
+            dialog.response.connect ((response) => {
+                if (response == "clear") {
+                    whois_service.clear_cache ();
+
+                    // Find parent window to show toast
+                    var parent = this.get_root ();
+                    if (parent is Adw.ApplicationWindow) {
+                        var window = (Adw.ApplicationWindow) parent;
+                        // Try to find toast overlay
+                        var toast = new Adw.Toast ("WHOIS cache cleared") {
+                            timeout = 2
+                        };
+
+                        // Show message
+                        message ("WHOIS cache cleared successfully");
+                    }
+                }
+            });
+
+            dialog.present (this);
         }
     }
 }

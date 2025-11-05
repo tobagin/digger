@@ -26,10 +26,15 @@ namespace Digger {
         
         
         private DnsQuery dns_query;
+        private WhoisService whois_service;
         private QueryHistory query_history;
         private DnsPresets dns_presets;
         private ThemeManager theme_manager;
         private bool query_in_progress = false;
+
+        // Mobile bottom sheet support
+        private HistoryDialog? history_dialog = null;
+        private bool is_mobile_width = false;
 
         public Window (Gtk.Application app, QueryHistory history) {
             Object (application: app);
@@ -47,6 +52,10 @@ namespace Digger {
             dns_query.query_completed.connect (on_query_completed);
             dns_query.query_failed.connect (on_query_failed);
 
+            whois_service = new WhoisService ();
+            whois_service.query_completed.connect (on_whois_completed);
+            whois_service.query_failed.connect (on_whois_failed);
+
             // Connect error signals from managers (SEC-009: Enhanced Error Handling)
             query_history.error_occurred.connect ((error_message) => {
                 warning ("QueryHistory error: %s", error_message);
@@ -60,6 +69,119 @@ namespace Digger {
             });
         }
 
+        /**
+         * Check if window is at mobile width (<768px) and update flag
+         */
+        private void check_mobile_width () {
+            int width = this.get_width ();
+            is_mobile_width = (width > 0 && width < 768);
+            debug ("Window width: %d, is_mobile: %s", width, is_mobile_width.to_string ());
+        }
+
+        /**
+         * Show history - uses dialog on mobile, popover on desktop
+         */
+        private void show_history () {
+            check_mobile_width (); // Update mobile state
+
+            if (is_mobile_width) {
+                // Show as dialog (bottom sheet) on mobile
+                if (history_dialog == null) {
+                    history_dialog = new HistoryDialog ();
+                    setup_history_dialog ();
+                }
+                history_dialog.present (this);
+            } else {
+                // Show as popover on desktop
+                history_popover.set_parent (history_button);
+                history_popover.popup ();
+            }
+        }
+
+        /**
+         * Setup history dialog with functionality (mobile version)
+         */
+        private void setup_history_dialog () {
+            if (history_dialog == null) return;
+
+            // Wire up search - share the query history search functionality
+            history_dialog.history_search_entry.search_changed.connect (() => {
+                // Populate dialog's listbox based on search
+                populate_history_listbox (history_dialog.history_listbox, history_dialog.history_search_entry.text);
+            });
+
+            // Wire up list selection
+            history_dialog.history_listbox.row_activated.connect ((row) => {
+                // Same logic as popover selection - find and apply history item
+                var index = row.get_index ();
+                apply_history_item_at_index (index, history_dialog.history_listbox);
+                history_dialog.close ();
+            });
+
+            // Wire up clear button
+            history_dialog.clear_button.clicked.connect (() => {
+                clear_history ();
+                history_dialog.close ();
+            });
+
+            // Initial population
+            populate_history_listbox (history_dialog.history_listbox, "");
+        }
+
+        /**
+         * Populate a history listbox (shared between dialog and popover)
+         */
+        private void populate_history_listbox (Gtk.ListBox listbox, string search_text) {
+            // Remove existing rows
+            var child = listbox.get_first_child ();
+            while (child != null) {
+                var next = child.get_next_sibling ();
+                listbox.remove (child);
+                child = next;
+            }
+
+            // Get filtered history
+            var history_items = query_history.get_history ();
+            foreach (var item in history_items) {
+                string record_type_str = item.query_type.to_string ();
+                if (search_text != "" && !item.domain.down ().contains (search_text.down ()) &&
+                    !record_type_str.down ().contains (search_text.down ())) {
+                    continue;
+                }
+
+                var row = create_history_row (item);
+                listbox.append (row);
+            }
+        }
+
+        /**
+         * Apply history item at given index from listbox
+         */
+        private void apply_history_item_at_index (int index, Gtk.ListBox listbox) {
+            var row = listbox.get_row_at_index (index);
+            if (row != null) {
+                // Extract history data and apply to query form
+                var history_items = query_history.get_history ();
+                if (index >= 0 && index < history_items.size) {
+                    var item = history_items[index];
+                    query_form.set_domain (item.domain);
+                    query_form.set_record_type (item.query_type);
+                    query_form.set_dns_server (item.dns_server);
+                }
+            }
+        }
+
+        /**
+         * Clear all history
+         */
+        private void clear_history () {
+            query_history.clear_history ();
+            update_history_list ();
+            if (history_dialog != null) {
+                populate_history_listbox (history_dialog.history_listbox, "");
+            }
+        }
+
         private void setup_ui () {
             // Initialize the enhanced query form with DNS presets
             query_form.set_dns_presets (dns_presets);
@@ -70,11 +192,12 @@ namespace Digger {
             // Use custom symbolic icon with proper naming for theme support
             history_button.icon_name = Config.APP_ID + "-history-symbolic";
             
-            // Connect button click to show popover manually
-            history_button.clicked.connect (() => {
-                history_popover.set_parent (history_button);
-                history_popover.popup ();
-            });
+            // Connect button click to show popover or dialog based on width
+            history_button.clicked.connect (show_history);
+
+            // Monitor window width changes for mobile detection
+            this.notify["default-width"].connect (check_mobile_width);
+            check_mobile_width ();
             
             // Fix popover focus issues
             history_popover.autohide = true;
@@ -273,17 +396,42 @@ namespace Digger {
             );
 
             if (result != null) {
+                // Check if auto-WHOIS lookup is enabled
+                var settings = new GLib.Settings (Config.APP_ID);
+                if (settings.get_boolean ("auto-whois-lookup")) {
+                    // Fetch WHOIS data asynchronously (don't block on it)
+                    fetch_whois_data.begin (result);
+                }
+
                 result_view.show_result (result);
                 query_history.add_query (result);
-                
+
                 // Auto-clear form if preference is enabled
-                var settings = new GLib.Settings (Config.APP_ID);
                 if (settings.get_boolean ("auto-clear-form")) {
                     query_form.clear_domain_only ();
                 }
             }
 
             query_in_progress = false;
+        }
+
+        private async void fetch_whois_data (QueryResult result) {
+            var whois_data = yield whois_service.perform_whois_query (result.domain);
+            if (whois_data != null) {
+                result.whois_data = whois_data;
+                // Refresh the result view to show WHOIS data
+                result_view.show_result (result);
+            }
+        }
+
+        private void on_whois_completed (WhoisData whois_data) {
+            // WHOIS data is handled in fetch_whois_data
+            debug ("WHOIS query completed for %s", whois_data.domain);
+        }
+
+        private void on_whois_failed (string error_message) {
+            // Silently log WHOIS failures - they're optional
+            debug ("WHOIS query failed: %s", error_message);
         }
 
         private void on_query_completed (QueryResult result) {
