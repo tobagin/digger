@@ -67,8 +67,22 @@
   </provides>
   
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
-  
+
   <releases>
+    <release version="2.4.0" date="2025-11-05">
+      <description>
+        <p>Major feature release with mobile UI, WHOIS lookup, and command export</p>
+        <ul>
+          <li>Responsive Mobile UI - Full adaptive layout with libadwaita 1.6+ breakpoints for mobile, tablet, and desktop</li>
+          <li>WHOIS Integration - Automatic domain registration information lookup with intelligent caching</li>
+          <li>Command Export - Generate equivalent dig and DoH curl commands from GUI queries</li>
+          <li>Query Presets - Foundation for user-defined query configurations</li>
+          <li>Touch-friendly 44px buttons and native mobile bottom sheet for history on small screens</li>
+          <li>Bundled whois command (v5.5.22) for Flatpak sandbox compatibility</li>
+          <li>Development builds now show "Digger (Devel)" in application launchers</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.3.0" date="2025-10-20">
       <description>
         <p>Major UI/UX improvements and critical bug fixes for DNS Server Comparison</p>

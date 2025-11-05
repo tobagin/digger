@@ -301,7 +301,35 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### ✨ Version 2.3.0 - UI/UX Improvements & Critical Fixes (Latest)
+### ✨ Version 2.4.0 - Mobile UI, WHOIS, & Command Export (Latest)
+
+**Major New Features:**
+- **Responsive Mobile UI**: Full adaptive layout with libadwaita 1.6+ breakpoints supporting mobile (360px+), tablet (768px+), and desktop (1024px+) form factors
+- **WHOIS Integration**: Automatic domain registration information lookup with intelligent caching (configurable 1-168 hour TTL)
+- **Command Export**: Generate equivalent dig and DoH curl commands from GUI queries for easy CLI transition
+- **Query Presets**: Foundation for user-defined query configurations with dropdown selector
+
+**Mobile Experience:**
+- Touch-friendly 44x44px minimum button sizes on mobile devices
+- Native mobile bottom sheet for query history (dialog on mobile, popover on desktop)
+- Vertical stacking of controls on narrow screens (<768px)
+- Progressive autocomplete sizing (400px desktop, 260px tablet, 180px mobile)
+- Main content area with vertical scrolling for better mobile navigation
+- Removed nested ScrolledWindows for clean, predictable scrolling
+
+**WHOIS Capabilities:**
+- Bundled whois command (v5.5.22) for Flatpak sandbox compatibility
+- Rich display of registrar, dates, nameservers, and domain status
+- Privacy-protected record detection
+- Full export support in JSON, CSV, and text formats
+- Configurable timeout (5-120 seconds) and cache management
+- Async operation that doesn't block DNS queries
+
+**Development:**
+- Development builds now show "Digger (Devel)" in application launchers
+- Upgraded minimum libadwaita requirement to 1.6 for breakpoint support
+
+### Version 2.3.0 - UI/UX Improvements & Critical Fixes
 
 **UI/UX Enhancements:**
 - **Redesigned Comparison Dialog**: Two-page architecture (Setup → Results) for cleaner, more focused interface
