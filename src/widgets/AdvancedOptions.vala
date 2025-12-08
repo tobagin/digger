@@ -18,6 +18,8 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Switch reverse_lookup_switch;
         [GtkChild] private unowned Gtk.Switch trace_path_switch;
         [GtkChild] private unowned Gtk.Switch short_output_switch;
+        [GtkChild] private unowned Gtk.Switch dnssec_switch;
+        [GtkChild] private unowned Gtk.Switch ttl_details_switch;
         [GtkChild] private unowned Adw.EntryRow dns_server_entry;
 
         public bool reverse_lookup {
@@ -33,6 +35,16 @@ namespace Digger {
         public bool short_output {
             get { return short_output_switch.active; }
             set { short_output_switch.active = value; }
+        }
+
+        public bool request_dnssec {
+            get { return dnssec_switch.active; }
+            set { dnssec_switch.active = value; }
+        }
+
+        public bool show_detailed_ttl {
+            get { return ttl_details_switch.active; }
+            set { ttl_details_switch.active = value; }
         }
 
         public string dns_server {
@@ -122,6 +134,8 @@ namespace Digger {
             reverse_lookup_switch.active = false;
             trace_path_switch.active = false;
             short_output_switch.active = false;
+            dnssec_switch.active = false;
+            ttl_details_switch.active = false;
             dns_server_entry.text = "";
         }
 
@@ -130,6 +144,9 @@ namespace Digger {
             trace_path = result.trace_path;
             short_output = result.short_output;
             // Note: DNS server info is not stored in QueryResult currently
+            request_dnssec = result.request_dnssec;
+            // TTL preference is a UI setting, not strictly part of query result, but could be persisted if added to result
+            // For now we don't change TTL toggle based on history to keep user preference stable
         }
     }
 }

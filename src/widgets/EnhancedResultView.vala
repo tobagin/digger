@@ -29,6 +29,8 @@ namespace Digger {
         private DnsPresets dns_presets;
         private GLib.Settings settings;
         
+        public bool show_detailed_ttl { get; set; default = false; }
+
         public EnhancedResultView () {
             settings = new GLib.Settings (Config.APP_ID);
             dns_presets = DnsPresets.get_instance ();
@@ -434,10 +436,29 @@ namespace Digger {
             
             // Record name and TTL
             row.title = record.name;
-            if (settings != null && settings.get_boolean ("show-ttl-prominent")) {
+            
+            if (record.record_type == RecordType.RRSIG && record.rrsig_type_covered != null) {
+                string exp_date = format_rrsig_date (record.rrsig_expiration);
+                row.subtitle = @"Covers $(record.rrsig_type_covered) • Expires $exp_date • Tag $(record.rrsig_key_tag) • Alg $(record.rrsig_algorithm)";
+            } else if (settings != null && settings.get_boolean ("show-ttl-prominent")) {
                 row.subtitle = @"TTL: $(record.ttl)s";
             } else {
                 row.subtitle = record.value;
+            }
+
+            if (show_detailed_ttl) {
+                string ttl_text = @"TTL: $(record.ttl)s";
+                
+                // If expiration is available (for RRSIG), show it too
+                if (record.record_type == RecordType.RRSIG && record.rrsig_expiration != null) {
+                    // Logic to calculate remaining time could be added here
+                }
+                
+                var ttl_label = new Gtk.Label (ttl_text);
+                ttl_label.add_css_class ("caption");
+                ttl_label.add_css_class ("dim-label");
+                ttl_label.margin_end = 6;
+                row.add_suffix (ttl_label);
             }
             
             // Add record type icon if available
@@ -769,6 +790,24 @@ namespace Digger {
                 var next = child.get_next_sibling ();
                 content_box.remove (child);
                 child = next;
+            }
+        }
+        private string format_rrsig_date (string? date_str) {
+            if (date_str == null || date_str.length < 14) return date_str ?? "";
+            
+            // Format: YYYYMMDDHHmmss
+            // Return: YYYY-MM-DD HH:mm:ss
+            try {
+                string year = date_str.substring (0, 4);
+                string month = date_str.substring (4, 2);
+                string day = date_str.substring (6, 2);
+                string hour = date_str.substring (8, 2);
+                string minute = date_str.substring (10, 2);
+                string second = date_str.substring (12, 2);
+                
+                return @"$year-$month-$day $hour:$minute:$second";
+            } catch (Error e) {
+                return date_str;
             }
         }
     }

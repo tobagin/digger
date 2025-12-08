@@ -118,6 +118,28 @@ template $DiggerEnhancedQueryForm : Adw.PreferencesGroup {
     }
   }
 
+  Adw.ActionRow dnssec_row {
+    title: "Request DNSSEC";
+    subtitle: "Request DNSSEC records (RRSIG) and display signatures";
+
+    Switch dnssec_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Request DNSSEC records and validation from the server";
+    }
+  }
+
+  Adw.ActionRow ttl_details_row {
+    title: "Detailed TTL";
+    subtitle: "Show detailed Time-To-Live information in results";
+
+    Switch ttl_details_switch {
+      halign: center;
+      valign: center;
+      tooltip-text: "Show precise TTL values and expiration times where available";
+    }
+  }
+
   Button query_button {
     label: "Look up DNS records";
     halign: center;

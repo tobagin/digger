@@ -142,6 +142,16 @@ namespace Digger {
         public int ttl { get; set; }
         public string value { get; set; }
         public int priority { get; set; default = -1; } // For MX records
+        
+        // RRSIG specific fields
+        public string? rrsig_type_covered { get; set; }
+        public string? rrsig_algorithm { get; set; }
+        public string? rrsig_labels { get; set; }
+        public string? rrsig_original_ttl { get; set; }
+        public string? rrsig_expiration { get; set; }
+        public string? rrsig_inception { get; set; }
+        public string? rrsig_key_tag { get; set; }
+        public string? rrsig_signer_name { get; set; }
 
         public DnsRecord (string name, RecordType record_type, int ttl, string value, int priority = -1) {
             this.name = name;
@@ -211,6 +221,7 @@ namespace Digger {
         public bool reverse_lookup { get; set; default = false; }
         public bool trace_path { get; set; default = false; }
         public bool short_output { get; set; default = false; }
+        public bool request_dnssec { get; set; default = false; }
 
         // Raw dig output for debugging
         public string raw_output { get; set; }

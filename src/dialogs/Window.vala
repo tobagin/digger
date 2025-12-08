@@ -361,16 +361,17 @@ namespace Digger {
             query_form.set_reverse_lookup (false);
             query_form.set_trace_path (false);
             query_form.set_short_output (false);
+            query_form.set_request_dnssec (false);
             query_form.focus_domain_entry ();
         }
 
-        private void on_query_requested (string domain, RecordType record_type, string? dns_server) {
+        private void on_query_requested (string domain, RecordType record_type, string? dns_server, bool request_dnssec) {
             if (!query_in_progress) {
-                perform_query_with_params.begin (domain, record_type, dns_server);
+                perform_query_with_params.begin (domain, record_type, dns_server, request_dnssec);
             }
         }
 
-        private async void perform_query_with_params (string domain, RecordType record_type, string? dns_server) {
+        private async void perform_query_with_params (string domain, RecordType record_type, string? dns_server, bool request_dnssec) {
             if (domain.length == 0) {
                 show_toast ("Please enter a domain name or IP address");
                 return;
@@ -385,6 +386,7 @@ namespace Digger {
             }
             
             result_view.show_query_started (domain, record_type, server);
+            result_view.show_detailed_ttl = query_form.get_show_detailed_ttl ();
 
             var result = yield dns_query.perform_query (
                 domain,
@@ -392,7 +394,8 @@ namespace Digger {
                 server,
                 query_form.get_reverse_lookup (),
                 query_form.get_trace_path (),
-                query_form.get_short_output ()
+                query_form.get_short_output (),
+                request_dnssec
             );
 
             if (result != null) {
@@ -557,6 +560,7 @@ namespace Digger {
             query_form.set_reverse_lookup (result.reverse_lookup);
             query_form.set_trace_path (result.trace_path);
             query_form.set_short_output (result.short_output);
+            query_form.set_request_dnssec (result.request_dnssec);
         }
 
         private void show_batch_lookup_dialog () {

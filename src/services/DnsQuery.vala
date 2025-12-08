@@ -29,7 +29,8 @@ namespace Digger {
                                                 string? dns_server = null,
                                                 bool reverse_lookup = false,
                                                 bool trace_path = false,
-                                                bool short_output = false) {
+                                                bool short_output = false,
+                                                bool request_dnssec = false) {
             
             if (!is_valid_domain (domain) && !reverse_lookup) {
                 var result = new QueryResult ();
@@ -57,13 +58,14 @@ namespace Digger {
             result.reverse_lookup = reverse_lookup;
             result.trace_path = trace_path;
             result.short_output = short_output;
+            result.request_dnssec = request_dnssec;
 
             var timer = new Timer ();
             timer.start ();
 
             try {
                 string[] command_args = build_dig_command (domain, record_type, dns_server, 
-                                                         reverse_lookup, trace_path, short_output);
+                                                         reverse_lookup, trace_path, short_output, request_dnssec);
                 
                 string standard_output;
                 string standard_error;
@@ -112,7 +114,7 @@ namespace Digger {
         }
 
         private string[] build_dig_command (string domain, RecordType record_type, string? dns_server,
-                                          bool reverse_lookup, bool trace_path, bool short_output) {
+                                          bool reverse_lookup, bool trace_path, bool short_output, bool request_dnssec) {
             var args = new Gee.ArrayList<string> ();
             args.add (DIG_COMMAND);
 
@@ -140,6 +142,11 @@ namespace Digger {
 
             if (short_output) {
                 args.add ("+short");
+            }
+
+            if (request_dnssec) {
+                args.add ("+dnssec");
+                args.add ("+nocrypto");
             }
 
             // Timeout from settings
@@ -190,7 +197,8 @@ namespace Digger {
                                                 string? dns_server = null,
                                                 bool reverse_lookup = false,
                                                 bool trace_path = false,
-                                                bool short_output = false) {
+                                                bool short_output = false,
+                                                bool request_dnssec = false) {
             var result = new QueryResult ();
             result.domain = domain;
             result.query_type = record_type;
@@ -198,13 +206,14 @@ namespace Digger {
             result.reverse_lookup = reverse_lookup;
             result.trace_path = trace_path;
             result.short_output = short_output;
+            result.request_dnssec = request_dnssec;
 
             var timer = new Timer ();
             timer.start ();
 
             try {
                 string[] command_args = build_dig_command (domain, record_type, dns_server,
-                                                         reverse_lookup, trace_path, short_output);
+                                                         reverse_lookup, trace_path, short_output, request_dnssec);
 
                 string standard_output;
                 string standard_error;
@@ -405,7 +414,22 @@ namespace Digger {
                 }
             }
 
-            return new DnsRecord (name, record_type, ttl, value, priority);
+            var record = new DnsRecord (name, record_type, ttl, value, priority);
+
+            // Parse RRSIG specific fields
+            if (record_type == RecordType.RRSIG && value_parts.size >= 8) {
+                record.rrsig_type_covered = value_parts[0];
+                record.rrsig_algorithm = value_parts[1];
+                record.rrsig_labels = value_parts[2];
+                record.rrsig_original_ttl = value_parts[3];
+                record.rrsig_expiration = value_parts[4];
+                record.rrsig_inception = value_parts[5];
+                record.rrsig_key_tag = value_parts[6];
+                record.rrsig_signer_name = value_parts[7];
+                // Signature is in value_parts[8] and onwards
+            }
+
+            return record;
         }
 
         private void parse_header_status (string line, QueryResult result) {

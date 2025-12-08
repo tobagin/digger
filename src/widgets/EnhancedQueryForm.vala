@@ -26,6 +26,8 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Switch reverse_lookup_switch;
         [GtkChild] private unowned Gtk.Switch trace_path_switch;
         [GtkChild] private unowned Gtk.Switch short_output_switch;
+        [GtkChild] private unowned Gtk.Switch dnssec_switch;
+        [GtkChild] private unowned Gtk.Switch ttl_details_switch;
 
         private AutocompleteDropdown autocomplete_dropdown;
 
@@ -40,7 +42,7 @@ namespace Digger {
         private QueryPreset? active_preset = null;
         private bool applying_preset = false;
         
-        public signal void query_requested (string domain, RecordType record_type, string? dns_server);
+        public signal void query_requested (string domain, RecordType record_type, string? dns_server, bool request_dnssec);
         
         public bool query_in_progress { 
             get { return _query_in_progress; }
@@ -356,6 +358,7 @@ namespace Digger {
             reverse_lookup_switch.active = preset.reverse_lookup;
             trace_path_switch.active = preset.trace_path;
             short_output_switch.active = preset.short_output;
+            dnssec_switch.active = false; // Presets don't store DNSSEC preference yet
 
             applying_preset = false;
 
@@ -459,6 +462,22 @@ namespace Digger {
         
         public void set_short_output (bool value) {
             short_output_switch.active = value;
+        }
+
+        public bool get_request_dnssec () {
+            return dnssec_switch.active;
+        }
+
+        public void set_request_dnssec (bool value) {
+            dnssec_switch.active = value;
+        }
+
+        public bool get_show_detailed_ttl () {
+            return ttl_details_switch.active;
+        }
+
+        public void set_show_detailed_ttl (bool value) {
+            ttl_details_switch.active = value;
         }
         
         private void validate_input () {
@@ -647,7 +666,7 @@ namespace Digger {
             
             string? dns_server = current_dns_server.length > 0 ? current_dns_server : null;
             
-            query_requested (domain, record_type, dns_server);
+            query_requested (domain, record_type, dns_server, dnssec_switch.active);
         }
         
         public string get_domain () {
@@ -747,6 +766,8 @@ namespace Digger {
             reverse_lookup_switch.active = settings.get_boolean ("default-reverse-lookup");
             trace_path_switch.active = settings.get_boolean ("default-trace-path");
             short_output_switch.active = settings.get_boolean ("default-short-output");
+            dnssec_switch.active = false;
+            ttl_details_switch.active = false;
             
             validate_input ();
         }
