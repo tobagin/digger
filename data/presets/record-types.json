@@ -10,7 +10,7 @@
     },
     {
       "type": "AAAA",
-      "name": "IPv6 Address", 
+      "name": "IPv6 Address",
       "description": "Maps a domain name to an IPv6 address",
       "icon": "network-workgroup-symbolic",
       "color": "#9141ac",
@@ -74,8 +74,8 @@
     },
     {
       "type": "ANY",
-      "name": "All Records",
-      "description": "Requests all available record types",
+      "name": "Any Records",
+      "description": "Requests any available record types",
       "icon": "view-list-symbolic",
       "color": "#5e5c64",
       "common_use": "Comprehensive DNS information gathering"

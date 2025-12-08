@@ -242,7 +242,7 @@ namespace Digger {
             string[] types = {"A", "AAAA", "CNAME", "MX", "NS", "PTR", "TXT", "SOA", "SRV", "ANY"};
             string[] names = {
                 "IPv4 Address", "IPv6 Address", "Canonical Name", "Mail Exchange", "Name Server",
-                "Pointer Record", "Text Record", "Start of Authority", "Service Record", "All Records"
+                "Pointer Record", "Text Record", "Start of Authority", "Service Record", "Any Records"
             };
             
             for (int i = 0; i < types.length; i++) {
