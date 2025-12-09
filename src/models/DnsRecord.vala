@@ -24,6 +24,7 @@ namespace Digger {
         RRSIG,
         NSEC,
         NSEC3,
+        HTTPS,
         ANY;
 
         public string to_string () {
@@ -42,6 +43,7 @@ namespace Digger {
                 case RRSIG: return "RRSIG";
                 case NSEC: return "NSEC";
                 case NSEC3: return "NSEC3";
+                case HTTPS: return "HTTPS";
                 case ANY: return "ANY";
                 default: return "UNKNOWN";
             }
@@ -63,6 +65,7 @@ namespace Digger {
                 case "RRSIG": return RRSIG;
                 case "NSEC": return NSEC;
                 case "NSEC3": return NSEC3;
+                case "HTTPS": return HTTPS;
                 case "ANY": return ANY;
                 default: return A; // Default fallback
             }
@@ -84,6 +87,7 @@ namespace Digger {
                 case RRSIG: return 46;
                 case NSEC: return 47;
                 case NSEC3: return 50;
+                case HTTPS: return 65;
                 case ANY: return 255;
                 default: return 1;
             }
@@ -105,6 +109,7 @@ namespace Digger {
                 case 46: return RRSIG;
                 case 47: return NSEC;
                 case 50: return NSEC3;
+                case 65: return HTTPS;
                 case 255: return ANY;
                 default: return A;
             }

@@ -79,6 +79,14 @@
       "icon": "view-list-symbolic",
       "color": "#5e5c64",
       "common_use": "Comprehensive DNS information gathering"
+    },
+    {
+      "type": "HTTPS",
+      "name": "HTTPS Binding",
+      "description": "Service binding and parameter specification for HTTPS",
+      "icon": "channel-secure-symbolic",
+      "color": "#2ec27e",
+      "common_use": "Speed up connection establishment"
     }
   ]
 }
