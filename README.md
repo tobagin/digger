@@ -301,7 +301,18 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Recent Updates
 
-### ✨ Version 2.4.0 - Mobile UI, WHOIS, & Command Export (Latest)
+### ✨ Version 2.5.0 - HTTPS & DNSSEC Support (Latest)
+
+**New Features:**
+- **HTTPS Record Support**: Full support for HTTPS (Type 65) DNS records
+- **DNSSEC Support**: DNSSEC signature verification and detailed TTL display
+- **IDN Support**: Improved validation for Internationalized Domain Names
+
+**Changes:**
+- Renamed "All records" to "Any records" to better reflect RFC 8482 behavior
+- Fixed missing spellcheck dictionaries
+
+### Version 2.4.0 - Mobile UI, WHOIS, & Command Export
 
 **Major New Features:**
 - **Responsive Mobile UI**: Full adaptive layout with libadwaita 1.6+ breakpoints supporting mobile (360px+), tablet (768px+), and desktop (1024px+) form factors

@@ -1,5 +1,5 @@
 project('digger-vala', 'vala', 'c',
-  version: '2.4.0',
+  version: '2.5.0',
   default_options: ['warning_level=1'],
   meson_version: '>= 0.58.0'
 )

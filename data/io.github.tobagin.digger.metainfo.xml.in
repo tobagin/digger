@@ -69,6 +69,18 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.5.0" date="2025-12-09">
+      <description>
+        <p>Feature release with HTTPS records and DNSSEC support</p>
+        <ul>
+          <li>Added support for HTTPS (Type 65) DNS records</li>
+          <li>Added DNSSEC verification and detailed TTL display</li>
+          <li>Renamed "All records" to "Any records" (RFC 8482)</li>
+          <li>Fixed IDN domain validation issues</li>
+          <li>Fixed missing spellcheck dictionaries</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.4.0" date="2025-11-05">
       <description>
         <p>Major feature release with mobile UI, WHOIS lookup, and command export</p>

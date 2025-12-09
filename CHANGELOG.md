@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2025-12-09
+
+### Added
+- **HTTPS Record Support** - Full support for HTTPS (Type 65) DNS records
+- **DNSSEC Support** - DNSSEC signature verification and detailed TTL display
+- **IDN Support** - Improved validation for Internationalized Domain Names
+
+### Changed
+- **Renamed Any Query** - Changed "All records" to "Any records" to better reflect RFC 8482 behavior
+- **Spellcheck** - Fixed missing Hunspell dictionaries configuration
+
+
 ## [2.4.0] - 2025-11-05
 
 ### Added
