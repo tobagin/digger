@@ -64,7 +64,18 @@ namespace Digger {
             timer.start ();
 
             try {
-                string[] command_args = build_dig_command (domain, record_type, dns_server, 
+                // Ensure we use the Punycode version for the actual command execution
+                string domain_for_command = domain;
+                string? ascii_domain = GLib.Hostname.to_ascii (domain);
+                if (ascii_domain != null) {
+                    domain_for_command = ascii_domain;
+                    // Log if conversion happened
+                    if (domain != ascii_domain) {
+                        message ("Converted IDN '%s' to '%s' for query", domain, ascii_domain);
+                    }
+                }
+
+                string[] command_args = build_dig_command (domain_for_command, record_type, dns_server, 
                                                          reverse_lookup, trace_path, short_output, request_dnssec);
                 
                 string standard_output;
@@ -212,7 +223,14 @@ namespace Digger {
             timer.start ();
 
             try {
-                string[] command_args = build_dig_command (domain, record_type, dns_server,
+                // Ensure we use the Punycode version for the actual command execution
+                string domain_for_command = domain;
+                string? ascii_domain = GLib.Hostname.to_ascii (domain);
+                if (ascii_domain != null) {
+                    domain_for_command = ascii_domain;
+                }
+
+                string[] command_args = build_dig_command (domain_for_command, record_type, dns_server,
                                                          reverse_lookup, trace_path, short_output, request_dnssec);
 
                 string standard_output;
@@ -561,64 +579,59 @@ namespace Digger {
         }
 
         private bool is_valid_domain (string domain) {
-            // SEC-003: Strengthened domain validation per RFC 1123/1035
-            if (domain.length == 0 || domain.length > Constants.MAX_DOMAIN_LENGTH) {
-                return false;
-            }
+            // SEC-003: Simplified validation relying on GLib's IDN conversion
+            // This ensures robust support for IDNs while blocking command injection
+            
+            if (domain.length == 0) return false;
 
-            // SEC-003: Check for consecutive dots (not allowed)
-            if (domain.contains ("..")) {
-                return false;
-            }
-
-            // SEC-003: Check for starting/ending with dot or hyphen (not allowed per RFC)
-            if (domain.has_prefix (".") || domain.has_suffix (".") ||
-                domain.has_prefix ("-") || domain.has_suffix ("-")) {
-                return false;
-            }
-
-            // Split into labels and validate each
-            string[] labels = domain.split (".");
-
-            // SEC-003: Empty labels not allowed
-            if (labels.length == 0) {
-                return false;
-            }
-
-            foreach (string label in labels) {
-                // SEC-003: Empty labels not allowed
-                if (label.length == 0) {
+            // Convert to ASCII (Punycode) for validation
+            // This handles IDN and basic length checks implicit in the conversion
+            string? ascii_domain = GLib.Hostname.to_ascii (domain);
+            if (ascii_domain == null) {
+                // Fallback: If GLib conversion fails (e.g. missing locales in Flatpak), 
+                // we perform a "permissive but safe" check to allow the query to proceed.
+                // We let 'dig' determine validity, but we MUST prevent command injection.
+                
+                // 1. Check for command injection/flag indicators
+                if (domain.has_prefix ("-")) {
+                    message ("Rejected domain '%s': starts with hyphen", domain);
                     return false;
                 }
-
-                // SEC-003: Per-label length validation (max 63 characters per RFC 1035)
-                if (label.length > Constants.MAX_LABEL_LENGTH) {
-                    return false;
+                
+                // 2. Check for whitespace (domains cannot have spaces)
+                if (Regex.match_simple ("\\s", domain)) {
+                     message ("Rejected domain '%s': contains whitespace", domain);
+                     return false;
                 }
 
-                // SEC-003: Labels must start and end with alphanumeric character
-                unichar first = label.get_char (0);
-                unichar last = label.get_char (label.length - 1);
-
-                if (!first.isalnum () || !last.isalnum ()) {
-                    return false;
+                // 3. Check for shell meta-characters forbidden in strict mode
+                // (Though we use exec array which avoids shell, it's good practice)
+                if (Regex.match_simple ("[;&|`$]", domain)) {
+                     message ("Rejected domain '%s': contains shell meta-characters", domain);
+                     return false;
                 }
-
-                // Check label contains only valid characters (alphanumeric and hyphen)
-                for (int i = 0; i < label.length; i++) {
-                    unichar c = label.get_char (i);
-                    if (!c.isalnum () && c != '-') {
-                        return false;
-                    }
-                }
+                
+                message ("Warning: GLib.Hostname.to_ascii failed for '%s'. Allowing permissive fallback.", domain);
+                return true;
             }
 
-            // Basic format validation with improved regex
+            // Prevent command injection (dig flags start with -)
+            if (ascii_domain.has_prefix ("-")) {
+                return false;
+            }
+            
+            // Allow IPv6 literals which contain colons
+            if (ascii_domain.contains (":")) {
+                return true;
+            }
+            
+            // Basic character set check to be safe (alphanumeric, hyphen, dot, underscore)
+            // We use the converted ASCII domain for this check
             try {
-                return Regex.match_simple ("^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$", domain) ||
-                       Regex.match_simple ("^[a-zA-Z0-9]$", domain);
+                // Correct regex: hyphen at the end to avoid range interpretation
+                return Regex.match_simple ("^[a-zA-Z0-9._-]+$", ascii_domain);
             } catch (RegexError e) {
-                return false;
+                return false; // Should not happen with ASCII
             }
         }
 

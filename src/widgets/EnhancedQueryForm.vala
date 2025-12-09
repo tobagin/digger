@@ -499,20 +499,74 @@ namespace Digger {
         }
         
         private bool is_valid_domain_or_ip (string input) {
-            // Basic validation - could be more comprehensive
-            if (input.length == 0 || input.length > 253) {
+            // Trim whitespace
+            string domain_to_check = input.strip ();
+            
+            // Auto-strip URL components for validation check
+            if (domain_to_check.has_prefix ("http://") || domain_to_check.has_prefix ("https://")) {
+                try {
+                    // Use Uri to parse and extract host
+                    var uri = GLib.Uri.parse (domain_to_check, GLib.UriFlags.NONE);
+                    if (uri.get_host () != null) {
+                        domain_to_check = uri.get_host ();
+                    }
+                } catch (Error e) {
+                    // Fallback to manual stripping if Uri parsing fails
+                    int schema_end = domain_to_check.index_of ("://");
+                    if (schema_end != -1) {
+                        domain_to_check = domain_to_check.substring (schema_end + 3);
+                    }
+                    int path_start = domain_to_check.index_of ("/");
+                    if (path_start != -1) {
+                        domain_to_check = domain_to_check.substring (0, path_start);
+                    }
+                }
+            }
+
+            if (domain_to_check.length == 0 || domain_to_check.length > 253) {
                 return false;
             }
             
-            // Check for valid characters
-            try {
-                return Regex.match_simple ("^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$", input) ||
-                       Regex.match_simple ("^[a-zA-Z0-9]$", input) ||
-                       Regex.match_simple ("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", input) ||
-                       input.contains (":");  // Basic IPv6 check
-            } catch (RegexError e) {
+            // Try IDN conversion first
+            string? ascii_input = GLib.Hostname.to_ascii (domain_to_check);
+            if (ascii_input == null) {
+                // FALLBACK: GLib conversion failed. Use permissive check to allow query if safe.
+                
+                // 1. Check for command injection (leading hyphen)
+                if (domain_to_check.has_prefix ("-")) {
+                    return false;
+                }
+                
+                // 2. Check for whitespace
+                try {
+                    if (Regex.match_simple ("\\s", domain_to_check)) {
+                        return false;
+                    }
+                } catch (RegexError e) {
+                    return false;
+                }
+                
+                // 3. Check for shell meta-characters [;&|`$]
+                try {
+                    if (Regex.match_simple ("[;&|`$]", domain_to_check)) {
+                         return false;
+                    }
+                } catch (RegexError e) {
+                    return false;
+                }
+                
+                // If it looks safe, allow it. Let 'dig' complain if it's invalid DNS.
+                return true;
+            }
+            
+            // Prevent command injection checks
+            if (ascii_input.has_prefix ("-")) {
                 return false;
             }
+            
+            // If it converts to ASCII successfully and isn't a flag, we accept it.
+            // We trust to_ascii + dig to handle (or fail gracefully on) other chars.
+            return true;
         }
         
         private void set_dns_server_by_ip (string ip) {
@@ -659,6 +713,29 @@ namespace Digger {
             
             string domain = domain_entry.text.strip ();
             if (domain.length == 0) return;
+            
+            // Strip URL components if present
+            if (domain.has_prefix ("http://") || domain.has_prefix ("https://")) {
+                try {
+                    var uri = GLib.Uri.parse (domain, GLib.UriFlags.NONE);
+                    if (uri.get_host () != null) {
+                        domain = uri.get_host ();
+                    }
+                } catch (Error e) {
+                    // Fallback manual strip
+                    int schema_end = domain.index_of ("://");
+                    if (schema_end != -1) {
+                        domain = domain.substring (schema_end + 3);
+                    }
+                    int path_start = domain.index_of ("/");
+                    if (path_start != -1) {
+                        domain = domain.substring (0, path_start);
+                    }
+                }
+                
+                // Update the entry to show the cleaned domain
+                domain_entry.text = domain;
+            }
             
             var selected_text = ((Gtk.StringList) record_type_dropdown.model).get_string (record_type_dropdown.selected);
             string record_type_str = selected_text.split (" - ")[0];

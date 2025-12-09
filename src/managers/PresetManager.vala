@@ -182,9 +182,9 @@ namespace Digger {
             trace_preset.is_system_preset = true;
             system_presets.add (trace_preset);
 
-            // 7. All Records - ANY record type (with note about deprecation)
+            // 7. Any Records - ANY record type (with note about deprecation)
             var any_preset = new QueryPreset (
-                "All Records",
+                "Any Records",
                 "Query ANY record type (note: deprecated by many DNS servers)",
                 RecordType.ANY
             );
