@@ -1,0 +1,72 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerDnsblDialog: Adw.Dialog {
+    title: _("DNS Blacklist Check");
+    content-width: 600;
+    content-height: 500;
+
+    Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: Box {
+            orientation: vertical;
+            spacing: 18;
+            margin-top: 24;
+            margin-bottom: 24;
+            margin-start: 24;
+            margin-end: 24;
+
+            Adw.PreferencesGroup {
+                Adw.EntryRow input_entry {
+                    title: _("IP Address or Domain");
+                    activates-default: true;
+                    show-apply-button: true;
+                    apply => $on_check_clicked();
+                }
+            }
+
+            Box {
+                orientation: vertical;
+                spacing: 12;
+
+                Label status_label {
+                    visible: false;
+                    label: "";
+                }
+
+                Spinner spinner {
+                    visible: false;
+                }
+            }
+
+            ScrolledWindow {
+                vexpand: true;
+                hscrollbar-policy: never;
+                propagate-natural-height: true;
+
+                Box results_box {
+                    orientation: vertical;
+                    spacing: 6;
+                }
+            }
+        };
+
+        [bottom]
+        Adw.HeaderBar {
+            show-start-title-buttons: false;
+            show-end-title-buttons: false;
+
+            title-widget: Button {
+                label: _("Check");
+
+                styles [
+                    "suggested-action",
+                ]
+
+                clicked => $on_check_clicked();
+            };
+        }
+    }
+}

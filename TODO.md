@@ -7,17 +7,17 @@ This document outlines potential features and enhancements for Digger, organized
 ## 🏆 High Priority Features (Most Impactful)
 
 ### 1. WHOIS Integration
-**Impact**: High | **Effort**: Medium | **Status**: Not Started
+**Impact**: High | **Effort**: Medium | **Status**: Completed ✅
 
 Natural complement to DNS lookup, highly requested by users.
 
-- [ ] Integrate WHOIS protocol client
-- [ ] Create WHOIS result display widget
-- [ ] Add "WHOIS Lookup" button to main interface
-- [ ] Parse and format WHOIS data (registrar, dates, nameservers, contacts)
-- [ ] Support for different WHOIS servers per TLD
-- [ ] Cache WHOIS results (they change infrequently)
-- [ ] Add WHOIS to export formats
+- [x] Integrate WHOIS protocol client
+- [x] Create WHOIS result display widget
+- [x] Add "WHOIS Lookup" button to main interface
+- [x] Parse and format WHOIS data (registrar, dates, nameservers, contacts)
+- [x] Support for different WHOIS servers per TLD
+- [x] Cache WHOIS results (they change infrequently)
+- [x] Add WHOIS to export formats
 
 ### 2. DNS Performance Monitoring & Statistics
 **Impact**: High | **Effort**: High | **Status**: Not Started
@@ -60,16 +60,16 @@ Security-focused feature useful for email administrators.
 - [ ] Export blacklist check results
 
 ### 5. Export to dig Commands
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
+**Impact**: Medium | **Effort**: Low | **Status**: Completed ✅
 
 Educational feature helping users learn command-line equivalents.
 
-- [ ] Generate equivalent dig command syntax from current query
-- [ ] Include all advanced options in command
-- [ ] "Copy as dig command" button
-- [ ] Support for DoH curl commands
-- [ ] Command explanation tooltips
-- [ ] Batch command generation for batch lookups
+- [x] Generate equivalent dig command syntax from current query
+- [x] Include all advanced options in command
+- [x] "Copy as dig command" button
+- [x] Support for DoH curl commands
+- [x] Command explanation tooltips
+- [x] Batch command generation for batch lookups
 
 ---
 
@@ -588,4 +588,4 @@ Interested in implementing any of these features? Check out [CONTRIBUTING.md](CO
 
 Have ideas for features not listed here? Open an issue on GitHub or contact the maintainer!
 
-**Last Updated**: 2025-10-20
+**Last Updated**: 2026-01-07

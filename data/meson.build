@@ -69,6 +69,8 @@ blueprint_files = [
   'ui/dialogs/comparison-dialog.blp',
   'ui/dialogs/history-dialog.blp',
   'ui/dialogs/autocomplete-dialog.blp',
+  'ui/dialogs/dnsbl-dialog.blp',
+  'ui/dialogs/performance-dialog.blp',
   # Widgets
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',
@@ -114,8 +116,9 @@ digger_resources = gnome.compile_resources(
 )
 
 # Install main scalable SVG icon
+icon_file = development ? 'io.github.tobagin.digger.Devel.svg' : 'io.github.tobagin.digger.svg'
 install_data(
-  join_paths('icons', 'hicolor', 'scalable', 'apps', 'io.github.tobagin.digger.svg'),
+  join_paths('icons', 'hicolor', 'scalable', 'apps', icon_file),
   rename: app_id + '.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
 )

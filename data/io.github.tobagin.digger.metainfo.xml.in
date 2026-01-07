@@ -69,6 +69,20 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.6.0" date="2026-01-07">
+      <description>
+        <p>Major feature release with DNSBL and Performance Monitoring</p>
+        <ul>
+          <li>✨ New Icons: Fresh new application icons (Thanks to @oiimrosabel)</li>
+          <li>DNS Blacklist (DNSBL) Checking - Multi-provider RBL checking with parallel queries</li>
+          <li>DNS Performance Monitoring - Real-time latency graphs and health statistics</li>
+          <li>Keyboard Shortcuts - Ctrl+Shift+B for DNSBL, Ctrl+Shift+P for Performance Monitor</li>
+          <li>WHOIS Integration - Completed domain registration lookup with caching</li>
+          <li>Command Export - Generate dig/curl commands from GUI queries</li>
+          <li>UI Improvements - Action buttons moved to bottom headerbar for better ergonomics</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.5.0" date="2025-12-09">
       <description>
         <p>Feature release with HTTPS records and DNSSEC support</p>

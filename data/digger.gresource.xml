@@ -11,6 +11,8 @@
     <file compressed="true" preprocess="xml-stripblanks">comparison-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">autocomplete-dialog.ui</file>
+    <file preprocess="xml-stripblanks">dnsbl-dialog.ui</file>
+    <file preprocess="xml-stripblanks">performance-dialog.ui</file>
 
     <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>

@@ -21,6 +21,15 @@ namespace Digger {
         public signal void query_completed (QueryResult result);
         public signal void query_failed (string error_message);
         
+        private static DnsQuery? instance = null;
+
+        public static DnsQuery get_instance () {
+            if (instance == null) {
+                instance = new DnsQuery ();
+            }
+            return instance;
+        }
+
         public DnsQuery () {
             settings = new GLib.Settings (Config.APP_ID);
         }

@@ -2,35 +2,27 @@
 
 A powerful and modern DNS lookup tool built with Vala, GTK4, and libadwaita. Digger provides an intuitive interface for performing DNS queries with advanced features including batch lookups, server comparison, DNSSEC validation, and DNS-over-HTTPS support.
 
-## Screenshots
+![Digger Application](data/screenshots/main.png)
 
-<div align="center">
+## 🎉 Version 2.6.0 - DNSBL & Performance Monitoring
 
-### Main Interface
-![Main Window](data/screenshots/main.png)
-*Clean, modern interface for DNS lookups with instant autocomplete suggestions*
+**Digger 2.6.0** brings powerful network analysis tools: DNS Blacklist checking and real-time performance monitoring.
 
-### DNS Query Results
-![Query Results](data/screenshots/lookup.png)
-*Detailed DNS record information with one-click copying and export capabilities*
+### ✨ Key Features
 
-### Smart Autocomplete
-![Autocomplete Feature](data/screenshots/autocomplete.png)
-*Intelligent domain suggestions with keyboard navigation and favorites system*
+- **🔍 Advanced DNS Queries**: Support for all major DNS record types with DNSSEC validation
+- **🛡️ DNS Blacklist Checking**: Multi-provider RBL compliance tool with parallel query execution
+- **📊 Performance Monitor**: Real-time DNS latency visualization for Google, Cloudflare, and Quad9
+- **🌐 WHOIS Integration**: Domain registration lookup with intelligent caching
+- **💻 Command Export**: Generate `dig` and `curl` commands from your GUI state
+- **📱 Responsive Design**: Full adaptive layout for desktop, tablet, and mobile
 
-### Query History
-![History Management](data/screenshots/history.png)
-*Advanced search and filtering through your DNS query history*
+### 🆕 What's New in 2.6.0
 
-### Preferences
-![Settings Dialog](data/screenshots/preferences.png)
-*Comprehensive settings for customizing behavior, DoH providers, and DNSSEC validation*
-
-### About Dialog
-![About Information](data/screenshots/about.png)
-*Modern about dialog with automatic release notes and comprehensive information*
-
-</div>
+- **✨ New Icons**: Fresh new application icons (Thanks to @oiimrosabel).
+- **🛡️ DNS Blacklist Checking**: Check IPs against Spamhaus, SpamCop, Barracuda, and more.
+- **📊 Performance Monitor**: Real-time graphs and health statistics for DNS servers.
+- **⌨️ Keyboard Shortcuts**: Quick access via `Ctrl+Shift+B` (DNSBL) and `Ctrl+Shift+P` (Monitor).
 
 ## ✨ Features
 
@@ -299,109 +291,15 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - Inspired by the classic `dig` command-line tool
 - Thanks to the GNOME and GTK communities for excellent documentation
 
-## Recent Updates
+## Screenshots
 
-### ✨ Version 2.5.0 - HTTPS & DNSSEC Support (Latest)
+| Main Window | Query Results | Query History |
+|-------------|---------------|---------------|
+| ![Main Window](data/screenshots/main.png) | ![Query Results](data/screenshots/lookup.png) | ![History](data/screenshots/history.png) |
 
-**New Features:**
-- **HTTPS Record Support**: Full support for HTTPS (Type 65) DNS records
-- **DNSSEC Support**: DNSSEC signature verification and detailed TTL display
-- **IDN Support**: Improved validation for Internationalized Domain Names
-
-**Changes:**
-- Renamed "All records" to "Any records" to better reflect RFC 8482 behavior
-- Fixed missing spellcheck dictionaries
-
-### Version 2.4.0 - Mobile UI, WHOIS, & Command Export
-
-**Major New Features:**
-- **Responsive Mobile UI**: Full adaptive layout with libadwaita 1.6+ breakpoints supporting mobile (360px+), tablet (768px+), and desktop (1024px+) form factors
-- **WHOIS Integration**: Automatic domain registration information lookup with intelligent caching (configurable 1-168 hour TTL)
-- **Command Export**: Generate equivalent dig and DoH curl commands from GUI queries for easy CLI transition
-- **Query Presets**: Foundation for user-defined query configurations with dropdown selector
-
-**Mobile Experience:**
-- Touch-friendly 44x44px minimum button sizes on mobile devices
-- Native mobile bottom sheet for query history (dialog on mobile, popover on desktop)
-- Vertical stacking of controls on narrow screens (<768px)
-- Progressive autocomplete sizing (400px desktop, 260px tablet, 180px mobile)
-- Main content area with vertical scrolling for better mobile navigation
-- Removed nested ScrolledWindows for clean, predictable scrolling
-
-**WHOIS Capabilities:**
-- Bundled whois command (v5.5.22) for Flatpak sandbox compatibility
-- Rich display of registrar, dates, nameservers, and domain status
-- Privacy-protected record detection
-- Full export support in JSON, CSV, and text formats
-- Configurable timeout (5-120 seconds) and cache management
-- Async operation that doesn't block DNS queries
-
-**Development:**
-- Development builds now show "Digger (Devel)" in application launchers
-- Upgraded minimum libadwaita requirement to 1.6 for breakpoint support
-
-### Version 2.3.0 - UI/UX Improvements & Critical Fixes
-
-**UI/UX Enhancements:**
-- **Redesigned Comparison Dialog**: Two-page architecture (Setup → Results) for cleaner, more focused interface
-- **Custom Icons**: Added custom symbolic icons for fastest-server, slowest-server, average-query-time, and query-time
-- **Semantic Record Type Icons**: Visual icons replace colored text labels for DNS record types (A, AAAA, MX, CNAME, NS, TXT, SOA, PTR, SRV)
-- **System Default Display**: Shows "System Default (localhost)" for clarity when using default DNS server
-- **Menu Integration**: Added Batch Lookup and Compare DNS Servers to Tools menu for better discoverability
-
-**Critical Bug Fixes:**
-- **Fixed UI Freeze**: Comparison dialog now uses sequential async with 50ms yields, keeping UI fully responsive during multi-server queries
-- **Fixed Results Accumulation**: Comparison results properly clear between runs using reusable rows pattern
-- **Fixed False Positives**: Set-based discrepancy detection eliminates false warnings when DNS records return in different order
-
-**Performance Improvements:**
-- **Reusable Widgets**: Statistics rows created once and updated instead of removed/recreated for better performance
-- **Enhanced Export**: Full JSON/CSV/TXT export with smart filename generation for comparison results
-
-### 🎉 Version 2.2.0 - Major Feature Release
-
-**New Features:**
-- **Export Manager**: Export query results to JSON, CSV, plain text, or DNS zone file formats
-- **Favorites System**: Star and save frequently queried domains with their record types
-- **Batch Lookup**: Import and query multiple domains from CSV/TXT files with progress tracking
-- **Server Comparison**: Compare DNS responses across multiple servers with discrepancy detection
-- **DNS-over-HTTPS (DoH)**: Secure DNS queries with Cloudflare, Google, Quad9, and custom endpoint support
-- **DNSSEC Validation**: Verify DNSSEC chain of trust with DNSKEY, DS, and RRSIG record validation
-- **Advanced Preferences**: Configure DoH providers and DNSSEC validation settings
-- **Enhanced About Dialog**: Comprehensive about dialog with automatic release notes display
-
-**Code Organization:**
-- Renamed all Vala files to PascalCase naming convention
-- Organized source code into logical folders (dialogs, models, services, managers, widgets, utils)
-- Organized Blueprint UI files into dialogs and widgets folders
-- Moved screenshots to data folder for better organization
-
-**Technical Improvements:**
-- Updated keyboard shortcuts to Libadwaita 1.8 ShortcutsDialog API
-- Improved stability with defensive null checks for GSettings
-- Enhanced metainfo with comprehensive v2.2.0 release notes
-- Better error handling throughout the application
-
-### 🚀 Version 2.1.4 - Enhanced Metadata
-- Added comprehensive project links (help, donations, contact, contribution)
-- Enhanced AppStream metadata for better app store integration
-- Improved project visibility and user support resources
-
-### 🚀 Version 2.1.3 - Runtime Updates
-- Updated to GNOME runtime version 49
-- Improved compatibility with latest GNOME platform
-
-### 🚀 Version 2.1.2 - Critical Bug Fix
-- Fixed application crash when changing DNS servers via dropdown
-- Fixed crash with DNS quick preset buttons (Google, Cloudflare, Quad9)
-- Resolved index out of bounds error in DNS server selection
-- Improved DNS server dropdown stability
-
-### 🚀 Version 2.0.0 - Complete Vala Rewrite
-- **Native Performance**: Complete rewrite from Python to Vala
-- **Enhanced DNS Parsing**: Proper handling of all DNS status codes
-- **Modern UI**: GTK4 and libadwaita with Blueprint templates
-- **Self-Contained**: Embedded dig command eliminates external dependencies
+| Autocomplete | Preferences | About Dialog |
+|--------------|-------------|--------------|
+| ![Autocomplete](data/screenshots/autocomplete.png) | ![Preferences](data/screenshots/preferences.png) | ![About](data/screenshots/about.png) |
 
 ---
 

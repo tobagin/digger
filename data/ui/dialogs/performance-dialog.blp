@@ -1,0 +1,74 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerPerformanceDialog: Adw.Dialog {
+    title: _("DNS Performance Monitor");
+    content-width: 800;
+    content-height: 600;
+
+    Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: Box {
+            orientation: vertical;
+            spacing: 18;
+            margin-top: 24;
+            margin-bottom: 24;
+            margin-start: 24;
+            margin-end: 24;
+
+            Label {
+                label: _("Real-time Latency (Last 50 queries)");
+
+                styles [
+                    "heading",
+                ]
+
+                halign: start;
+            }
+
+            Box graphs_box {
+                orientation: vertical;
+                spacing: 12;
+                vexpand: true;
+                // Graphs will be added here
+            }
+
+            Separator {}
+
+            Label {
+                label: _("Server Health Statistics");
+
+                styles [
+                    "heading",
+                ]
+
+                halign: start;
+            }
+
+            Box stats_box {
+                orientation: horizontal;
+                spacing: 24;
+                homogeneous: true;
+                // Stats widgets will be added here
+            }
+        };
+
+        [bottom]
+        Adw.HeaderBar {
+            show-start-title-buttons: false;
+            show-end-title-buttons: false;
+
+            title-widget: Button start_stop_button {
+                label: _("Start Monitoring");
+
+                styles [
+                    "suggested-action",
+                ]
+
+                clicked => $on_start_stop_clicked();
+            };
+        }
+    }
+}

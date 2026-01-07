@@ -5,7 +5,20 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.6.0] - 2026-01-07
+
+### ✨ Added
+
+- **DNS Blacklist (DNSBL) Checking**: Multi-provider RBL compliance tool with parallel query execution for Spamhaus, SpamCop, Barracuda, and more.
+- **DNS Performance Monitoring**: Real-time latency visualization graphs for Google, Cloudflare, and Quad9 with health statistics.
+- **Keyboard Shortcuts**: Quick access via `Ctrl+Shift+B` (DNSBL Check) and `Ctrl+Shift+P` (Performance Monitor).
+- **WHOIS Integration**: Completed domain registration lookup with intelligent caching and privacy guard detection.
+- **Command Export**: One-click generation of `dig` and `curl` commands from GUI queries.
+
+### 🎨 Changed
+
+- **New Icons**: Fresh new application icons (Thanks to @oiimrosabel).
+- **Dialog UI**: Moved primary action buttons to bottom headerbar title widget for better ergonomics.
 
 ## [2.5.0] - 2025-12-09
 

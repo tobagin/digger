@@ -303,7 +303,7 @@ namespace Digger {
             settings = new GLib.Settings (Config.APP_ID);
         }
 
-        public WhoisData? get (string domain) {
+        public new WhoisData? get (string domain) {
             string key = domain.down ();
 
             if (!cache_map.has_key (key)) {

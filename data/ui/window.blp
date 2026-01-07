@@ -7,27 +7,42 @@ menu main_menu {
       label: "Batch Lookup";
       action: "win.batch-lookup";
     }
+
     item {
       label: "Compare DNS Servers";
       action: "win.compare-servers";
     }
+
+    item {
+      label: "DNS Blacklist Check";
+      action: "app.dnsbl-check";
+    }
+
+    item {
+      label: "DNS Performance Monitor";
+      action: "app.performance-monitor";
+    }
   }
+
   section {
     item {
       label: "Preferences";
       action: "app.preferences";
     }
   }
+
   section {
     item {
       label: "Keyboard Shortcuts";
       action: "app.shortcuts";
     }
+
     item {
       label: "About Digger";
       action: "app.about";
     }
   }
+
   section {
     item {
       label: "Quit";
@@ -36,13 +51,14 @@ menu main_menu {
   }
 }
 
-template $DiggerWindow : Adw.ApplicationWindow {
+template $DiggerWindow: Adw.ApplicationWindow {
   default-width: 900;
   default-height: 700;
   title: "Digger";
 
   Adw.Breakpoint {
     condition ("max-width: 768sp")
+
     setters {
       history_popover.width-request: 320;
       history_button.height-request: 44;
@@ -59,6 +75,7 @@ template $DiggerWindow : Adw.ApplicationWindow {
           title: _("Digger");
           subtitle: _("A friendly GUI for dig.");
         };
+
         Button history_button {
           icon-name: "document-open-recent-symbolic";
           tooltip-text: "Query History";
@@ -79,7 +96,10 @@ template $DiggerWindow : Adw.ApplicationWindow {
               Label history_title {
                 label: "Query History";
                 halign: start;
-                styles ["heading"]
+
+                styles [
+                  "heading",
+                ]
               }
 
               SearchEntry history_search_entry {
@@ -92,7 +112,9 @@ template $DiggerWindow : Adw.ApplicationWindow {
                 vexpand: true;
 
                 ListBox history_listbox {
-                  styles ["boxed-list"]
+                  styles [
+                    "boxed-list",
+                  ]
                 }
               }
 
@@ -100,7 +122,10 @@ template $DiggerWindow : Adw.ApplicationWindow {
                 label: "Clear History";
                 halign: center;
                 valign: center;
-                styles ["destructive-action"]
+
+                styles [
+                  "destructive-action",
+                ]
               }
             }
           }

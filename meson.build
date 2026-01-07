@@ -1,5 +1,5 @@
 project('digger-vala', 'vala', 'c',
-  version: '2.5.0',
+  version: '2.6.0',
   default_options: ['warning_level=1'],
   meson_version: '>= 0.58.0'
 )
@@ -84,6 +84,10 @@ executable('digger-vala',
   'src/widgets/EnhancedResultView.vala',
   'src/widgets/AutocompleteDropdown.vala',
   'src/widgets/EnhancedHistorySearch.vala',
+  'src/widgets/PerformanceGraph.vala',
+  'src/dialogs/DnsblDialog.vala',
+  'src/dialogs/PerformanceDialog.vala',
+  'src/services/DnsblService.vala',
   'src/utils/ThemeManager.vala',
   'src/utils/DnsPresets.vala',
   'src/utils/DomainSuggestions.vala',

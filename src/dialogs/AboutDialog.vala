@@ -20,7 +20,7 @@ namespace Digger {
 
             var developers = new string[] { "Thiago Fernandes", null };
             var designers = new string[] { "Thiago Fernandes", null };
-            var artists = new string[] { "Thiago Fernandes", null };
+            var artists = new string[] { "Thiago Fernandes", "@oiimrosabel", null };
 
             string app_name = "Digger";
             string comments = "A modern DNS lookup tool with an intuitive GTK interface";

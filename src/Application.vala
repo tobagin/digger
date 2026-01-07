@@ -59,6 +59,8 @@ namespace Digger {
                 { "about", on_about_action },
                 { "preferences", on_preferences_action },
                 { "shortcuts", on_shortcuts_action },
+                { "dnsbl-check", on_dnsbl_check_action },
+                { "performance-monitor", on_performance_monitor_action },
                 { "quit", quit }
             };
             add_action_entries (action_entries, this);
@@ -81,6 +83,10 @@ namespace Digger {
             set_accels_for_action ("win.batch-lookup", batch_lookup_accels);
             string[] compare_servers_accels = {"<primary>m"};
             set_accels_for_action ("win.compare-servers", compare_servers_accels);
+            string[] dnsbl_accels = {"<primary><shift>b"};
+            set_accels_for_action ("app.dnsbl-check", dnsbl_accels);
+            string[] perf_accels = {"<primary><shift>p"};
+            set_accels_for_action ("app.performance-monitor", perf_accels);
         }
         
         private void register_resources () {
@@ -146,6 +152,16 @@ namespace Digger {
 
         private void on_shortcuts_action () {
             ShortcutsDialog.present (main_window);
+        }
+
+        private void on_dnsbl_check_action () {
+            var dnsbl_dialog = new DnsblDialog (main_window);
+            dnsbl_dialog.present (main_window);
+        }
+
+        private void on_performance_monitor_action () {
+            var perf_dialog = new PerformanceDialog (main_window);
+            perf_dialog.present (main_window);
         }
     }
 }
