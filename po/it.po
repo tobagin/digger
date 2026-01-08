@@ -1,0 +1,248 @@
+# ITALIAN TRANSLATION.  
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Digger package. 
+# ALBANO BATTISTELLA <EMAIL@ADDRESS>, 2026.  
+#  
+#, fuzzy  
+msgid ""  
+msgstr ""  
+"Project-Id-Version: Digger 2.2.0\n"  
+"Report-Msgid-Bugs-To: tobagin@example.com\n"  
+"POT-Creation-Date: 2025-10-09 17:14+0100\n"  
+"PO-Revision-Date: 2025-01-08 21:05+0200\n"  
+"Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"  
+"Language-Team: Italian <LL@li.org>\n"  
+"Language: it\n"  
+"MIME-Version: 1.0\n"  
+"Content-Type: text/plain; charset=UTF-8\n"  
+"Content-Transfer-Encoding: 8bit\n"  
+   
+#: src/export-manager.vala:20  
+msgid "JSON"  
+msgstr "JSON"  
+   
+#: src/export-manager.vala:21  
+msgid "CSV"  
+msgstr "CSV"  
+   
+#: src/export-manager.vala:22  
+msgid "Plain Text"  
+msgstr "Testo semplice"  
+   
+#: src/export-manager.vala:23  
+msgid "DNS Zone File"  
+msgstr "File di zona DNS"  
+   
+#: src/export-manager.vala:24 src/secure-dns.vala:22  
+#: src/dnssec-validator.vala:21 src/dnssec-validator.vala:26  
+msgid "Unknown"  
+msgstr "Sconosciuto"  
+   
+#: src/export-manager.vala:72 src/export-manager.vala:91  
+#, c-format  
+msgid "Export failed: %s"  
+msgstr "Esportazione fallita: %s"  
+   
+#: src/favorites-manager.vala:104  
+#, c-format  
+msgid "Failed to create data directory: %s"  
+msgstr "Impossibile creare la directory dati: %s"  
+   
+#: src/favorites-manager.vala:138  
+#, c-format  
+msgid "Failed to load favorites: %s"  
+msgstr "Impossibile caricare i preferiti: %s"  
+   
+#: src/favorites-manager.vala:168  
+#, c-format  
+msgid "Failed to save favorites: %s"  
+msgstr "Impossibile salvare i preferiti: %s"  
+   
+#: src/batch-lookup-manager.vala:94  
+#, c-format  
+msgid "Failed to import batch file: %s"  
+msgstr "Impossibile importare il file batch: %s"  
+   
+#: src/batch-lookup-manager.vala:95  
+#, c-format  
+msgid "Failed to import file: %s"  
+msgstr "Impossibile importare il file: %s"  
+   
+#: src/batch-lookup-manager.vala:105  
+msgid "Batch lookup already in progress"  
+msgstr "Ricerca batch già in corso"  
+   
+#: src/batch-lookup-manager.vala:110  
+msgid "No tasks to execute"  
+msgstr "Nessun compito da eseguire"  
+   
+#: src/batch-lookup-manager.vala:215  
+msgid "Query returned no result"  
+msgstr "La query non ha prodotto risultati"  
+   
+#: src/comparison-manager.vala:172  
+msgid "No DNS servers configured for comparison"  
+msgstr "Nessun server DNS configurato per il confronto"  
+   
+#: src/comparison-manager.vala:198  
+#, c-format  
+msgid "Comparison query failed for server %s: %s"  
+msgstr "Query di confronto fallita per il server %s: %s"  
+   
+#: src/secure-dns.vala:19  
+msgid "Standard DNS"  
+msgstr "DNS standard"  
+   
+#: src/secure-dns.vala:20  
+msgid "DNS-over-HTTPS"  
+msgstr "DNS-over-HTTPS"  
+   
+#: src/secure-dns.vala:21  
+msgid "DNS-over-TLS"  
+msgstr "DNS-over-TLS"  
+   
+#. DNS-over-HTTPS providers  
+#: src/secure-dns.vala:61  
+msgid "Cloudflare DNS"  
+msgstr "Cloudflare DNS"  
+   
+#: src/secure-dns.vala:65  
+msgid "Fast and privacy-focused DNS"  
+msgstr "DNS veloce e attento alla privacy"  
+   
+#: src/secure-dns.vala:71  
+msgid "Google DNS"  
+msgstr "Google DNS"  
+   
+#: src/secure-dns.vala:75  
+msgid "Reliable DNS by Google"  
+msgstr "DNS affidabile di Google"  
+   
+#: src/secure-dns.vala:80  
+msgid "Quad9 DNS"  
+msgstr "Quad9 DNS"  
+   
+#: src/secure-dns.vala:84  
+msgid "Security-focused DNS with threat blocking"  
+msgstr "DNS focalizzato sulla sicurezza con blocco delle minacce"  
+   
+#: src/secure-dns.vala:90  
+msgid "AdGuard DNS"  
+msgstr "AdGuard DNS"  
+   
+#: src/secure-dns.vala:94  
+msgid "DNS with ad and tracker blocking"  
+msgstr "DNS con blocco di annunci e tracker"  
+   
+#: src/secure-dns.vala:100  
+msgid "Mullvad DNS"  
+msgstr "Mullvad DNS"  
+   
+#: src/secure-dns.vala:104  
+msgid "Privacy-focused VPN provider's DNS"  
+msgstr "DNS del provider VPN attento alla privacy"  
+   
+#. DNS-over-TLS providers  
+#: src/secure-dns.vala:110  
+msgid "Cloudflare DNS (DoT)"  
+msgstr "Cloudflare DNS (DoT)"  
+   
+#: src/secure-dns.vala:114  
+msgid "Cloudflare DNS via TLS"  
+msgstr "Cloudflare DNS via TLS"  
+   
+#: src/secure-dns.vala:120  
+msgid "Quad9 DNS (DoT)"  
+msgstr "Quad9 DNS (DoT)"  
+   
+#: src/secure-dns.vala:124  
+msgid "Quad9 DNS via TLS"  
+msgstr "Quad9 DNS via TLS"  
+   
+#: src/secure-dns.vala:186  
+#, c-format  
+msgid "DoH query failed: %s"  
+msgstr "Query DoH fallita: %s"  
+   
+#. DoT implementation would require GnuTLS or similar for TLS connection  
+#. For now, fallback to standard DNS with a note  
+#: src/secure-dns.vala:195  
+msgid "DNS-over-TLS (DoT) requires additional TLS library support"  
+msgstr "DNS-over-TLS (DoT) richiede il supporto aggiuntivo di librerie TLS"  
+   
+#: src/secure-dns.vala:196  
+msgid "Falling back to standard DNS query"  
+msgstr "Ritorno alla query DNS standard"  
+   
+#: src/dnssec-validator.vala:22  
+msgid "Secure"  
+msgstr "Sicuro"  
+   
+#: src/dnssec-validator.vala:23  
+msgid "Insecure"  
+msgstr "Non sicuro"  
+   
+#: src/dnssec-validator.vala:24  
+msgid "Bogus"  
+msgstr "Falso"  
+   
+#: src/dnssec-validator.vala:25  
+msgid "Indeterminate"  
+msgstr "Indeterminato"  
+   
+#: src/dnssec-validator.vala:43  
+msgid ""  
+"DNSSEC validation successful. This domain is cryptographically verified."  
+msgstr "Validazione DNSSEC riuscita. Questo dominio è verificato crittograficamente."  
+   
+#: src/dnssec-validator.vala:45  
+msgid "Domain does not support DNSSEC or DNSSEC is not enabled."  
+msgstr "Il dominio non supporta DNSSEC o DNSSEC non è abilitato."  
+   
+#: src/dnssec-validator.vala:47  
+msgid "DNSSEC validation failed! This domain may be compromised."  
+msgstr "Validazione DNSSEC fallita! Questo dominio potrebbe essere compromesso."  
+   
+#: src/dnssec-validator.vala:49  
+msgid "DNSSEC status could not be determined."  
+msgstr "Impossibile determinare lo stato DNSSEC."  
+   
+#: src/dnssec-validator.vala:51  
+msgid "DNSSEC validation not performed."  
+msgstr "Validazione DNSSEC non eseguita."  
+   
+#: src/dnssec-validator.vala:74  
+msgid "DNSSEC: Not enabled"  
+msgstr "DNSSEC: Non abilitato"  
+   
+#: src/dnssec-validator.vala:104  
+msgid "DNSKEY records found"  
+msgstr "Record DNSKEY trovati"  
+   
+#: src/dnssec-validator.vala:121  
+msgid "DS records found in parent zone"  
+msgstr "Record DS trovati nella zona padre"  
+   
+#: src/dnssec-validator.vala:138  
+msgid "RRSIG (signature) records found"  
+msgstr "Record RRSIG (firma) trovati"  
+   
+#. All required records present - assume secure  
+#. (Full validation would require cryptographic verification)  
+#: src/dnssec-validator.vala:149  
+msgid "Complete DNSSEC chain present"  
+msgstr "Catena DNSSEC completa presente"  
+   
+#. Partial DNSSEC deployment  
+#: src/dnssec-validator.vala:153  
+msgid "Incomplete DNSSEC configuration"  
+msgstr "Configurazione DNSSEC incompleta"  
+   
+#: src/dnssec-validator.vala:186  
+#, c-format  
+msgid "DNSSEC validation with dig failed: %s"  
+msgstr "Validazione DNSSEC con dig fallita: %s"  
+   
+#: src/dnssec-validator.vala:203  
+msgid "AD flag set - DNSSEC validated"  
+msgstr "Flag AD impostato - DNSSEC convalidato"  
