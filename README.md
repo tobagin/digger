@@ -54,52 +54,16 @@ A powerful and modern DNS lookup tool built with Vala, GTK4, and libadwaita. Dig
 
 ### Flatpak (Recommended)
 
+[![Get it on Flathub](https://flathub.org/api/badge)](https://flathub.org/en/apps/io.github.tobagin.digger)
+
+### From Source
+
 ```bash
-# Install from Flathub
-flatpak install flathub io.github.tobagin.digger
-flatpak run io.github.tobagin.digger
-```
+# Install dependencies
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-### Building from Source
-
-> **Note**: Building uses Flatpak, so no system dependencies are required. All dependencies are automatically handled by the build scripts.
-
-#### Using Build Scripts (Recommended)
-```bash
-git clone https://github.com/tobagin/digger.git
-cd digger
-
-# Production build
-./scripts/build.sh
-
-# Development build (with debug info)
+# Build and install
 ./scripts/build.sh --dev
-
-# Build and run development version
-./scripts/build.sh --dev --run
-```
-
-#### Using Flatpak Builder (Manual)
-```bash
-git clone https://github.com/tobagin/digger.git
-cd digger
-
-# Install Flatpak build dependencies
-sudo dnf install flatpak flatpak-builder  # Fedora/RHEL
-# sudo apt install flatpak flatpak-builder  # Ubuntu/Debian
-# sudo pacman -S flatpak flatpak-builder    # Arch Linux
-
-# Add Flathub repository and install GNOME SDK
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.gnome.Platform//49 org.gnome.Sdk//49
-
-# Build and install (Production)
-flatpak-builder --user --install --force-clean build-dir packaging/io.github.tobagin.digger.yml
-flatpak run io.github.tobagin.digger
-
-# Build and install (Development)
-flatpak-builder --user --install --force-clean build-dir-dev packaging/io.github.tobagin.digger.Devel.yml
-flatpak run io.github.tobagin.digger.Devel
 ```
 
 ## Usage
