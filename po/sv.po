@@ -1,0 +1,248 @@
+# Swedish translation for digger-vala.
+# Copyright (C) 2026 Free Software Foundation
+# This file is distributed under the same license as the Digger package.
+# Daniel Nylander <po@danielnylander.se>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Digger 2.2.0\n"
+"Report-Msgid-Bugs-To: tobagin@example.com\n"
+"POT-Creation-Date: 2025-10-09 17:14+0100\n"
+"PO-Revision-Date: 2026-01-18 08:20+0100\n"
+"Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
+"Language-Team: \n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/export-manager.vala:20
+msgid "JSON"
+msgstr "JSON"
+
+#: src/export-manager.vala:21
+msgid "CSV"
+msgstr "CSV"
+
+#: src/export-manager.vala:22
+msgid "Plain Text"
+msgstr "Vanlig text"
+
+#: src/export-manager.vala:23
+msgid "DNS Zone File"
+msgstr "DNS-zonfil"
+
+#: src/export-manager.vala:24 src/secure-dns.vala:22
+#: src/dnssec-validator.vala:21 src/dnssec-validator.vala:26
+msgid "Unknown"
+msgstr "Okänd"
+
+#: src/export-manager.vala:72 src/export-manager.vala:91
+#, c-format
+msgid "Export failed: %s"
+msgstr "Export misslyckades: %s"
+
+#: src/favorites-manager.vala:104
+#, c-format
+msgid "Failed to create data directory: %s"
+msgstr "Det gick inte att skapa datakatalogen: %s"
+
+#: src/favorites-manager.vala:138
+#, c-format
+msgid "Failed to load favorites: %s"
+msgstr "Det gick inte att läsa in favoriter: %s"
+
+#: src/favorites-manager.vala:168
+#, c-format
+msgid "Failed to save favorites: %s"
+msgstr "Det gick inte att spara favoriter: %s"
+
+#: src/batch-lookup-manager.vala:94
+#, c-format
+msgid "Failed to import batch file: %s"
+msgstr "Det gick inte att importera batchfilen: %s"
+
+#: src/batch-lookup-manager.vala:95
+#, c-format
+msgid "Failed to import file: %s"
+msgstr "Det gick inte att importera filen: %s"
+
+#: src/batch-lookup-manager.vala:105
+msgid "Batch lookup already in progress"
+msgstr "Massökning pågår redan"
+
+#: src/batch-lookup-manager.vala:110
+msgid "No tasks to execute"
+msgstr "Inga uppgifter att utföra"
+
+#: src/batch-lookup-manager.vala:215
+msgid "Query returned no result"
+msgstr "Sökningen gav inga resultat"
+
+#: src/comparison-manager.vala:172
+msgid "No DNS servers configured for comparison"
+msgstr "Inga DNS-servrar konfigurerade för jämförelse"
+
+#: src/comparison-manager.vala:198
+#, c-format
+msgid "Comparison query failed for server %s: %s"
+msgstr "Jämförelsesökningen misslyckades för servern %s: %s"
+
+#: src/secure-dns.vala:19
+msgid "Standard DNS"
+msgstr "Standard-DNS"
+
+#: src/secure-dns.vala:20
+msgid "DNS-over-HTTPS"
+msgstr "DNS över HTTPS"
+
+#: src/secure-dns.vala:21
+msgid "DNS-over-TLS"
+msgstr "DNS över TLS"
+
+#. DNS-over-HTTPS providers
+#: src/secure-dns.vala:61
+msgid "Cloudflare DNS"
+msgstr "Cloudflare DNS"
+
+#: src/secure-dns.vala:65
+msgid "Fast and privacy-focused DNS"
+msgstr "Snabb och integritetsfokuserad DNS"
+
+#: src/secure-dns.vala:71
+msgid "Google DNS"
+msgstr "Google DNS"
+
+#: src/secure-dns.vala:75
+msgid "Reliable DNS by Google"
+msgstr "Pålitlig DNS från Google"
+
+#: src/secure-dns.vala:80
+msgid "Quad9 DNS"
+msgstr "Quad9 DNS"
+
+#: src/secure-dns.vala:84
+msgid "Security-focused DNS with threat blocking"
+msgstr "Säkerhetsfokuserad DNS med hotblockering"
+
+#: src/secure-dns.vala:90
+msgid "AdGuard DNS"
+msgstr "AdGuard DNS"
+
+#: src/secure-dns.vala:94
+msgid "DNS with ad and tracker blocking"
+msgstr "DNS med blockering av annonser och spårare"
+
+#: src/secure-dns.vala:100
+msgid "Mullvad DNS"
+msgstr "Mullvad DNS"
+
+#: src/secure-dns.vala:104
+msgid "Privacy-focused VPN provider's DNS"
+msgstr "Sekretessfokuserad DNS från VPN-leverantör"
+
+#. DNS-over-TLS providers
+#: src/secure-dns.vala:110
+msgid "Cloudflare DNS (DoT)"
+msgstr "Cloudflare DNS (DoT)"
+
+#: src/secure-dns.vala:114
+msgid "Cloudflare DNS via TLS"
+msgstr "Cloudflare DNS via TLS"
+
+#: src/secure-dns.vala:120
+msgid "Quad9 DNS (DoT)"
+msgstr "Quad9 DNS (DoT)"
+
+#: src/secure-dns.vala:124
+msgid "Quad9 DNS via TLS"
+msgstr "Quad9 DNS via TLS"
+
+#: src/secure-dns.vala:186
+#, c-format
+msgid "DoH query failed: %s"
+msgstr "DoH-frågan misslyckades: %s"
+
+#. DoT implementation would require GnuTLS or similar for TLS connection
+#. For now, fallback to standard DNS with a note
+#: src/secure-dns.vala:195
+msgid "DNS-over-TLS (DoT) requires additional TLS library support"
+msgstr "DNS över TLS (DoT) kräver ytterligare stöd för TLS-bibliotek"
+
+#: src/secure-dns.vala:196
+msgid "Falling back to standard DNS query"
+msgstr "Återgå till standard DNS-fråga"
+
+#: src/dnssec-validator.vala:22
+msgid "Secure"
+msgstr "Säker"
+
+#: src/dnssec-validator.vala:23
+msgid "Insecure"
+msgstr "Osäker"
+
+#: src/dnssec-validator.vala:24
+msgid "Bogus"
+msgstr "Bogus"
+
+#: src/dnssec-validator.vala:25
+msgid "Indeterminate"
+msgstr "Obestämd"
+
+#: src/dnssec-validator.vala:43
+msgid "DNSSEC validation successful. This domain is cryptographically verified."
+msgstr "DNSSEC-validering lyckades. Denna domän är kryptografiskt verifierad."
+
+#: src/dnssec-validator.vala:45
+msgid "Domain does not support DNSSEC or DNSSEC is not enabled."
+msgstr "Domän stöder inte DNSSEC eller DNSSEC är inte aktiverat."
+
+#: src/dnssec-validator.vala:47
+msgid "DNSSEC validation failed! This domain may be compromised."
+msgstr "DNSSEC-valideringen misslyckades! Denna domän kan vara komprometterad."
+
+#: src/dnssec-validator.vala:49
+msgid "DNSSEC status could not be determined."
+msgstr "DNSSEC-status kunde inte fastställas."
+
+#: src/dnssec-validator.vala:51
+msgid "DNSSEC validation not performed."
+msgstr "DNSSEC-validering har inte utförts."
+
+#: src/dnssec-validator.vala:74
+msgid "DNSSEC: Not enabled"
+msgstr "DNSSEC: Inte aktiverat"
+
+#: src/dnssec-validator.vala:104
+msgid "DNSKEY records found"
+msgstr "DNSKEY-poster hittades"
+
+#: src/dnssec-validator.vala:121
+msgid "DS records found in parent zone"
+msgstr "DS-poster hittades i överordnad zon"
+
+#: src/dnssec-validator.vala:138
+msgid "RRSIG (signature) records found"
+msgstr "RRSIG-poster (signatur) hittades"
+
+#. All required records present - assume secure
+#. (Full validation would require cryptographic verification)
+#: src/dnssec-validator.vala:149
+msgid "Complete DNSSEC chain present"
+msgstr "Fullständig DNSSEC-kedja finns"
+
+#. Partial DNSSEC deployment
+#: src/dnssec-validator.vala:153
+msgid "Incomplete DNSSEC configuration"
+msgstr "Ofullständig DNSSEC-konfiguration"
+
+#: src/dnssec-validator.vala:186
+#, c-format
+msgid "DNSSEC validation with dig failed: %s"
+msgstr "DNSSEC-validering med dig misslyckades: %s"
+
+#: src/dnssec-validator.vala:203
+msgid "AD flag set - DNSSEC validated"
+msgstr "AD-flagga inställd – DNSSEC validerad"

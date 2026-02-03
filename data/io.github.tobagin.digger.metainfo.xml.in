@@ -4,57 +4,54 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Digger</name>
-  <summary>DNS lookup tool with graphical interface</summary>
+  <summary>Modern, advanced DNS lookup tool</summary>
   
   <description>
     <p>
-      Digger is a modern DNS lookup tool built with GTK4 and libadwaita that provides 
-      an intuitive interface for performing DNS queries and exploring DNS records.
+      Digger is a feature-rich DNS lookup tool designed for the GNOME desktop. It provides an 
+      intuitive interface for exploring DNS records, from simple queries to complex diagnostics.
     </p>
-    <p>Features:</p>
+    <p>Key features include:</p>
     <ul>
-      <li>Support for all major DNS record types (A, AAAA, MX, CNAME, NS, TXT, SOA, SRV, PTR)</li>
-      <li>Advanced DNS options including reverse lookups, trace queries, and custom DNS servers</li>
-      <li>Query history with search and filtering capabilities</li>
-      <li>One-click copying of DNS record values to clipboard</li>
-      <li>Modern adaptive interface that works well on desktop and mobile</li>
-      <li>Keyboard shortcuts for improved productivity</li>
+      <li>Support for all major DNS record types (A, AAAA, MX, TXT, NS, etc.)</li>
+      <li>Advanced options like reverse lookups, trace options, and custom servers</li>
+      <li>DNS Blacklist (DNSBL) checking and performance monitoring</li>
+      <li>Secure DNS-over-HTTPS (DoH) support</li>
+      <li>History with search and favorites management</li>
+      <li>Batch lookup and server comparison tools</li>
     </ul>
   </description>
-  
+
+  <branding>
+    <color type="primary" scheme_preference="light">#3584e4</color>
+    <color type="primary" scheme_preference="dark">#3584e4</color>
+  </branding>
   
   <screenshots>
     <screenshot type="default" xml:lang="en">
       <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/main.png</image>
-      <caption>Main application window with DNS lookup interface and favorites system</caption>
+      <caption>Main application window</caption>
     </screenshot>
     <screenshot xml:lang="en">
       <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/lookup.png</image>
-      <caption>DNS query results with DNSSEC validation and export capabilities</caption>
-    </screenshot>
-    <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/autocomplete.png</image>
-      <caption>Smart autocomplete with domain suggestions and favorites integration</caption>
+      <caption>Query results with DNSSEC validation</caption>
     </screenshot>
     <screenshot xml:lang="en">
       <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/history.png</image>
-      <caption>Query history with advanced search and filtering capabilities</caption>
+      <caption>Query history and search</caption>
     </screenshot>
     <screenshot xml:lang="en">
       <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/preferences.png</image>
-      <caption>Comprehensive preferences with DoH providers and DNSSEC validation settings</caption>
-    </screenshot>
-    <screenshot xml:lang="en">
-      <image>https://raw.githubusercontent.com/tobagin/digger/main/data/screenshots/about.png</image>
-      <caption>About dialog with automatic release notes and application information</caption>
+      <caption>Preferences and configuration</caption>
     </screenshot>
   </screenshots>
   
   <url type="homepage">https://github.com/tobagin/digger</url>
   <url type="bugtracker">https://github.com/tobagin/digger/issues</url>
   <url type="help">https://github.com/tobagin/digger/discussions</url>
-  <url type="donation">https://github.com/sponsors/tobagin</url>
+  <url type="donation">https://ko-fi.com/tobagin</url>
   <url type="contact">https://github.com/tobagin</url>
+  <url type="vcs-browser">https://github.com/tobagin/digger</url>
   <url type="contribute">https://github.com/tobagin/digger</url>
 
   <developer_name>Thiago Fernandes</developer_name>
@@ -69,6 +66,16 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.6.1" date="2026-01-12">
+      <description>
+        <p>Maintenance release with documentation and improvements</p>
+        <ul>
+          <li>Documentation: Simplified README structure and improved build instructions</li>
+          <li>Metadata: Shortened summary and refined description for better app store presentation</li>
+          <li>Branding: Added official branding colors for Flathub</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.6.0" date="2026-01-07">
       <description>
         <p>Major feature release with DNSBL and Performance Monitoring</p>
