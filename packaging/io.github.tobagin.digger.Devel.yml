@@ -1,6 +1,6 @@
 app-id: io.github.tobagin.digger.Devel
 runtime: org.gnome.Platform
-runtime-version: '49'
+runtime-version: '50'
 sdk: org.gnome.Sdk
 command: digger-vala
 finish-args:
@@ -42,8 +42,8 @@ modules:
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://dist.libuv.org/dist/v1.48.0/libuv-v1.48.0.tar.gz
-        sha256: 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
+        url: https://dist.libuv.org/dist/v1.52.1/libuv-v1.52.1.tar.gz
+        sha256: 66d511b9e6e334c0e62279eb234fbfb2b3110b1479c09b95b44c7afca8cff9e7
     config-opts:
       - --disable-static
       - --enable-shared
@@ -110,8 +110,8 @@ modules:
     buildsystem: simple
     sources:
       - type: archive
-        url: https://github.com/rfc1036/whois/archive/refs/tags/v5.5.22.tar.gz
-        sha256: b7de4288700951b141420e2b4408f0906eaf4e97409cf5043aee80ef4d31e2b4
+        url: https://github.com/rfc1036/whois/archive/refs/tags/v5.6.6.tar.gz
+        sha256: 43d3b3cc64c75e8bd10aee6feff3906e9488ed335076d206e70f3b25bf644969
     build-commands:
       - make whois
       - install -Dm755 whois /app/bin/whois

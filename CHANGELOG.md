@@ -5,6 +5,14 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-06-03
+
+### Changed
+- **Runtime**: Updated to the GNOME 50 runtime.
+- **Dependencies**: Bundled libuv updated to 1.52.1.
+- **Dependencies**: Bundled whois updated to 5.6.6.
+
+
 ## [2.6.1] - 2026-01-12
 
 ### Added
