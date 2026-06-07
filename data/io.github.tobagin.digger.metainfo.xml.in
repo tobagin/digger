@@ -66,6 +66,14 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.7.1" date="2026-06-07">
+      <description>
+        <p>Bug fix release</p>
+        <ul>
+          <li>Increased default window height so the "Look up DNS records" button is fully visible on launch</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.7.0" date="2026-06-03">
       <description>
         <p>Maintenance release with updated bundled dependencies</p>

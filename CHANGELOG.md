@@ -5,6 +5,12 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.1] - 2026-06-07
+
+### Fixed
+- **Window**: Increased default window height so the "Look up DNS records" button is fully visible on launch (#19).
+
+
 ## [2.7.0] - 2026-06-03
 
 ### Changed
