@@ -21,7 +21,7 @@ namespace Digger {
         [GtkChild]
         private unowned Adw.PreferencesGroup watches_group;
         [GtkChild]
-        private unowned Gtk.Label status_label;
+        private unowned Adw.WindowTitle window_title;
 
         private const string[] RECORD_TYPES = { "A", "AAAA", "CNAME", "MX", "NS", "TXT" };
         private MonitorService service;
@@ -74,10 +74,10 @@ namespace Digger {
 
         [GtkCallback]
         private void on_check_now () {
-            show_status (("Checking all watched domains…"));
+            show_status ("Checking all watched domains…");
             service.check_all.begin ((obj, res) => {
                 service.check_all.end (res);
-                show_status (("Check complete."));
+                show_status ("");
             });
         }
 
@@ -90,9 +90,7 @@ namespace Digger {
             foreach (var watch in service.get_watches ()) {
                 var row = new Adw.ActionRow ();
                 row.title = "%s  (%s)".printf (watch.domain, watch.record_type.to_string ());
-                string subtitle = watch.last_signature == ""
-                    ? ("Not checked yet")
-                    : watch.last_signature;
+                string subtitle = watch.status_line ();
                 if (watch.last_checked != "") {
                     subtitle += "  •  " + watch.last_checked;
                 }
@@ -101,17 +99,17 @@ namespace Digger {
                 if (watch.changed) {
                     var badge = new Gtk.Image () { icon_name = "dialog-warning-symbolic" };
                     badge.add_css_class ("warning");
-                    badge.tooltip_text = ("Changed since last check");
+                    badge.tooltip_text = "Changed since last check";
                     row.add_prefix (badge);
                 }
 
                 var remove_button = new Gtk.Button.from_icon_name ("user-trash-symbolic");
                 remove_button.valign = Gtk.Align.CENTER;
                 remove_button.add_css_class ("flat");
-                remove_button.tooltip_text = ("Stop watching");
+                remove_button.tooltip_text = "Stop watching";
                 var captured = watch;
                 remove_button.clicked.connect (() => {
-                    service.remove_watch (captured);
+                    confirm_remove (captured);
                 });
                 row.add_suffix (remove_button);
 
@@ -120,9 +118,25 @@ namespace Digger {
             }
         }
 
+        private void confirm_remove (MonitorWatch watch) {
+            var dialog = new Adw.AlertDialog (
+                "Stop watching?",
+                "Stop monitoring %s (%s)?".printf (watch.domain, watch.record_type.to_string ()));
+            dialog.add_response ("cancel", "Cancel");
+            dialog.add_response ("remove", "Stop Watching");
+            dialog.set_response_appearance ("remove", Adw.ResponseAppearance.DESTRUCTIVE);
+            dialog.set_default_response ("cancel");
+            dialog.set_close_response ("cancel");
+            dialog.response.connect ((response) => {
+                if (response == "remove") {
+                    service.remove_watch (watch);
+                }
+            });
+            dialog.present (this);
+        }
+
         private void show_status (string message) {
-            status_label.label = message;
-            status_label.visible = true;
+            window_title.subtitle = message;
         }
     }
 }

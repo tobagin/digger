@@ -15,6 +15,10 @@ template $DiggerMonitorDialog: Adw.Dialog {
                 tooltip-text: _("Add watch");
                 clicked => $on_add_clicked();
             }
+
+            title-widget: Adw.WindowTitle window_title {
+                title: _("Domain Monitoring");
+            };
         }
 
         content: Box {
@@ -24,12 +28,6 @@ template $DiggerMonitorDialog: Adw.Dialog {
             margin-bottom: 24;
             margin-start: 24;
             margin-end: 24;
-
-            Label status_label {
-                visible: false;
-                label: "";
-                xalign: 0;
-            }
 
             ScrolledWindow {
                 vexpand: true;

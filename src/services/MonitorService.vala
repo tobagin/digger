@@ -14,6 +14,9 @@ namespace Digger {
         public RecordType record_type { get; set; }
         public string last_signature { get; set; default = ""; }
         public string last_checked { get; set; default = ""; }
+        // "" = never checked, "ok" = records found, "empty" = no records,
+        // "failed" = lookup error. Persisted so status survives a restart.
+        public string last_status { get; set; default = ""; }
         public bool changed { get; set; default = false; }
 
         public MonitorWatch (string domain, RecordType record_type) {
@@ -23,6 +26,16 @@ namespace Digger {
 
         public string key () {
             return @"$domain|$(record_type.to_string ())";
+        }
+
+        // Human-readable status line for the list row.
+        public string status_line () {
+            switch (last_status) {
+                case "ok":     return last_signature;
+                case "empty":  return "No records found";
+                case "failed": return "Lookup failed";
+                default:       return "Not checked yet";
+            }
         }
     }
 
@@ -97,7 +110,10 @@ namespace Digger {
         private async void check_one (MonitorWatch watch) {
             var result = yield dns_query.perform_query (watch.domain, watch.record_type);
             watch.last_checked = new DateTime.now_local ().format ("%Y-%m-%d %H:%M");
+
             if (result == null || result.status != QueryStatus.SUCCESS) {
+                watch.last_status = "failed";
+                save ();
                 list_updated ();
                 return;
             }
@@ -109,13 +125,15 @@ namespace Digger {
             values.sort ();
             string signature = string.joinv (",", values.to_array ());
 
-            bool first_seen = (watch.last_signature == "");
-            if (!first_seen && signature != watch.last_signature) {
+            // A successful lookup with no records is distinct from "never checked".
+            bool had_signature = (watch.last_status != "");
+            if (had_signature && signature != watch.last_signature) {
                 watch.changed = true;
                 notify_change (watch, watch.last_signature, signature);
                 watch_changed (watch);
             }
             watch.last_signature = signature;
+            watch.last_status = (signature == "") ? "empty" : "ok";
             save ();
             list_updated ();
         }
@@ -175,6 +193,9 @@ namespace Digger {
                     if (obj.has_member ("last_checked")) {
                         watch.last_checked = obj.get_string_member ("last_checked");
                     }
+                    if (obj.has_member ("last_status")) {
+                        watch.last_status = obj.get_string_member ("last_status");
+                    }
                     watches.add (watch);
                 }
             } catch (Error e) {
@@ -196,6 +217,8 @@ namespace Digger {
                     builder.add_string_value (watch.last_signature);
                     builder.set_member_name ("last_checked");
                     builder.add_string_value (watch.last_checked);
+                    builder.set_member_name ("last_status");
+                    builder.add_string_value (watch.last_status);
                     builder.end_object ();
                 }
                 builder.end_array ();
