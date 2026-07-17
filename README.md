@@ -2,6 +2,8 @@
 
 A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 
+[![CI](https://github.com/tobagin/digger/actions/workflows/ci.yml/badge.svg)](https://github.com/tobagin/digger/actions/workflows/ci.yml)
+
 <div align="center">
 
 ![Digger Application](data/screenshots/main.png)
