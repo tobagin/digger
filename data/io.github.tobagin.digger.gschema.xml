@@ -131,5 +131,10 @@
       <summary>User-defined query presets</summary>
       <description>JSON array of user-created query preset configurations</description>
     </key>
+    <key name="monitor-interval-minutes" type="i">
+      <default>30</default>
+      <summary>Domain monitoring interval in minutes</summary>
+      <description>How often watched domains are re-checked for record changes while the app is running</description>
+    </key>
   </schema>
 </schemalist>

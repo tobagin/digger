@@ -12,6 +12,10 @@
     <file compressed="true" preprocess="xml-stripblanks">history-dialog.ui</file>
     <file preprocess="xml-stripblanks">dnsbl-dialog.ui</file>
     <file preprocess="xml-stripblanks">performance-dialog.ui</file>
+    <file preprocess="xml-stripblanks">propagation-dialog.ui</file>
+    <file preprocess="xml-stripblanks">subdomain-dialog.ui</file>
+    <file preprocess="xml-stripblanks">dnssec-dialog.ui</file>
+    <file preprocess="xml-stripblanks">monitor-dialog.ui</file>
 
     <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>

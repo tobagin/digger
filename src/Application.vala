@@ -61,6 +61,10 @@ namespace Digger {
                 { "shortcuts", on_shortcuts_action },
                 { "dnsbl-check", on_dnsbl_check_action },
                 { "performance-monitor", on_performance_monitor_action },
+                { "propagation-check", on_propagation_check_action },
+                { "subdomain-scan", on_subdomain_scan_action },
+                { "dnssec-chain", on_dnssec_chain_action },
+                { "domain-monitor", on_domain_monitor_action },
                 { "quit", quit }
             };
             add_action_entries (action_entries, this);
@@ -87,6 +91,14 @@ namespace Digger {
             set_accels_for_action ("app.dnsbl-check", dnsbl_accels);
             string[] perf_accels = {"<primary><shift>p"};
             set_accels_for_action ("app.performance-monitor", perf_accels);
+            string[] propagation_accels = {"<primary><shift>g"};
+            set_accels_for_action ("app.propagation-check", propagation_accels);
+            string[] subdomain_accels = {"<primary><shift>e"};
+            set_accels_for_action ("app.subdomain-scan", subdomain_accels);
+            string[] dnssec_accels = {"<primary><shift>k"};
+            set_accels_for_action ("app.dnssec-chain", dnssec_accels);
+            string[] monitor_accels = {"<primary><shift>w"};
+            set_accels_for_action ("app.domain-monitor", monitor_accels);
         }
         
         private void register_resources () {
@@ -100,6 +112,8 @@ namespace Digger {
             if (main_window == null) {
                 query_history = new QueryHistory ();
                 main_window = new Window (this, query_history);
+                // Start watching persisted domains for the session.
+                MonitorService.get_instance ();
             }
 
             main_window.present ();
@@ -162,6 +176,26 @@ namespace Digger {
         private void on_performance_monitor_action () {
             var perf_dialog = new PerformanceDialog (main_window);
             perf_dialog.present (main_window);
+        }
+
+        private void on_propagation_check_action () {
+            var dialog = new PropagationDialog (main_window);
+            dialog.present (main_window);
+        }
+
+        private void on_subdomain_scan_action () {
+            var dialog = new SubdomainDialog (main_window);
+            dialog.present (main_window);
+        }
+
+        private void on_dnssec_chain_action () {
+            var dialog = new DnssecDialog (main_window);
+            dialog.present (main_window);
+        }
+
+        private void on_domain_monitor_action () {
+            var dialog = new MonitorDialog (main_window);
+            dialog.present (main_window);
         }
     }
 }

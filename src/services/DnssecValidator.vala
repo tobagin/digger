@@ -61,11 +61,77 @@ namespace Digger {
         }
     }
 
+    public class DnssecChainLink : Object {
+        public string zone { get; set; }
+        public bool has_dnskey { get; set; }
+        public bool has_ds { get; set; }
+        public bool is_apex { get; set; }  // full queried domain (leaf of the chain)
+
+        public DnssecChainLink (string zone) {
+            this.zone = zone;
+        }
+
+        // A link is trusted when the zone is signed (DNSKEY) and the parent
+        // vouches for it (DS) — except the root/TLD apex where DS lives above.
+        public bool is_secure () {
+            return has_dnskey && has_ds;
+        }
+
+        public string status_label () {
+            if (is_secure ()) return "Signed & delegated";
+            if (has_dnskey && !has_ds) return "Signed, no delegation (DS)";
+            if (!has_dnskey && has_ds) return "Delegation present, zone unsigned";
+            return "Unsigned";
+        }
+
+        public string icon_name () {
+            if (is_secure ()) return "security-high-symbolic";
+            if (has_dnskey || has_ds) return "security-low-symbolic";
+            return "security-medium-symbolic";
+        }
+    }
+
     public class DnssecValidator : Object {
         private DnsQuery dns_query;
 
         public DnssecValidator () {
             dns_query = new DnsQuery ();
+        }
+
+        // Builds the chain of trust from the TLD down to the full domain,
+        // querying DNSKEY (zone signed?) and DS (parent delegation?) per level.
+        public async Gee.List<DnssecChainLink> validate_chain (string domain, string? dns_server = null) {
+            var links = new Gee.ArrayList<DnssecChainLink> ();
+            string trimmed = domain.strip ();
+            if (trimmed.has_suffix (".")) {
+                trimmed = trimmed.substring (0, trimmed.length - 1);
+            }
+            var labels = trimmed.split (".");
+            if (labels.length == 0 || trimmed.length == 0) {
+                return links;
+            }
+
+            // Progressive suffixes: "com", "example.com", "www.example.com".
+            for (int i = labels.length - 1; i >= 0; i--) {
+                var slice = labels[i:labels.length];
+                string zone = string.joinv (".", slice);
+                var link = new DnssecChainLink (zone);
+                link.is_apex = (i == 0);
+
+                var dnskey = yield dns_query.perform_query (zone, RecordType.DNSKEY, dns_server);
+                if (dnskey != null && dnskey.status == QueryStatus.SUCCESS) {
+                    link.has_dnskey = dnskey.answer_section.size > 0;
+                }
+
+                var ds = yield dns_query.perform_query (zone, RecordType.DS, dns_server);
+                if (ds != null && ds.status == QueryStatus.SUCCESS) {
+                    link.has_ds = ds.answer_section.size > 0;
+                }
+
+                links.add (link);
+            }
+
+            return links;
         }
 
         public async DnssecValidationResult validate_domain (string domain, string? dns_server = null) {

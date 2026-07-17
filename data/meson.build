@@ -70,6 +70,10 @@ blueprint_files = [
   'ui/dialogs/history-dialog.blp',
   'ui/dialogs/dnsbl-dialog.blp',
   'ui/dialogs/performance-dialog.blp',
+  'ui/dialogs/propagation-dialog.blp',
+  'ui/dialogs/subdomain-dialog.blp',
+  'ui/dialogs/dnssec-dialog.blp',
+  'ui/dialogs/monitor-dialog.blp',
   # Widgets
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',

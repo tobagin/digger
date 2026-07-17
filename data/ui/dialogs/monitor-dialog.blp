@@ -1,0 +1,77 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerMonitorDialog: Adw.Dialog {
+    title: _("Domain Monitoring");
+    content-width: 640;
+    content-height: 580;
+
+    Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {
+            [end]
+            Button {
+                label: _("Check Now");
+                clicked => $on_check_now();
+            }
+        }
+
+        content: Box {
+            orientation: vertical;
+            spacing: 18;
+            margin-top: 24;
+            margin-bottom: 24;
+            margin-start: 24;
+            margin-end: 24;
+
+            Adw.PreferencesGroup {
+                title: _("Add a Watch");
+
+                Adw.EntryRow input_entry {
+                    title: _("Domain");
+                    activates-default: true;
+                }
+
+                Adw.ActionRow {
+                    title: _("Record Type");
+
+                    DropDown record_type_dropdown {
+                        valign: center;
+                    }
+                }
+            }
+
+            Label status_label {
+                visible: false;
+                label: "";
+                xalign: 0;
+            }
+
+            ScrolledWindow {
+                vexpand: true;
+                hscrollbar-policy: never;
+                propagate-natural-height: true;
+
+                Adw.PreferencesGroup watches_group {
+                    title: _("Watched Domains");
+                }
+            }
+        };
+
+        [bottom]
+        Adw.HeaderBar {
+            show-start-title-buttons: false;
+            show-end-title-buttons: false;
+
+            title-widget: Button {
+                label: _("Add Watch");
+
+                styles [
+                    "suggested-action",
+                ]
+
+                clicked => $on_add_clicked();
+            };
+        }
+    }
+}
