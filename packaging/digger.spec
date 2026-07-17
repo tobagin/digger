@@ -40,6 +40,7 @@ and DNS-over-HTTPS support.
 
 %install
 %meson_install
+%find_lang %{name}-vala
 
 
 %check
@@ -47,7 +48,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/io.github.tobagin.dig
 appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.metainfo.xml
 
 
-%files
+%files -f %{name}-vala.lang
 %license LICENSE
 %doc README.md
 %{_bindir}/digger-vala

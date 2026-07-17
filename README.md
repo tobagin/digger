@@ -51,6 +51,31 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Clipboard Integration**: One-click copying of record values.
 - **Keyboard Shortcuts**: Efficient navigation for power users.
 
+## Installation
+
+### Flathub (recommended)
+
+```bash
+flatpak install flathub io.github.tobagin.digger
+```
+
+### Fedora (official repositories, Fedora 43+)
+
+```bash
+sudo dnf install digger
+```
+
+### Debian (official repositories, currently in unstable/sid)
+
+```bash
+sudo apt install digger
+```
+
+### Direct download
+
+Prebuilt `.deb` and `.rpm` packages are attached to every
+[GitHub release](https://github.com/tobagin/digger/releases).
+
 ## Building from Source
 
 ```bash

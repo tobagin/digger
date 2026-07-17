@@ -1,0 +1,24 @@
+Source: digger
+Section: net
+Priority: optional
+Maintainer: Thiago Fernandes <thiago@avila-fernandes.com>
+Build-Depends: debhelper-compat (= 13),
+               blueprint-compiler,
+               libadwaita-1-dev (>= 1.8),
+               libgee-0.8-dev,
+               libgtk-4-dev (>= 4.6.0),
+               libjson-glib-dev,
+               libsoup-3.0-dev,
+               meson (>= 0.58.0),
+               valac
+Standards-Version: 4.7.0
+Homepage: https://github.com/tobagin/digger
+
+Package: digger
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, bind9-dnsutils
+Description: Modern DNS lookup tool for GNOME
+ A powerful and modern DNS lookup tool built with Vala, GTK4 and
+ libadwaita. Digger provides an intuitive interface for DNS queries
+ with batch lookups, server comparison, DNSSEC validation and
+ DNS-over-HTTPS support.

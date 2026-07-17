@@ -1,0 +1,92 @@
+name: Release Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deb:
+    runs-on: ubuntu-latest
+    container: debian:sid
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential debhelper meson valac blueprint-compiler \
+            libgtk-4-dev libadwaita-1-dev libjson-glib-dev libgee-0.8-dev \
+            libsoup-3.0-dev
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build .deb
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          cp -r packaging/debian debian
+          chmod +x debian/rules
+          {
+            echo "digger (${VERSION}-1) unstable; urgency=medium"
+            echo
+            echo "  * New upstream release ${VERSION}."
+            echo
+            echo " -- Thiago Fernandes <thiago@avila-fernandes.com>  $(date -R)"
+          } > debian/changelog
+          dpkg-buildpackage -us -uc -b
+          mkdir dist
+          mv ../digger_*.deb dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: dist/*.deb
+
+  rpm:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    steps:
+      - name: Install build tools
+        run: dnf install -y git rpm-build rpmautospec dnf5-plugins
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: dnf builddep -y packaging/digger.spec
+
+      - name: Build .rpm
+        run: |
+          git config --global --add safe.directory "$PWD"
+          VERSION=${GITHUB_REF_NAME#v}
+          sed -i "s/^Version:.*/Version:        ${VERSION}/" packaging/digger.spec
+          mkdir -p rpmbuild/SOURCES
+          git archive --format=tar.gz --prefix="digger-${VERSION}/" \
+            -o "rpmbuild/SOURCES/digger-${VERSION}.tar.gz" HEAD
+          rpmbuild -bb --define "_topdir $PWD/rpmbuild" packaging/digger.spec
+          mkdir dist
+          mv rpmbuild/RPMS/*/digger-[0-9]*.rpm dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: dist/*.rpm
+
+  release:
+    needs: [deb, rpm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Attach packages to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
