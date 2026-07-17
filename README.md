@@ -13,23 +13,26 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 
 </div>
 
-## 🎉 Version 2.6.1 - Latest Release
+## 🎉 Version 2.8.0 - Latest Release
 
-**Digger 2.6.1** brings documentation improvements and metadata updates.
+**Digger 2.8.0** adds four new DNS tools and hardens security.
 
 ### ✨ Key Features
 
 - **🔍 Advanced DNS Queries**: Support for all major DNS record types with DNSSEC validation.
+- **🌍 Propagation Check**: Compare a record across eight public resolvers to see how far it has propagated.
 - **🛡️ DNS Blacklist Checking**: Check IPs against multiple RBL providers in parallel.
 - **📊 Performance Monitor**: Real-time DNS latency visualization for major providers.
 - **🌐 WHOIS Integration**: Domain registration lookup with intelligent caching.
 - **📱 Responsive Design**: Beautiful adaptive layout for all screen sizes.
 
-### 🆕 What's New in 2.6.1
+### 🆕 What's New in 2.8.0
 
-- **Documentation**: Simplified README structure and improved build instructions.
-- **Metadata**: Shortened summary and refined description.
-- **Branding**: Added official branding colors.
+- **DNS Propagation Check**: Query a record across eight public resolvers in parallel and spot any that disagree.
+- **Subdomain Enumeration**: Discover live subdomains from a built-in wordlist.
+- **DNSSEC Chain of Trust**: Visualize the chain of trust from the TLD down to your domain.
+- **Domain Monitoring**: Get desktop notifications when a watched domain's records change.
+- **Security Hardening**: Fixed a DNS-over-HTTPS parser out-of-bounds read and tightened input validation and exports.
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 
@@ -43,6 +46,10 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 
 ### Productivity Tools
 - **Server Comparison**: Compare response times and results across multiple DNS servers.
+- **Propagation Check**: See how a record has propagated across eight public resolvers.
+- **Subdomain Enumeration**: Discover live subdomains from a built-in wordlist.
+- **DNSSEC Chain of Trust**: Walk the chain from the TLD down to your domain.
+- **Domain Monitoring**: Watch domains and get notified when their records change.
 - **Batch Lookup**: Query multiple domains at once from CSV/TXT files.
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
 - **History & Favorites**: Keep track of your queries and save important domains.

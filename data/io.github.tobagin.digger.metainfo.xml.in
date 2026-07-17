@@ -66,6 +66,19 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.8.0" date="2026-07-17">
+      <description>
+        <p>Feature release with new DNS tools and security hardening</p>
+        <ul>
+          <li>DNS Propagation Check - compare a record across eight public resolvers (Ctrl+Shift+G)</li>
+          <li>Subdomain Enumeration - discover live subdomains from a built-in wordlist (Ctrl+Shift+E)</li>
+          <li>DNSSEC Chain of Trust - visualize the chain from the TLD down to the domain (Ctrl+Shift+K)</li>
+          <li>Domain Monitoring - watch domains for record changes with desktop notifications (Ctrl+Shift+W)</li>
+          <li>Security: fixed a DNS-over-HTTPS parser out-of-bounds read and hardened input validation and exports</li>
+          <li>DNS-over-HTTPS now decodes all common record types and follows RFC 8484</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.7.1" date="2026-06-07">
       <description>
         <p>Bug fix release</p>

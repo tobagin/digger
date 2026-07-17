@@ -5,6 +5,31 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-07-17
+
+### Added
+- **DNS Propagation Check**: Query a record across eight public resolvers in parallel and flag any that disagree with the consensus (`Ctrl+Shift+G`).
+- **Subdomain Enumeration**: Discover live subdomains from a built-in wordlist using bounded-concurrency lookups (`Ctrl+Shift+E`).
+- **DNSSEC Chain of Trust**: Visualize the chain from the TLD down to the domain, showing DNSKEY/DS presence at each level (`Ctrl+Shift+K`).
+- **Domain Monitoring**: Watch domains for record changes and receive a desktop notification when they change; check interval configurable via settings (`Ctrl+Shift+W`).
+- **Continuous Integration**: Added a GitHub Actions workflow that builds the project on every push and pull request.
+
+### Security
+- **DoH Parser**: Fixed an out-of-bounds read when parsing malformed DNS-over-HTTPS responses, and added protection against compression-pointer loops.
+- **Input Validation**: Reverse lookups and WHOIS queries now validate their input before it reaches the command line.
+- **Exports**: Guarded CSV output against spreadsheet formula injection and escaped control characters in JSON output.
+- **Command Generation**: Replaced hand-rolled shell escaping with a correct implementation.
+
+### Changed
+- **Secure DNS**: DNS-over-HTTPS now uses RFC 8484 unpadded base64url and renders CNAME/NS/PTR/MX/TXT/SOA/SRV records instead of raw hex.
+- **DNS Server Comparison**: Aligned the action button styling with the other dialogs.
+- **Query Presets**: Removed a non-selectable "System Presets" divider from the preset dropdown.
+- **Cleanup**: Removed roughly 1,200 lines of unused code.
+
+### Fixed
+- **About**: Corrected the developer name shown in the About dialog.
+
+
 ## [2.7.1] - 2026-06-07
 
 ### Fixed
