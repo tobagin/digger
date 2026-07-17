@@ -87,9 +87,11 @@ namespace Digger {
 
             try {
                 var dns_query_bytes = build_dns_query (domain, record_type);
-                var b64_query = Base64.encode (dns_query_bytes);
+                // RFC 8484 requires unpadded base64url for the ?dns= parameter.
+                var b64_query = Base64.encode (dns_query_bytes)
+                    .replace ("+", "-").replace ("/", "_").replace ("=", "");
 
-                var uri = doh_endpoint + "?dns=" + Uri.escape_string (b64_query);
+                var uri = doh_endpoint + "?dns=" + b64_query;
                 var message = new Soup.Message ("GET", uri);
                 message.request_headers.append ("Accept", "application/dns-message");
 
@@ -118,8 +120,8 @@ namespace Digger {
         private uint8[] build_dns_query (string domain, RecordType record_type) {
             var query = new ByteArray ();
 
-            uint16 txid = (uint16) Random.int_range (0, 65536);
-            query.append ({ (uint8)(txid >> 8), (uint8)(txid & 0xFF) });
+            // RFC 8484 §4.1: use ID 0 with GET so responses stay cache-friendly.
+            query.append ({ 0x00, 0x00 });
             query.append ({ 0x01, 0x00 });
             query.append ({ 0x00, 0x01 });
             query.append ({ 0x00, 0x00 });
@@ -142,6 +144,13 @@ namespace Digger {
 
         private void parse_dns_response (uint8[] data, QueryResult result) {
             if (data.length < Constants.MIN_DNS_PACKET_SIZE) {
+                result.status = QueryStatus.NETWORK_ERROR;
+                return;
+            }
+
+            // We always send ID 0 (RFC 8484 GET); a mismatched ID means the
+            // response doesn't belong to our query.
+            if (data[0] != 0 || data[1] != 0) {
                 result.status = QueryStatus.NETWORK_ERROR;
                 return;
             }
@@ -203,6 +212,12 @@ namespace Digger {
 
             offset = skip_name (data, offset);
 
+            // Re-check bounds: skip_name advanced the offset, so the fixed
+            // 10-byte record header (type+class+ttl+rdlength) must still fit.
+            if (offset + 10 > data.length) {
+                return null;
+            }
+
             uint16 rtype = ((uint16)data[offset] << 8) | data[offset + 1];
             offset += 4;
 
@@ -238,17 +253,124 @@ namespace Digger {
             return offset;
         }
 
-        private string parse_rdata (uint8[] data, int offset, uint16 length, uint16 rtype) {
-            if (rtype == 1 && length == 4) {
-                return @"$(data[offset]).$(data[offset+1]).$(data[offset+2]).$(data[offset+3])";
-            } else if (rtype == 28 && length == 16) {
-                var parts = new string[8];
-                for (int i = 0; i < 8; i++) {
-                    parts[i] = "%04x".printf(((uint16)data[offset + i*2] << 8) | data[offset + i*2 + 1]);
+        /**
+         * Decodes a (possibly compressed) DNS name starting at `start`.
+         * Follows 0xC0 compression pointers with a hop cap to defeat pointer
+         * loops. `end` receives the offset just past the name in the linear
+         * region (before the first pointer jump), for continued parsing.
+         */
+        private string read_name (uint8[] data, int start, out int end) {
+            var parts = new StringBuilder ();
+            int offset = start;
+            bool jumped = false;
+            int hops = 0;
+            end = start;
+
+            while (offset >= 0 && offset < data.length && hops < 128) {
+                uint8 len = data[offset];
+                if (len == 0) {
+                    if (!jumped) end = offset + 1;
+                    break;
                 }
-                return string.joinv (":", parts);
+                if ((len & 0xC0) == 0xC0) {
+                    if (offset + 1 >= data.length) break;
+                    int pointer = ((len & 0x3F) << 8) | data[offset + 1];
+                    if (!jumped) end = offset + 2;
+                    jumped = true;
+                    offset = pointer;
+                    hops++;
+                    continue;
+                }
+                if (offset + 1 + len > data.length) break;
+                if (parts.len > 0) parts.append (".");
+                for (int i = 0; i < len; i++) {
+                    parts.append_c ((char) data[offset + 1 + i]);
+                }
+                offset += len + 1;
+                if (!jumped) end = offset;
+                hops++;
             }
 
+            return parts.str;
+        }
+
+        private string read_txt (uint8[] data, int offset, uint16 length) {
+            var sb = new StringBuilder ();
+            int p = offset;
+            int limit = int.min (offset + length, data.length);
+            while (p < limit) {
+                uint8 slen = data[p];
+                p++;
+                for (int i = 0; i < slen && p < limit; i++) {
+                    sb.append_c ((char) data[p]);
+                    p++;
+                }
+            }
+            return sb.str;
+        }
+
+        private uint32 read_u32 (uint8[] data, int o) {
+            return ((uint32)data[o] << 24) | ((uint32)data[o+1] << 16) |
+                   ((uint32)data[o+2] << 8) | data[o+3];
+        }
+
+        private string parse_rdata (uint8[] data, int offset, uint16 length, uint16 rtype) {
+            int end;
+            switch (rtype) {
+                case 1: // A
+                    if (length == 4) {
+                        return @"$(data[offset]).$(data[offset+1]).$(data[offset+2]).$(data[offset+3])";
+                    }
+                    break;
+                case 28: // AAAA
+                    if (length == 16) {
+                        var parts = new string[8];
+                        for (int i = 0; i < 8; i++) {
+                            parts[i] = "%04x".printf (((uint16)data[offset + i*2] << 8) | data[offset + i*2 + 1]);
+                        }
+                        return string.joinv (":", parts);
+                    }
+                    break;
+                case 5:  // CNAME
+                case 2:  // NS
+                case 12: // PTR
+                    return read_name (data, offset, out end);
+                case 15: // MX
+                    if (length >= 3) {
+                        uint16 pref = ((uint16)data[offset] << 8) | data[offset + 1];
+                        string exch = read_name (data, offset + 2, out end);
+                        return @"$pref $exch";
+                    }
+                    break;
+                case 16: // TXT
+                    return read_txt (data, offset, length);
+                case 6:  // SOA
+                    if (length >= 22) {
+                        int p = offset;
+                        string mname = read_name (data, p, out end); p = end;
+                        string rname = read_name (data, p, out end); p = end;
+                        if (p + 20 <= data.length) {
+                            uint32 serial = read_u32 (data, p);
+                            uint32 refresh = read_u32 (data, p + 4);
+                            uint32 retry = read_u32 (data, p + 8);
+                            uint32 expire = read_u32 (data, p + 12);
+                            uint32 minimum = read_u32 (data, p + 16);
+                            return @"$mname $rname $serial $refresh $retry $expire $minimum";
+                        }
+                    }
+                    break;
+                case 33: // SRV
+                    if (length >= 7) {
+                        uint16 prio = ((uint16)data[offset] << 8) | data[offset + 1];
+                        uint16 weight = ((uint16)data[offset + 2] << 8) | data[offset + 3];
+                        uint16 port = ((uint16)data[offset + 4] << 8) | data[offset + 5];
+                        string target = read_name (data, offset + 6, out end);
+                        return @"$prio $weight $port $target";
+                    }
+                    break;
+            }
+
+            // Fallback for binary types (DNSKEY, DS, RRSIG, NSEC, HTTPS, …).
             var hex = new StringBuilder ();
             for (int i = 0; i < length && i < Constants.MAX_RECORD_DATA_DISPLAY_LENGTH; i++) {
                 hex.append_printf ("%02x", data[offset + i]);

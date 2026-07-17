@@ -407,18 +407,42 @@ namespace Digger {
         }
 
         private string escape_json_string (string str) {
-            return str.replace ("\\", "\\\\")
-                     .replace ("\"", "\\\"")
-                     .replace ("\n", "\\n")
-                     .replace ("\r", "\\r")
-                     .replace ("\t", "\\t");
+            var builder = new StringBuilder ();
+            int len = str.length;
+            for (int i = 0; i < len; i++) {
+                char c = str[i];
+                switch (c) {
+                    case '\\': builder.append ("\\\\"); break;
+                    case '"':  builder.append ("\\\""); break;
+                    case '\n': builder.append ("\\n"); break;
+                    case '\r': builder.append ("\\r"); break;
+                    case '\t': builder.append ("\\t"); break;
+                    default:
+                        // Escape remaining C0 control characters as \u00XX; JSON
+                        // forbids raw control chars and record data is untrusted.
+                        if ((uint8) c < 0x20) {
+                            builder.append_printf ("\\u%04x", (uint8) c);
+                        } else {
+                            builder.append_c (c);
+                        }
+                        break;
+                }
+            }
+            return builder.str;
         }
 
         private string escape_csv (string str) {
-            if (str.contains (",") || str.contains ("\"") || str.contains ("\n")) {
-                return str.replace ("\"", "\"\"");
+            // The callers always wrap the returned value in double quotes, so
+            // double any embedded quote unconditionally.
+            string escaped = str.replace ("\"", "\"\"");
+
+            // Guard against spreadsheet formula injection: a field beginning with
+            // =, +, -, or @ (record data is third-party controlled) is prefixed
+            // with a single quote so Excel/LibreOffice treat it as text.
+            if (escaped.length > 0 && "=+-@".index_of_char (escaped[0]) >= 0) {
+                escaped = "'" + escaped;
             }
-            return str;
+            return escaped;
         }
 
         /**

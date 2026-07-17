@@ -28,6 +28,15 @@ namespace Digger {
         }
 
         public async WhoisData? perform_whois_query (string domain) {
+            // Validate before the value reaches whois' argv. Accept hostnames
+            // and IPs (reverse lookups pass an IP through here as result.domain).
+            if (!ValidationUtils.is_valid_hostname (domain) &&
+                !ValidationUtils.is_valid_ipv4 (domain) &&
+                !ValidationUtils.is_valid_ipv6 (domain)) {
+                query_failed ("Invalid domain or IP format for WHOIS lookup.");
+                return null;
+            }
+
             // Check cache first
             var cached_data = cache.get (domain);
             if (cached_data != null) {
@@ -82,6 +91,7 @@ namespace Digger {
         private string[] build_whois_command (string domain) {
             var args = new Gee.ArrayList<string> ();
             args.add (WHOIS_COMMAND);
+            args.add ("--");  // stop option parsing; domain can't be read as a flag
             args.add (domain);
 
             // Convert to string array

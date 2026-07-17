@@ -41,12 +41,17 @@ namespace Digger {
                                                 bool short_output = false,
                                                 bool request_dnssec = false) {
             
-            if (!is_valid_domain (domain) && !reverse_lookup) {
+            // Reverse lookups must be validated as an IP address; otherwise a
+            // value like "-f/etc/passwd" would reach dig's argv as a flag.
+            bool input_valid = reverse_lookup
+                ? (ValidationUtils.is_valid_ipv4 (domain) || ValidationUtils.is_valid_ipv6 (domain))
+                : is_valid_domain (domain);
+            if (!input_valid) {
                 var result = new QueryResult ();
                 result.domain = domain;
                 result.query_type = record_type;
                 result.status = QueryStatus.INVALID_DOMAIN;
-                query_failed ("Invalid domain format");
+                query_failed (reverse_lookup ? "Invalid IP address format" : "Invalid domain format");
                 return result;
             }
 
@@ -227,6 +232,16 @@ namespace Digger {
             result.trace_path = trace_path;
             result.short_output = short_output;
             result.request_dnssec = request_dnssec;
+
+            // Same validation as the async path: block flag/injection input
+            // before it reaches dig's argv (this path is fed by batch imports).
+            bool input_valid = reverse_lookup
+                ? (ValidationUtils.is_valid_ipv4 (domain) || ValidationUtils.is_valid_ipv6 (domain))
+                : is_valid_domain (domain);
+            if (!input_valid) {
+                result.status = QueryStatus.INVALID_DOMAIN;
+                return result;
+            }
 
             var timer = new Timer ();
             timer.start ();

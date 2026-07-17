@@ -159,36 +159,9 @@ namespace Digger {
          * @return Shell-safe string
          */
         private string shell_escape (string input) {
-            // Check if escaping is needed
-            if (!needs_escaping (input)) {
-                return input;
-            }
-
-            // Simple quote wrapping for strings with special characters
-            return @"'$(input.replace ("'", "'\\''"))'";
-        }
-
-        /**
-         * Check if a string needs shell escaping
-         */
-        private bool needs_escaping (string input) {
-            return input.contains (" ") ||
-                   input.contains ("$") ||
-                   input.contains ("`") ||
-                   input.contains ("\"") ||
-                   input.contains ("\\") ||
-                   input.contains ("!") ||
-                   input.contains (";") ||
-                   input.contains ("&") ||
-                   input.contains ("|") ||
-                   input.contains (">") ||
-                   input.contains ("<") ||
-                   input.contains ("*") ||
-                   input.contains ("?") ||
-                   input.contains ("[") ||
-                   input.contains ("]") ||
-                   input.contains ("(") ||
-                   input.contains (")");
+            // GLib's quoter is correct on every shell metacharacter, including
+            // the single quote the previous hand-rolled check missed.
+            return Shell.quote (input);
         }
 
         /**
