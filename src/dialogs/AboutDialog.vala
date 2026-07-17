@@ -32,7 +32,7 @@ namespace Digger {
             var about = new Adw.AboutDialog() {
                 application_name = app_name,
                 application_icon = Config.APP_ID,
-                developer_name = "The Digger Team",
+                developer_name = "Thiago Fernandes",
                 version = Config.VERSION,
                 developers = developers,
                 designers = designers,
