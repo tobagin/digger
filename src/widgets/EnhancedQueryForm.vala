@@ -248,16 +248,13 @@ namespace Digger {
             // Add "No preset" option
             model.append ("No preset selected");
 
-            // Add separator marker
-            model.append ("─ System Presets ─");
-
             // Add system presets
             var system_presets = preset_manager.get_system_presets ();
             foreach (var preset in system_presets) {
                 model.append (preset.get_display_name ());
             }
 
-            // Add user presets if any exist
+            // Add user presets under a divider if any exist
             var user_presets = preset_manager.get_user_presets ();
             if (user_presets.size > 0) {
                 model.append ("─ Custom Presets ─");
@@ -284,16 +281,13 @@ namespace Digger {
             // Add "No preset" option
             model.append ("No preset selected");
 
-            // Add separator marker
-            model.append ("─ System Presets ─");
-
             // Add system presets
             var system_presets = preset_manager.get_system_presets ();
             foreach (var preset in system_presets) {
                 model.append (preset.get_display_name ());
             }
 
-            // Add user presets if any exist
+            // Add user presets under a divider if any exist
             var user_presets = preset_manager.get_user_presets ();
             if (user_presets.size > 0) {
                 model.append ("─ Custom Presets ─");

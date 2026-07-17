@@ -8,7 +8,6 @@ template $DiggerComparisonDialog : Adw.Dialog {
   Adw.Breakpoint {
     condition ("max-width: 768sp")
     setters {
-      compare_button.height-request: 44;
       back_button.height-request: 44;
     }
   }
@@ -40,11 +39,12 @@ template $DiggerComparisonDialog : Adw.Dialog {
         child: Adw.ToolbarView {
           [bottom]
           Adw.HeaderBar {
+            show-start-title-buttons: false;
             show-end-title-buttons: false;
 
             title-widget: Button compare_button {
               label: "Compare DNS Servers";
-              styles ["suggested-action", "pill"]
+              styles ["suggested-action"]
             };
           }
 
@@ -148,11 +148,12 @@ template $DiggerComparisonDialog : Adw.Dialog {
         child: Adw.ToolbarView {
           [bottom]
           Adw.HeaderBar {
+            show-start-title-buttons: false;
             show-end-title-buttons: false;
 
             title-widget: Button new_comparison_button {
               label: "New Comparison";
-              styles ["suggested-action", "pill"]
+              styles ["suggested-action"]
             };
 
             [end]
