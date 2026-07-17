@@ -4,11 +4,24 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and attach packages to (e.g. v2.8.0)'
+        required: true
 
 jobs:
   deb:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     container: debian:sid
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
     steps:
       - name: Install build dependencies
         run: |
@@ -20,10 +33,14 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
 
       - name: Build .deb
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${TAG#v}
           cp -r packaging/debian debian
           chmod +x debian/rules
           {
@@ -40,26 +57,38 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deb
+          name: deb-${{ matrix.arch }}
           path: dist/*.deb
 
   rpm:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     container: fedora:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
     steps:
       - name: Install build tools
         run: dnf install -y git rpm-build rpmautospec dnf5-plugins
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
 
       - name: Install build dependencies
         run: dnf builddep -y packaging/digger.spec
 
       - name: Build .rpm
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           git config --global --add safe.directory "$PWD"
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${TAG#v}
           sed -i "s/^Version:.*/Version:        ${VERSION}/" packaging/digger.spec
           mkdir -p rpmbuild/SOURCES
           git archive --format=tar.gz --prefix="digger-${VERSION}/" \
@@ -71,7 +100,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rpm
+          name: rpm-${{ matrix.arch }}
           path: dist/*.rpm
 
   release:
@@ -89,4 +118,5 @@ jobs:
       - name: Attach packages to release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/*
