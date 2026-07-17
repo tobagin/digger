@@ -9,10 +9,11 @@ template $DiggerMonitorDialog: Adw.Dialog {
     Adw.ToolbarView {
         [top]
         Adw.HeaderBar {
-            [end]
+            [start]
             Button {
-                label: _("Check Now");
-                clicked => $on_check_now();
+                icon-name: "list-add-symbolic";
+                tooltip-text: _("Add watch");
+                clicked => $on_add_clicked();
             }
         }
 
@@ -23,23 +24,6 @@ template $DiggerMonitorDialog: Adw.Dialog {
             margin-bottom: 24;
             margin-start: 24;
             margin-end: 24;
-
-            Adw.PreferencesGroup {
-                title: _("Add a Watch");
-
-                Adw.EntryRow input_entry {
-                    title: _("Domain");
-                    activates-default: true;
-                }
-
-                Adw.ActionRow {
-                    title: _("Record Type");
-
-                    DropDown record_type_dropdown {
-                        valign: center;
-                    }
-                }
-            }
 
             Label status_label {
                 visible: false;
@@ -64,13 +48,13 @@ template $DiggerMonitorDialog: Adw.Dialog {
             show-end-title-buttons: false;
 
             title-widget: Button {
-                label: _("Add Watch");
+                label: _("Check Now");
 
                 styles [
                     "suggested-action",
                 ]
 
-                clicked => $on_add_clicked();
+                clicked => $on_check_now();
             };
         }
     }

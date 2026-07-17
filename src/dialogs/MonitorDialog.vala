@@ -19,10 +19,6 @@ namespace Digger {
 #endif
     public class MonitorDialog : Adw.Dialog {
         [GtkChild]
-        private unowned Adw.EntryRow input_entry;
-        [GtkChild]
-        private unowned Gtk.DropDown record_type_dropdown;
-        [GtkChild]
         private unowned Adw.PreferencesGroup watches_group;
         [GtkChild]
         private unowned Gtk.Label status_label;
@@ -34,25 +30,46 @@ namespace Digger {
         public MonitorDialog (Gtk.Widget? parent) {
             service = MonitorService.get_instance ();
             rows = new Gee.ArrayList<Gtk.Widget> ();
-            record_type_dropdown.model = new Gtk.StringList (RECORD_TYPES);
             service.list_updated.connect (rebuild_list);
             rebuild_list ();
         }
 
         [GtkCallback]
         private void on_add_clicked () {
-            string domain = input_entry.text.strip ();
-            if (domain.length == 0 || !ValidationUtils.is_valid_hostname (domain)) {
-                show_status (("Enter a valid domain."));
-                return;
-            }
-            var record_type = RecordType.from_string (RECORD_TYPES[record_type_dropdown.selected]);
-            if (service.add_watch (domain, record_type)) {
-                input_entry.text = "";
-                show_status (("Now watching %s.").printf (domain));
-            } else {
-                show_status (("Already watching that domain and type."));
-            }
+            var entry = new Adw.EntryRow () { title = "Domain" };
+            var type_row = new Adw.ComboRow () { title = "Record Type" };
+            type_row.model = new Gtk.StringList (RECORD_TYPES);
+
+            var group = new Adw.PreferencesGroup ();
+            group.add (entry);
+            group.add (type_row);
+
+            var dialog = new Adw.AlertDialog ("Add Watch", null);
+            dialog.set_extra_child (group);
+            dialog.add_response ("cancel", "Cancel");
+            dialog.add_response ("add", "Add");
+            dialog.set_response_appearance ("add", Adw.ResponseAppearance.SUGGESTED);
+            dialog.set_default_response ("add");
+            dialog.set_close_response ("cancel");
+
+            dialog.response.connect ((response) => {
+                if (response != "add") {
+                    return;
+                }
+                string domain = entry.text.strip ();
+                if (domain.length == 0 || !ValidationUtils.is_valid_hostname (domain)) {
+                    show_status ("Enter a valid domain.");
+                    return;
+                }
+                var record_type = RecordType.from_string (RECORD_TYPES[type_row.selected]);
+                if (service.add_watch (domain, record_type)) {
+                    show_status ("Now watching %s.".printf (domain));
+                } else {
+                    show_status ("Already watching that domain and type.");
+                }
+            });
+
+            dialog.present (this);
         }
 
         [GtkCallback]
