@@ -10,16 +10,13 @@
     <file compressed="true" preprocess="xml-stripblanks">batch-lookup-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">comparison-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">autocomplete-dialog.ui</file>
     <file preprocess="xml-stripblanks">dnsbl-dialog.ui</file>
     <file preprocess="xml-stripblanks">performance-dialog.ui</file>
 
     <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-result-view.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">advanced-options.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">autocomplete-dropdown.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">enhanced-history-search.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-popover.ui</file>
   </gresource>
 </gresources>

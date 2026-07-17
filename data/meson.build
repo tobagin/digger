@@ -68,15 +68,12 @@ blueprint_files = [
   'ui/dialogs/batch-lookup-dialog.blp',
   'ui/dialogs/comparison-dialog.blp',
   'ui/dialogs/history-dialog.blp',
-  'ui/dialogs/autocomplete-dialog.blp',
   'ui/dialogs/dnsbl-dialog.blp',
   'ui/dialogs/performance-dialog.blp',
   # Widgets
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',
-  'ui/widgets/advanced-options.blp',
   'ui/widgets/autocomplete-dropdown.blp',
-  'ui/widgets/enhanced-history-search.blp',
   'ui/widgets/history-popover.blp',
 ]
 

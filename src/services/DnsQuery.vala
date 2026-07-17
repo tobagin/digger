@@ -578,30 +578,6 @@ namespace Digger {
             }
         }
 
-        /**
-         * Legacy synchronous wrapper (deprecated, use async version)
-         */
-        private bool check_dig_available () {
-            if (dig_available_cache != null) {
-                return dig_available_cache;
-            }
-
-            try {
-                string standard_output;
-                int exit_status;
-
-                Process.spawn_command_line_sync ("which " + DIG_COMMAND,
-                                               out standard_output,
-                                               null,
-                                               out exit_status);
-                dig_available_cache = (exit_status == 0);
-                return dig_available_cache;
-            } catch (SpawnError e) {
-                dig_available_cache = false;
-                return false;
-            }
-        }
-
         private bool is_valid_domain (string domain) {
             // SEC-003: Simplified validation relying on GLib's IDN conversion
             // This ensures robust support for IDNs while blocking command injection
