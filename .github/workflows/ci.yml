@@ -14,7 +14,8 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential meson valac blueprint-compiler \
+            build-essential meson valac blueprint-compiler gettext \
+            libglib2.0-dev-bin \
             libgtk-4-dev libadwaita-1-dev libjson-glib-dev libgee-0.8-dev \
             libsoup-3.0-dev
 
