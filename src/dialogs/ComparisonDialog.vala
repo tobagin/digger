@@ -102,14 +102,7 @@ namespace Digger {
         }
 
         private void setup_ui () {
-            var model = new Gtk.StringList (null);
-            model.append ("A - IPv4 Address");
-            model.append ("AAAA - IPv6 Address");
-            model.append ("MX - Mail Exchange");
-            model.append ("TXT - Text Record");
-            model.append ("NS - Name Server");
-            model.append ("CNAME - Canonical Name");
-            record_type_dropdown.model = model;
+            record_type_dropdown.model = UiUtils.create_common_record_type_model ();
             record_type_dropdown.selected = 0;
         }
 
@@ -131,9 +124,6 @@ namespace Digger {
 
         private void validate_input () {
             var domain = domain_entry.text.strip ();
-            var servers_selected = google_switch.active || cloudflare_switch.active ||
-                                 quad9_switch.active || opendns_switch.active ||
-                                 system_switch.active;
 
             var server_count = 0;
             if (google_switch.active) server_count++;
@@ -316,25 +306,12 @@ namespace Digger {
         }
 
         private void clear_results_display () {
-            debug ("=== CLEARING RESULTS DISPLAY ===");
-
             // Stats rows are reusable - no need to remove, just update content
             // Discrepancy row is reusable - just hide the group
             discrepancy_group.visible = false;
 
             // Only clear the server results (PreferencesGroups in results_container)
-            var results_children = new Gee.ArrayList<Gtk.Widget> ();
-            Gtk.Widget? child = results_container.get_first_child ();
-            while (child != null) {
-                results_children.add (child);
-                child = child.get_next_sibling ();
-            }
-            foreach (var widget in results_children) {
-                results_container.remove (widget);
-            }
-            debug ("  Cleared %d server result groups", results_children.size);
-
-            debug ("=== DONE CLEARING ===");
+            UiUtils.clear_children (results_container);
         }
 
         private string get_server_display_name (string dns_server) {
@@ -370,9 +347,7 @@ namespace Digger {
         }
 
         private RecordType get_selected_record_type () {
-            var selected_text = ((Gtk.StringList) record_type_dropdown.model).get_string (record_type_dropdown.selected);
-            var type_code = selected_text.split (" - ")[0];
-            return RecordType.from_string (type_code);
+            return UiUtils.get_selected_record_type (record_type_dropdown);
         }
 
         private void export_results () {
@@ -380,42 +355,16 @@ namespace Digger {
                 return;
             }
 
-            // Create file chooser dialog
-            var file_dialog = new Gtk.FileDialog () {
-                title = "Export Comparison Results",
-                modal = true
-            };
-
-            // Set up file filters
-            var filter_json = new Gtk.FileFilter ();
-            filter_json.set_filter_name ("JSON (*.json)");
-            filter_json.add_pattern ("*.json");
-
-            var filter_csv = new Gtk.FileFilter ();
-            filter_csv.set_filter_name ("CSV (*.csv)");
-            filter_csv.add_pattern ("*.csv");
-
-            var filter_text = new Gtk.FileFilter ();
-            filter_text.set_filter_name ("Plain Text (*.txt)");
-            filter_text.add_pattern ("*.txt");
-
-            var filter_all = new Gtk.FileFilter ();
-            filter_all.set_filter_name ("All Files");
-            filter_all.add_pattern ("*");
-
-            var filter_list = new GLib.ListStore (typeof (Gtk.FileFilter));
-            filter_list.append (filter_json);
-            filter_list.append (filter_csv);
-            filter_list.append (filter_text);
-            filter_list.append (filter_all);
-
-            file_dialog.filters = filter_list;
-            file_dialog.default_filter = filter_json;
-
-            // Set default filename: comparison.{domain}.{date}.json
+            // Default filename: comparison.{domain}.{date}.json
             var domain = current_comparison_result.domain;
             var date = current_comparison_result.timestamp.format ("%Y-%m-%d");
-            file_dialog.initial_name = @"comparison.$(domain).$(date).json";
+
+            var file_dialog = UiUtils.create_file_dialog (
+                "Export Comparison Results",
+                @"comparison.$(domain).$(date).json",
+                { "JSON (*.json)", "CSV (*.csv)", "Plain Text (*.txt)", "All Files" },
+                { "*.json", "*.csv", "*.txt", "*" }
+            );
 
             // Show save dialog
             file_dialog.save.begin (this.get_root () as Gtk.Window, null, (obj, res) => {

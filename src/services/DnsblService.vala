@@ -35,7 +35,6 @@ namespace Digger {
     }
 
     public class DnsblService : Object {
-        private static DnsblService? instance = null;
         private DnsQuery dns_query;
         
         // Common RBL providers
@@ -50,15 +49,8 @@ namespace Digger {
             { "cbl.abuseat.org", "CBL" }
         };
 
-        public static DnsblService get_instance () {
-            if (instance == null) {
-                instance = new DnsblService ();
-            }
-            return instance;
-        }
-
         construct {
-            dns_query = DnsQuery.get_instance ();
+            dns_query = new DnsQuery ();
         }
 
         public async ArrayList<DnsblResult> check_ip (string ip_address) {
@@ -75,37 +67,20 @@ namespace Digger {
                 results.add (new DnsblResult (DEFAULT_PROVIDERS[i, 0], DEFAULT_PROVIDERS[i, 1]));
             }
 
-            // Process checks in parallel
-            // We'll limit concurrency to avoid overwhelming system resources
-            
+            // Process checks in parallel, resuming once every probe completes.
+            int pending = results.size;
+            SourceFunc resume = check_ip.callback;
             foreach (var result in results) {
                 check_provider.begin (reversed_ip, result, (obj, res) => {
                     check_provider.end (res);
+                    pending--;
+                    if (pending == 0) {
+                        Idle.add ((owned) resume);
+                    }
                 });
             }
-
-            // Wait for all to complete (in a real app we might want better async handling here)
-            // For now, we'll return the list which will be updated asystnchronously
-            // Ideally we'd use a barrier or similar, but Vala async/yield simplifies this
-            // We will yield until all statuses are no longer CHECKING
-            
-            bool all_done = false;
-            while (!all_done) {
-                all_done = true;
-                foreach (var result in results) {
-                    if (result.status == DnsblStatus.CHECKING) {
-                        all_done = false;
-                        break;
-                    }
-                }
-                if (!all_done) {
-                    // Small delay to prevent busy loop
-                    Timeout.add (100, () => {
-                        check_ip.callback ();
-                        return false; 
-                    });
-                    yield;
-                }
+            if (pending > 0) {
+                yield;
             }
 
             return results;

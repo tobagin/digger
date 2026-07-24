@@ -54,26 +54,6 @@ namespace Digger {
             return obj;
         }
 
-        public string get_display_label () {
-            if (label.length > 0) {
-                return label;
-            }
-            return domain;
-        }
-
-        public Gee.ArrayList<string> get_tag_list () {
-            var tag_list = new Gee.ArrayList<string> ();
-            if (tags != null && tags.length > 0) {
-                var parts = tags.split (",");
-                foreach (var part in parts) {
-                    var trimmed = part.strip ();
-                    if (trimmed.length > 0) {
-                        tag_list.add (trimmed);
-                    }
-                }
-            }
-            return tag_list;
-        }
     }
 
     public class FavoritesManager : Object {
@@ -205,11 +185,6 @@ namespace Digger {
             favorites_updated ();
         }
 
-        public void update_favorite (FavoriteEntry entry) {
-            save_favorites.begin ();
-            favorites_updated ();
-        }
-
         public bool is_favorite (string domain, RecordType record_type) {
             // O(1) hash map lookup instead of O(n) linear search
             var key = make_key (domain, record_type);
@@ -231,38 +206,6 @@ namespace Digger {
          */
         private string make_key (string domain, RecordType record_type) {
             return @"$domain:$(record_type.to_string())";
-        }
-
-        public Gee.ArrayList<FavoriteEntry> get_all_favorites () {
-            return favorites;
-        }
-
-        public Gee.ArrayList<FavoriteEntry> search_favorites (string query) {
-            var results = new Gee.ArrayList<FavoriteEntry> ();
-            string lower_query = query.down ();
-
-            foreach (var fav in favorites) {
-                if (fav.domain.down ().contains (lower_query) ||
-                    fav.label.down ().contains (lower_query) ||
-                    (fav.tags != null && fav.tags.down ().contains (lower_query))) {
-                    results.add (fav);
-                }
-            }
-
-            return results;
-        }
-
-        public Gee.HashSet<string> get_all_tags () {
-            var tag_set = new Gee.HashSet<string> ();
-
-            foreach (var fav in favorites) {
-                var tags = fav.get_tag_list ();
-                foreach (var tag in tags) {
-                    tag_set.add (tag);
-                }
-            }
-
-            return tag_set;
         }
     }
 }

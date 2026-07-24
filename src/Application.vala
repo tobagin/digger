@@ -15,40 +15,13 @@ namespace Digger {
     public class Application : Adw.Application {
         private Window? main_window = null;
         private QueryHistory query_history;
-        private string app_id;
         private uint release_notes_timeout_id = 0;
 
         public Application () {
-            // Detect if we're running as development version by checking data files
-            string detected_app_id = detect_app_id ();
-            
             Object (
-                application_id: detected_app_id,
+                application_id: Config.APP_ID,
                 flags: ApplicationFlags.DEFAULT_FLAGS
             );
-            
-            app_id = detected_app_id;
-        }
-        
-        private static string detect_app_id () {
-            // Check if development desktop file exists
-            string devel_desktop = Path.build_filename (Environment.get_user_data_dir (), 
-                                                        "applications", 
-                                                        "io.github.tobagin.digger.Devel.desktop");
-            if (FileUtils.test (devel_desktop, FileTest.EXISTS)) {
-                return "io.github.tobagin.digger.Devel";
-            }
-            
-            // Check system directories for development version
-            string[] system_dirs = {"/app/share", "/usr/share", "/usr/local/share"};
-            foreach (string dir in system_dirs) {
-                string devel_file = Path.build_filename (dir, "applications", "io.github.tobagin.digger.Devel.desktop");
-                if (FileUtils.test (devel_file, FileTest.EXISTS)) {
-                    return "io.github.tobagin.digger.Devel";
-                }
-            }
-            
-            return Config.APP_ID;
         }
 
         construct {
@@ -69,36 +42,27 @@ namespace Digger {
             };
             add_action_entries (action_entries, this);
 
-            string[] quit_accels = {"<primary>q"};
-            set_accels_for_action ("app.quit", quit_accels);
-            string[] new_query_accels = {"<primary>l"};
-            set_accels_for_action ("win.new-query", new_query_accels);
-            string[] repeat_query_accels = {"<primary>r"};
-            set_accels_for_action ("win.repeat-query", repeat_query_accels);
-            string[] clear_results_accels = {"Escape"};
-            set_accels_for_action ("win.clear-results", clear_results_accels);
-            string[] shortcuts_accels = {"<primary>question"};
-            set_accels_for_action ("app.shortcuts", shortcuts_accels);
-            string[] about_accels = {"F1"};
-            set_accels_for_action ("app.about", about_accels);
-            string[] preferences_accels = {"<primary>comma"};
-            set_accels_for_action ("app.preferences", preferences_accels);
-            string[] batch_lookup_accels = {"<primary>b"};
-            set_accels_for_action ("win.batch-lookup", batch_lookup_accels);
-            string[] compare_servers_accels = {"<primary>m"};
-            set_accels_for_action ("win.compare-servers", compare_servers_accels);
-            string[] dnsbl_accels = {"<primary><shift>b"};
-            set_accels_for_action ("app.dnsbl-check", dnsbl_accels);
-            string[] perf_accels = {"<primary><shift>p"};
-            set_accels_for_action ("app.performance-monitor", perf_accels);
-            string[] propagation_accels = {"<primary><shift>g"};
-            set_accels_for_action ("app.propagation-check", propagation_accels);
-            string[] subdomain_accels = {"<primary><shift>e"};
-            set_accels_for_action ("app.subdomain-scan", subdomain_accels);
-            string[] dnssec_accels = {"<primary><shift>k"};
-            set_accels_for_action ("app.dnssec-chain", dnssec_accels);
-            string[] monitor_accels = {"<primary><shift>w"};
-            set_accels_for_action ("app.domain-monitor", monitor_accels);
+            string[,] accels = {
+                { "app.quit", "<primary>q" },
+                { "win.new-query", "<primary>l" },
+                { "win.repeat-query", "<primary>r" },
+                { "win.clear-results", "Escape" },
+                { "app.shortcuts", "<primary>question" },
+                { "app.about", "F1" },
+                { "app.preferences", "<primary>comma" },
+                { "win.batch-lookup", "<primary>b" },
+                { "win.compare-servers", "<primary>m" },
+                { "app.dnsbl-check", "<primary><shift>b" },
+                { "app.performance-monitor", "<primary><shift>p" },
+                { "app.propagation-check", "<primary><shift>g" },
+                { "app.subdomain-scan", "<primary><shift>e" },
+                { "app.dnssec-chain", "<primary><shift>k" },
+                { "app.domain-monitor", "<primary><shift>w" }
+            };
+            for (int i = 0; i < accels.length[0]; i++) {
+                string[] accel = { accels[i, 1] };
+                set_accels_for_action (accels[i, 0], accel);
+            }
         }
         
         private void register_resources () {
@@ -129,16 +93,8 @@ namespace Digger {
             }
         }
 
-        ~Application () {
-            // Cancel timeout on destruction
-            if (release_notes_timeout_id > 0) {
-                Source.remove (release_notes_timeout_id);
-                release_notes_timeout_id = 0;
-            }
-        }
-        
         private bool should_show_release_notes () {
-            var settings = new Settings (app_id);
+            var settings = new Settings (Config.APP_ID);
             string last_version = settings.get_string ("last-version-shown");
             string current_version = Config.VERSION;
 
@@ -152,7 +108,7 @@ namespace Digger {
         }
 
         private void show_about_with_release_notes () {
-            AboutDialog.show_with_release_notes (main_window);
+            AboutDialog.show (main_window);
         }
 
         private void on_about_action () {

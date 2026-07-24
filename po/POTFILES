@@ -24,6 +24,5 @@ data/ui/enhanced-result-view.blp
 data/ui/advanced-options.blp
 data/ui/autocomplete-dropdown.blp
 data/ui/enhanced-history-search.blp
-data/ui/history-popover.blp
 data/io.github.tobagin.digger.desktop.in
 data/io.github.tobagin.digger.metainfo.xml.in

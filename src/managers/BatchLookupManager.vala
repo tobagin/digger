@@ -34,18 +34,9 @@ namespace Digger {
         private uint total_count = 0;
         private Cancellable? cancellable = null;
 
-        // Adaptive parallelism tracking (PERF-004)
-        private int current_batch_size = Constants.PARALLEL_BATCH_SIZE;
-        private uint recent_errors = 0;
-        private uint recent_successes = 0;
-        private const uint TUNING_WINDOW_SIZE = 20; // Number of queries to consider for tuning
-        private int64 last_tuning_time = 0;
-        private const int64 TUNING_INTERVAL_MS = 5000; // Tune every 5 seconds at most
-
         public signal void progress_updated (uint completed, uint total);
         public signal void task_completed (BatchLookupTask task);
         public signal void batch_completed (Gee.ArrayList<BatchLookupTask> results);
-        public signal void batch_cancelled ();
         public signal void batch_error (string error_message);
 
         private BatchLookupManager () {
@@ -62,10 +53,6 @@ namespace Digger {
 
         public void add_task (BatchLookupTask task) {
             tasks.add (task);
-        }
-
-        public void add_tasks (Gee.ArrayList<BatchLookupTask> new_tasks) {
-            tasks.add_all (new_tasks);
         }
 
         public void clear_tasks () {
@@ -205,51 +192,8 @@ namespace Digger {
 
         // SEC-002: Domain validation helper for batch import
         private bool is_valid_batch_domain (string domain) {
-            if (domain.length == 0 || domain.length > Constants.MAX_DOMAIN_LENGTH) {
-                return false;
-            }
-
-            // Check for consecutive dots
-            if (domain.contains ("..")) {
-                return false;
-            }
-
-            // Check for starting/ending with dot or hyphen
-            if (domain.has_prefix (".") || domain.has_suffix (".") ||
-                domain.has_prefix ("-") || domain.has_suffix ("-")) {
-                return false;
-            }
-
-            // Split into labels and validate each
-            string[] labels = domain.split (".");
-            foreach (string label in labels) {
-                // Empty labels not allowed
-                if (label.length == 0) {
-                    return false;
-                }
-
-                // Per-label length validation (max 63 characters) - SEC-003
-                if (label.length > Constants.MAX_LABEL_LENGTH) {
-                    return false;
-                }
-
-                // Labels must start and end with alphanumeric
-                unichar first = label.get_char (0);
-                unichar last = label.get_char (label.length - 1);
-
-                if (!first.isalnum () || !last.isalnum ()) {
-                    return false;
-                }
-            }
-
-            // Basic format validation
-            try {
-                return Regex.match_simple ("^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$", domain) ||
-                       Regex.match_simple ("^[a-zA-Z0-9]$", domain) ||
-                       Regex.match_simple ("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", domain); // IPv4
-            } catch (RegexError e) {
-                return false;
-            }
+            return ValidationUtils.is_valid_hostname (domain) ||
+                   ValidationUtils.is_valid_ipv4 (domain);
         }
 
         public async void execute_batch (bool parallel = false, bool reverse_lookup = false,
@@ -281,8 +225,6 @@ namespace Digger {
 
             if (!cancellable.is_cancelled ()) {
                 batch_completed (tasks);
-            } else {
-                batch_cancelled ();
             }
         }
 
@@ -306,19 +248,10 @@ namespace Digger {
         }
 
         private async void execute_parallel (bool reverse_lookup, bool trace_path, bool short_output) {
-            // Initialize adaptive batch size (PERF-004)
-            current_batch_size = Constants.PARALLEL_BATCH_SIZE;
-            recent_errors = 0;
-            recent_successes = 0;
-            last_tuning_time = get_monotonic_time () / 1000; // Convert to milliseconds
-
             int current_index = 0;
 
             while (current_index < tasks.size && !cancellable.is_cancelled ()) {
-                // Apply adaptive tuning before each batch (PERF-004)
-                tune_batch_size ();
-
-                var batch_end = int.min (current_index + current_batch_size, tasks.size);
+                var batch_end = int.min (current_index + Constants.PARALLEL_BATCH_SIZE, tasks.size);
                 var parallel_tasks = new Gee.ArrayList<BatchLookupTask> ();
 
                 for (int i = current_index; i < batch_end; i++) {
@@ -331,13 +264,6 @@ namespace Digger {
                         completed_count++;
                         progress_updated (completed_count, total_count);
                         task_completed (task);
-
-                        // Track error rate for adaptive tuning (PERF-004)
-                        if (task.failed) {
-                            recent_errors++;
-                        } else {
-                            recent_successes++;
-                        }
                     });
                 }
 
@@ -384,94 +310,8 @@ namespace Digger {
             }
         }
 
-        /**
-         * Adaptive parallelism tuning (PERF-004)
-         * Adjusts batch size based on error rates and performance
-         */
-        private void tune_batch_size () {
-            int64 current_time = get_monotonic_time () / 1000;
-
-            // Only tune if enough time has passed and we have sufficient data
-            if (current_time - last_tuning_time < TUNING_INTERVAL_MS) {
-                return;
-            }
-
-            uint total_recent = recent_errors + recent_successes;
-            if (total_recent < TUNING_WINDOW_SIZE) {
-                return; // Not enough data yet
-            }
-
-            last_tuning_time = current_time;
-
-            // Calculate error rate
-            double error_rate = (double)recent_errors / (double)total_recent;
-
-            int old_batch_size = current_batch_size;
-
-            // Adaptive logic:
-            // - High error rate (>20%): Reduce parallelism to avoid overwhelming resources
-            // - Low error rate (<5%): Increase parallelism for better performance
-            // - Medium error rate: Keep current setting
-            if (error_rate > 0.20) {
-                // High error rate: reduce parallelism
-                current_batch_size = int.max (Constants.PARALLEL_BATCH_SIZE_LOW, current_batch_size - 2);
-                debug ("Batch auto-tune: High error rate (%.1f%%), reducing batch size: %d -> %d",
-                       error_rate * 100, old_batch_size, current_batch_size);
-            } else if (error_rate < 0.05 && current_batch_size < Constants.PARALLEL_BATCH_SIZE_HIGH) {
-                // Low error rate: increase parallelism
-                current_batch_size = int.min (Constants.PARALLEL_BATCH_SIZE_HIGH, current_batch_size + 1);
-                debug ("Batch auto-tune: Low error rate (%.1f%%), increasing batch size: %d -> %d",
-                       error_rate * 100, old_batch_size, current_batch_size);
-            } else {
-                debug ("Batch auto-tune: Normal error rate (%.1f%%), keeping batch size: %d",
-                       error_rate * 100, current_batch_size);
-            }
-
-            // Reset counters for next tuning window
-            recent_errors = 0;
-            recent_successes = 0;
-        }
-
-        public void cancel_batch () {
-            if (cancellable != null) {
-                cancellable.cancel ();
-            }
-        }
-
-        public bool get_is_running () {
-            return is_running;
-        }
-
-        public uint get_completed_count () {
-            return completed_count;
-        }
-
-        public uint get_total_count () {
-            return total_count;
-        }
-
         public Gee.ArrayList<BatchLookupTask> get_tasks () {
             return tasks;
-        }
-
-        public Gee.ArrayList<BatchLookupTask> get_successful_tasks () {
-            var successful = new Gee.ArrayList<BatchLookupTask> ();
-            foreach (var task in tasks) {
-                if (task.completed && !task.failed) {
-                    successful.add (task);
-                }
-            }
-            return successful;
-        }
-
-        public Gee.ArrayList<BatchLookupTask> get_failed_tasks () {
-            var failed = new Gee.ArrayList<BatchLookupTask> ();
-            foreach (var task in tasks) {
-                if (task.failed) {
-                    failed.add (task);
-                }
-            }
-            return failed;
         }
     }
 }

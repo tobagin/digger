@@ -34,7 +34,7 @@ namespace Digger {
         private DnsblService dnsbl_service;
         
         public DnsblDialog (Gtk.Widget? parent) {
-            dnsbl_service = DnsblService.get_instance ();
+            dnsbl_service = new DnsblService ();
         }
 
         [GtkCallback]
@@ -56,12 +56,7 @@ namespace Digger {
             input_entry.sensitive = false;
             
             // Clear previous results
-            var child = results_box.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                results_box.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (results_box);
 
             // Start check
             var results = yield dnsbl_service.check_ip (ip);

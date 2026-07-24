@@ -151,12 +151,8 @@ namespace Digger {
         // RRSIG specific fields
         public string? rrsig_type_covered { get; set; }
         public string? rrsig_algorithm { get; set; }
-        public string? rrsig_labels { get; set; }
-        public string? rrsig_original_ttl { get; set; }
         public string? rrsig_expiration { get; set; }
-        public string? rrsig_inception { get; set; }
         public string? rrsig_key_tag { get; set; }
-        public string? rrsig_signer_name { get; set; }
 
         public DnsRecord (string name, RecordType record_type, int ttl, string value, int priority = -1) {
             this.name = name;
@@ -167,13 +163,6 @@ namespace Digger {
         }
 
         public string get_display_value () {
-            if (record_type == RecordType.MX && priority >= 0) {
-                return @"$priority $value";
-            }
-            return value;
-        }
-
-        public string get_copyable_value () {
             if (record_type == RecordType.MX && priority >= 0) {
                 return @"$priority $value";
             }
@@ -251,7 +240,7 @@ namespace Digger {
             }
 
             int total_records = answer_section.size + authority_section.size + additional_section.size;
-            return @"$total_records record(s) found in $(@"%.2f".printf(query_time_ms))ms";
+            return "%d record(s) found in %.2fms".printf (total_records, query_time_ms);
         }
     }
 }

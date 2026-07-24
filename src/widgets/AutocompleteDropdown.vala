@@ -18,7 +18,6 @@ namespace Digger {
     [GtkTemplate (ui = "/io/github/tobagin/digger/autocomplete-dropdown.ui")]
 #endif
     public class AutocompleteDropdown : Gtk.Popover {
-        [GtkChild] private unowned Gtk.Box main_box;
         [GtkChild] private unowned Gtk.ScrolledWindow scrolled_window;
         [GtkChild] private unowned Gtk.ListBox suggestion_listbox;
 
@@ -31,8 +30,6 @@ namespace Digger {
 
         // Timeout cancellation support
         private uint hide_timeout_id = 0;
-
-        public signal void suggestion_selected (string domain);
 
         public AutocompleteDropdown (Gtk.Entry entry) {
             target_entry = entry;
@@ -161,15 +158,10 @@ namespace Digger {
             var suggestions = suggestion_engine.get_suggestions (text);
             current_suggestions.clear ();
             current_suggestions.add_all (suggestions);
-            
+
             // Clear existing suggestions
-            var child = suggestion_listbox.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                suggestion_listbox.remove (child);
-                child = next;
-            }
-            
+            UiUtils.clear_children (suggestion_listbox);
+
             // Add new suggestions
             if (suggestions.size > 0) {
                 foreach (var suggestion in suggestions) {
@@ -268,31 +260,26 @@ namespace Digger {
             var row = suggestion_listbox.get_row_at_index (selected_index);
             if (row != null) {
                 suggestion_listbox.select_row (row);
-                
+
                 // Ensure the row is visible
-                var adjustment = suggestion_listbox.get_parent () as Gtk.ScrolledWindow;
-                if (adjustment != null) {
-                    var row_allocation = Graphene.Rect ();
-                    row.compute_bounds (suggestion_listbox, out row_allocation);
-                    
-                    var scrolled_window = adjustment as Gtk.ScrolledWindow;
-                    scrolled_window.get_vadjustment ().clamp_page (
-                        row_allocation.get_y (),
-                        row_allocation.get_y () + row_allocation.get_height ()
-                    );
-                }
+                var row_allocation = Graphene.Rect ();
+                row.compute_bounds (suggestion_listbox, out row_allocation);
+
+                scrolled_window.get_vadjustment ().clamp_page (
+                    row_allocation.get_y (),
+                    row_allocation.get_y () + row_allocation.get_height ()
+                );
             }
         }
         
         private void apply_suggestion (DomainSuggestion suggestion) {
+            // Setting the entry text triggers its changed signal, which
+            // re-validates the input in the query form
             target_entry.text = suggestion.domain;
             target_entry.set_position (-1); // Move cursor to end
-            
+
             // Record usage for improved suggestions
             suggestion_engine.record_domain_usage (suggestion.domain);
-            
-            // Emit signal before hiding to ensure proper order
-            suggestion_selected (suggestion.domain);
         }
         
         private void show_suggestions () {
@@ -321,46 +308,14 @@ namespace Digger {
         }
         
         /**
-         * Manually trigger suggestions update
-         */
-        public void trigger_suggestions () {
-            string text = target_entry.text.strip ();
-            if (text.length >= 2) {
-                update_suggestions (text);
-            }
-        }
-        
-        /**
-         * Clear current suggestions and hide dropdown
-         */
-        public void clear_suggestions () {
-            current_suggestions.clear ();
-            hide_suggestions ();
-        }
-        
-        /**
-         * Temporarily disable autocomplete suggestions
-         */
-        public void disable_suggestions () {
-            suggestions_enabled = false;
-            hide_suggestions ();
-        }
-        
-        /**
-         * Re-enable autocomplete suggestions
-         */
-        public void enable_suggestions () {
-            suggestions_enabled = true;
-        }
-        
-        /**
          * Set domain text without triggering autocomplete
          */
         public void set_domain_without_autocomplete (string domain) {
-            disable_suggestions ();
+            suggestions_enabled = false;
+            hide_suggestions ();
             target_entry.text = domain;
             target_entry.set_position (-1);
-            enable_suggestions ();
+            suggestions_enabled = true;
         }
     }
 }

@@ -68,16 +68,6 @@ namespace Digger {
             return false;
         }
 
-        public Gee.HashSet<string> get_unique_values () {
-            var values = new Gee.HashSet<string> ();
-            foreach (var result in server_results) {
-                foreach (var record in result.answer_section) {
-                    values.add (record.value);
-                }
-            }
-            return values;
-        }
-
         public QueryResult? get_fastest_result () {
             if (server_results.size == 0) {
                 return null;
@@ -145,7 +135,6 @@ namespace Digger {
         private ComparisonManager () {
             dns_query = new DnsQuery ();
             dns_servers = new Gee.ArrayList<string> ();
-            add_default_servers ();
         }
 
         public static ComparisonManager get_instance () {
@@ -155,29 +144,9 @@ namespace Digger {
             return instance;
         }
 
-        private void add_default_servers () {
-            dns_servers.add ("8.8.8.8");
-            dns_servers.add ("1.1.1.1");
-            dns_servers.add ("9.9.9.9");
-        }
-
         public void set_servers (Gee.ArrayList<string> servers) {
             dns_servers.clear ();
             dns_servers.add_all (servers);
-        }
-
-        public void add_server (string server) {
-            if (!dns_servers.contains (server)) {
-                dns_servers.add (server);
-            }
-        }
-
-        public void remove_server (string server) {
-            dns_servers.remove (server);
-        }
-
-        public Gee.ArrayList<string> get_servers () {
-            return dns_servers;
         }
 
         public async ComparisonResult? compare_servers (string domain, RecordType record_type,

@@ -19,47 +19,7 @@ Natural complement to DNS lookup, highly requested by users.
 - [x] Cache WHOIS results (they change infrequently)
 - [x] Add WHOIS to export formats
 
-### 2. DNS Performance Monitoring & Statistics
-**Impact**: High | **Effort**: High | **Status**: Not Started
-
-Adds long-term value and differentiates from command-line tools.
-
-- [ ] Real-time latency graphs (response time over time)
-- [ ] Server health dashboard (uptime/reliability tracking)
-- [ ] Historical performance data storage
-- [ ] Performance comparison charts across servers
-- [ ] Geographic server selection based on latency
-- [ ] Export performance statistics
-- [ ] Configurable monitoring intervals
-
-### 3. Domain Monitoring & Alerts
-**Impact**: High | **Effort**: High | **Status**: Not Started
-
-Professional use case for system administrators.
-
-- [ ] Domain watch list management UI
-- [ ] Background monitoring service
-- [ ] Change detection algorithm (record additions/deletions/modifications)
-- [ ] Scheduled query execution
-- [ ] Desktop notification integration
-- [ ] Email notification support (optional)
-- [ ] Alert history and logs
-- [ ] Monitoring interval configuration
-
-### 4. DNS Blacklist (DNSBL) Checking
-**Impact**: High | **Effort**: Medium | **Status**: Not Started
-
-Security-focused feature useful for email administrators.
-
-- [ ] Common DNSBL database integration (Spamhaus, SURBL, etc.)
-- [ ] Multi-DNSBL parallel queries
-- [ ] Reputation scoring aggregation
-- [ ] IP and domain blacklist checking
-- [ ] Results display with blacklist details
-- [ ] Historical blacklist tracking
-- [ ] Export blacklist check results
-
-### 5. Export to dig Commands
+### 2. Export to dig Commands
 **Impact**: Medium | **Effort**: Low | **Status**: Completed ✅
 
 Educational feature helping users learn command-line equivalents.
@@ -74,21 +34,6 @@ Educational feature helping users learn command-line equivalents.
 ---
 
 ## 💡 Quick Wins (Easy to Implement, High Value)
-
-### Query Presets
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
-
-- [ ] Pre-configured common queries UI
-- [ ] Default presets: "Check mail servers (MX)", "Verify DNSSEC", "Find nameservers (NS)"
-- [ ] Custom preset creation
-- [ ] Preset sharing/export
-
-### Copy as dig Command
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
-
-- [ ] Command generator utility
-- [ ] Context menu integration
-- [ ] Keyboard shortcut (Ctrl+Shift+C)
 
 ### Recent Domains Dropdown Enhancement
 **Impact**: Low | **Effort**: Low | **Status**: Not Started
@@ -153,9 +98,12 @@ Educational feature helping users learn command-line equivalents.
 ## 📊 Visualization & Analysis
 
 ### DNS Propagation Map
-**Impact**: Medium | **Effort**: High | **Status**: Not Started
+**Impact**: Medium | **Effort**: High | **Status**: Partially Completed (v2.8.0)
 
-- [ ] Global DNS resolver network integration
+Basic propagation check across public resolvers shipped; geographic map still open.
+
+- [x] Global DNS resolver network integration (8 public resolvers, parallel)
+- [x] Consensus/disagreement detection across resolvers
 - [ ] Geographic propagation visualization
 - [ ] World map with resolver locations
 - [ ] Propagation time estimates
@@ -190,11 +138,13 @@ Educational feature helping users learn command-line equivalents.
 ## 🌐 Advanced DNSSEC Features
 
 ### DNSSEC Chain Visualization
-**Impact**: Medium | **Effort**: High | **Status**: Not Started
+**Impact**: Medium | **Effort**: High | **Status**: Partially Completed (v2.8.0)
 
-- [ ] Trust chain graph visualization (root → TLD → domain)
+Per-level chain-of-trust view shipped as a list; graphical diagram still open.
+
+- [x] Trust chain visualization (root → TLD → domain), level-by-level
+- [x] Signature validation status per level (DNSKEY/DS presence)
 - [ ] Key relationship display
-- [ ] Signature validation status per level
 - [ ] Interactive chain exploration
 - [ ] Export chain diagrams
 
@@ -252,12 +202,14 @@ Educational feature helping users learn command-line equivalents.
 ## 🌍 Domain Intelligence & Discovery
 
 ### Subdomain Enumeration
-**Impact**: Medium | **Effort**: High | **Status**: Not Started
+**Impact**: Medium | **Effort**: High | **Status**: Partially Completed (v2.8.0)
 
-- [ ] Subdomain discovery algorithms
-- [ ] Common subdomain wordlist
+Wordlist-based discovery shipped; certificate-transparency and export still open.
+
+- [x] Subdomain discovery algorithms
+- [x] Common subdomain wordlist
+- [x] DNS brute force (with bounded concurrency)
 - [ ] Certificate transparency log integration
-- [ ] DNS brute force (with rate limiting)
 - [ ] Export discovered subdomains
 
 ### Domain Availability Checker
@@ -496,6 +448,7 @@ Educational feature helping users learn command-line equivalents.
 ### Code Quality
 **Impact**: Low | **Effort**: Ongoing | **Status**: Ongoing
 
+- [x] Continuous integration (build on every push/PR)
 - [ ] Increase test coverage
 - [ ] Add unit tests for core services
 - [ ] Integration testing framework
@@ -532,6 +485,27 @@ Educational feature helping users learn command-line equivalents.
 ---
 
 ## 🗂️ Archive (Completed Features)
+
+### ✅ v2.8.0 (2026-07-17)
+- [x] DNS Propagation Check across 8 public resolvers with consensus detection
+- [x] Subdomain Enumeration (wordlist-based, bounded concurrency)
+- [x] DNSSEC Chain of Trust view (root → TLD → domain)
+- [x] Domain Monitoring with change detection and desktop notifications
+- [x] Security hardening: DoH parser out-of-bounds fix, input validation, export escaping, RFC 8484 DoH
+- [x] Dead-code removal (~1,200 lines) and build CI on every push/PR
+- [x] aarch64 deb/rpm release packages
+
+### ✅ v2.7.0 – v2.7.1 (2026-06)
+- [x] GNOME 50 runtime; bundled libuv 1.52.1 and whois 5.6.6
+- [x] Default window height fix so the lookup button is fully visible
+
+### ✅ v2.6.0 (2026-01-07)
+- [x] DNS Blacklist (DNSBL) checking with parallel multi-provider queries
+- [x] DNS Performance Monitoring with real-time latency graphs
+- [x] WHOIS integration with caching and privacy-guard detection
+- [x] Command export (dig / DoH curl)
+- [x] Query presets
+- [x] New application icons
 
 ### ✅ v2.3.0 (2025-10-20)
 - [x] Two-page comparison dialog
@@ -588,4 +562,4 @@ Interested in implementing any of these features? Check out [CONTRIBUTING.md](CO
 
 Have ideas for features not listed here? Open an issue on GitHub or contact the maintainer!
 
-**Last Updated**: 2026-01-07
+**Last Updated**: 2026-07-24

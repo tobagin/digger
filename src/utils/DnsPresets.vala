@@ -72,17 +72,7 @@ namespace Digger {
         public Gee.ArrayList<DnsServer> get_dns_servers () {
             return dns_servers;
         }
-        
-        public Gee.ArrayList<DnsServer> get_dns_servers_by_category (string category) {
-            var filtered = new Gee.ArrayList<DnsServer> ();
-            foreach (var server in dns_servers) {
-                if (server.category == category) {
-                    filtered.add (server);
-                }
-            }
-            return filtered;
-        }
-        
+
         public RecordTypeInfo? get_record_type_info (string type) {
             return record_types.get (type);
         }
@@ -90,101 +80,98 @@ namespace Digger {
         public Gee.Collection<RecordTypeInfo> get_all_record_types () {
             return record_types.values;
         }
-        
-        private void load_presets () {
-            load_dns_servers ();
-            load_record_types ();
-        }
-        
-        private void load_dns_servers () {
-            try {
-                var file_path = get_data_file_path ("presets/dns-servers.json");
-                if (!FileUtils.test (file_path, FileTest.EXISTS)) {
-                    warning ("DNS servers preset file not found: %s", file_path);
-                    load_default_dns_servers ();
-                    return;
-                }
-                
-                string content;
-                FileUtils.get_contents (file_path, out content);
-                
-                var parser = new Json.Parser ();
-                parser.load_from_data (content);
-                
-                var root = parser.get_root ();
-                if (root == null || root.get_node_type () != Json.NodeType.OBJECT) {
-                    warning ("Invalid JSON format in dns-servers.json");
-                    load_default_dns_servers ();
-                    return;
-                }
-                
-                var root_obj = root.get_object ();
-                var servers_array = root_obj.get_array_member ("dns_servers");
-                
-                if (servers_array != null) {
-                    servers_array.foreach_element ((array, index, element) => {
-                        var server_obj = element.get_object ();
-                        var server = new DnsServer ();
-                        
-                        server.name = server_obj.get_string_member ("name");
-                        server.primary = server_obj.get_string_member ("primary");
-                        server.secondary = server_obj.get_string_member ("secondary");
-                        server.description = server_obj.get_string_member ("description");
-                        server.supports_dnssec = server_obj.get_boolean_member ("supports_dnssec");
-                        server.category = server_obj.get_string_member ("category");
-                        
-                        dns_servers.add (server);
-                    });
-                }
-            } catch (Error e) {
-                warning ("Error loading DNS servers: %s", e.message);
-                load_default_dns_servers ();
+
+        /**
+         * Comparator putting common record types (A, AAAA, CNAME, MX, NS, TXT)
+         * first, then the rest alphabetically
+         */
+        public static int compare_record_types (RecordTypeInfo a, RecordTypeInfo b) {
+            string[] common_order = {"A", "AAAA", "CNAME", "MX", "NS", "TXT"};
+            int pos_a = -1, pos_b = -1;
+            for (int i = 0; i < common_order.length; i++) {
+                if (a.record_type == common_order[i]) pos_a = i;
+                if (b.record_type == common_order[i]) pos_b = i;
             }
+
+            if (pos_a >= 0 && pos_b >= 0) return pos_a - pos_b;
+            if (pos_a >= 0) return -1;
+            if (pos_b >= 0) return 1;
+            return strcmp (a.record_type, b.record_type);
+        }
+
+        /**
+         * All record types sorted for consistent display (common types first)
+         */
+        public Gee.ArrayList<RecordTypeInfo> get_sorted_record_types () {
+            var sorted_types = new Gee.ArrayList<RecordTypeInfo> ();
+            sorted_types.add_all (record_types.values);
+            sorted_types.sort ((a, b) => compare_record_types (a, b));
+            return sorted_types;
         }
         
-        private void load_record_types () {
+        private delegate void ElementParser (Json.Object obj);
+        private delegate void FallbackLoader ();
+
+        private void load_presets () {
+            load_preset_file ("presets/dns-servers.json", "dns_servers", (server_obj) => {
+                var server = new DnsServer ();
+
+                server.name = server_obj.get_string_member ("name");
+                server.primary = server_obj.get_string_member ("primary");
+                server.secondary = server_obj.get_string_member ("secondary");
+                server.description = server_obj.get_string_member ("description");
+                server.supports_dnssec = server_obj.get_boolean_member ("supports_dnssec");
+                server.category = server_obj.get_string_member ("category");
+
+                dns_servers.add (server);
+            }, load_default_dns_servers);
+
+            load_preset_file ("presets/record-types.json", "record_types", (type_obj) => {
+                var record_type = new RecordTypeInfo ();
+
+                record_type.record_type = type_obj.get_string_member ("type");
+                record_type.name = type_obj.get_string_member ("name");
+                record_type.description = type_obj.get_string_member ("description");
+                record_type.icon = type_obj.get_string_member ("icon");
+                record_type.color = type_obj.get_string_member ("color");
+                record_type.common_use = type_obj.get_string_member ("common_use");
+
+                record_types.set (record_type.record_type, record_type);
+            }, load_default_record_types);
+        }
+
+        private void load_preset_file (string relative_path, string array_member,
+                                       ElementParser parse_element, FallbackLoader load_defaults) {
             try {
-                var file_path = get_data_file_path ("presets/record-types.json");
+                var file_path = get_data_file_path (relative_path);
                 if (!FileUtils.test (file_path, FileTest.EXISTS)) {
-                    warning ("Record types preset file not found: %s", file_path);
-                    load_default_record_types ();
+                    warning ("Preset file not found: %s", file_path);
+                    load_defaults ();
                     return;
                 }
-                
+
                 string content;
                 FileUtils.get_contents (file_path, out content);
-                
+
                 var parser = new Json.Parser ();
                 parser.load_from_data (content);
-                
+
                 var root = parser.get_root ();
                 if (root == null || root.get_node_type () != Json.NodeType.OBJECT) {
-                    warning ("Invalid JSON format in record-types.json");
-                    load_default_record_types ();
+                    warning ("Invalid JSON format in %s", relative_path);
+                    load_defaults ();
                     return;
                 }
-                
-                var root_obj = root.get_object ();
-                var types_array = root_obj.get_array_member ("record_types");
-                
-                if (types_array != null) {
-                    types_array.foreach_element ((array, index, element) => {
-                        var type_obj = element.get_object ();
-                        var record_type = new RecordTypeInfo ();
-                        
-                        record_type.record_type = type_obj.get_string_member ("type");
-                        record_type.name = type_obj.get_string_member ("name");
-                        record_type.description = type_obj.get_string_member ("description");
-                        record_type.icon = type_obj.get_string_member ("icon");
-                        record_type.color = type_obj.get_string_member ("color");
-                        record_type.common_use = type_obj.get_string_member ("common_use");
-                        
-                        record_types.set (record_type.record_type, record_type);
-                    });
+
+                var elements_array = root.get_object ().get_array_member (array_member);
+                if (elements_array != null) {
+                    foreach (var element in elements_array.get_elements ()) {
+                        parse_element (element.get_object ());
+                    }
                 }
             } catch (Error e) {
-                warning ("Error loading record types: %s", e.message);
-                load_default_record_types ();
+                warning ("Error loading %s: %s", relative_path, e.message);
+                load_defaults ();
             }
         }
         

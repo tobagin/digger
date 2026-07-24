@@ -57,7 +57,6 @@ namespace Digger {
         private uint timer_id = 0;
 
         public signal void list_updated ();
-        public signal void watch_changed (MonitorWatch watch);
 
         public static MonitorService get_instance () {
             if (instance == null) {
@@ -130,7 +129,6 @@ namespace Digger {
             if (had_signature && signature != watch.last_signature) {
                 watch.changed = true;
                 notify_change (watch, watch.last_signature, signature);
-                watch_changed (watch);
             }
             watch.last_signature = signature;
             watch.last_status = (signature == "") ? "empty" : "ok";

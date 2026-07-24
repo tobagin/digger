@@ -25,25 +25,6 @@ namespace Digger {
             }
         }
 
-        public string get_extension () {
-            switch (this) {
-                case JSON: return "json";
-                case CSV: return "csv";
-                case TEXT: return "txt";
-                case ZONE_FILE: return "zone";
-                default: return "txt";
-            }
-        }
-
-        public string get_mime_type () {
-            switch (this) {
-                case JSON: return "application/json";
-                case CSV: return "text/csv";
-                case TEXT: return "text/plain";
-                case ZONE_FILE: return "text/dns";
-                default: return "text/plain";
-            }
-        }
     }
 
     public class ExportManager : Object {
@@ -461,61 +442,5 @@ namespace Digger {
             }
         }
 
-        /**
-         * Generate DoH curl command from query result
-         * @param result The query result
-         * @param doh_endpoint The DoH endpoint URL or preset name
-         * @return The equivalent curl command string
-         */
-        public string export_as_doh_curl (QueryResult result, string doh_endpoint) {
-            string endpoint_url = command_generator.get_doh_endpoint_from_preset (doh_endpoint);
-            bool use_dnssec = command_generator.has_dnssec_records (result);
-
-            return command_generator.generate_doh_curl_command (
-                result.domain,
-                result.query_type,
-                endpoint_url,
-                use_dnssec
-            );
-        }
-
-        /**
-         * Generate batch script from multiple query results
-         * @param results List of query results
-         * @param file Output file for the script
-         * @param include_comments Whether to include explanatory comments
-         * @return Success status
-         */
-        public async bool export_batch_commands (Gee.ArrayList<QueryResult> results,
-                                                 File file, bool include_comments = true) {
-            try {
-                string content = command_generator.generate_batch_script (results, include_comments);
-                yield file.replace_contents_async (
-                    content.data,
-                    null,
-                    false,
-                    FileCreateFlags.REPLACE_DESTINATION,
-                    null,
-                    null
-                );
-
-                // Set executable permissions on Unix-like systems
-                try {
-                    FileInfo info = file.query_info (FileAttribute.UNIX_MODE, FileQueryInfoFlags.NONE);
-                    uint32 mode = info.get_attribute_uint32 (FileAttribute.UNIX_MODE);
-                    mode |= 0x0040 | 0x0008 | 0x0001; // Add execute permissions (user, group, others)
-                    info.set_attribute_uint32 (FileAttribute.UNIX_MODE, mode);
-                    file.set_attributes_from_info (info, FileQueryInfoFlags.NONE);
-                } catch (Error e) {
-                    // Non-critical error, continue anyway
-                    debug ("Could not set executable permissions: %s", e.message);
-                }
-
-                return true;
-            } catch (Error e) {
-                warning ("Batch export failed: %s", e.message);
-                return false;
-            }
-        }
     }
 }

@@ -47,7 +47,7 @@ namespace Digger {
         private ArrayList<MonitorTarget> targets;
 
         public PerformanceDialog (Gtk.Widget? parent) {
-            dns_query = DnsQuery.get_instance ();
+            dns_query = new DnsQuery ();
             targets = new ArrayList<MonitorTarget> ();
             
             // Define targets

@@ -18,7 +18,6 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Label summary_label;
         [GtkChild] private unowned Gtk.Box content_box;
         [GtkChild] private unowned Gtk.ProgressBar progress_bar;
-        [GtkChild] private unowned Gtk.Box buttons_box;
         [GtkChild] private unowned Gtk.Button export_button;
         [GtkChild] private unowned Gtk.Button copy_command_button;
         [GtkChild] private unowned Gtk.Button raw_output_button;
@@ -31,13 +30,10 @@ namespace Digger {
         
         public bool show_detailed_ttl { get; set; default = false; }
 
-        public EnhancedResultView () {
+        construct {
             settings = new GLib.Settings (Config.APP_ID);
             dns_presets = DnsPresets.get_instance ();
-            print (@"EnhancedResultView: dns_presets is $(dns_presets != null ? "not null" : "null")\n");
-        }
-        
-        construct {
+
             setup_ui ();
         }
         
@@ -153,37 +149,12 @@ namespace Digger {
         }
         
         private void show_export_dialog () {
-            var file_dialog = new Gtk.FileDialog () {
-                title = "Export DNS Query Results",
-                modal = true
-            };
-
-            var filter_json = new Gtk.FileFilter ();
-            filter_json.set_filter_name ("JSON (*.json)");
-            filter_json.add_pattern ("*.json");
-
-            var filter_csv = new Gtk.FileFilter ();
-            filter_csv.set_filter_name ("CSV (*.csv)");
-            filter_csv.add_pattern ("*.csv");
-
-            var filter_txt = new Gtk.FileFilter ();
-            filter_txt.set_filter_name ("Plain Text (*.txt)");
-            filter_txt.add_pattern ("*.txt");
-
-            var filter_zone = new Gtk.FileFilter ();
-            filter_zone.set_filter_name ("DNS Zone File (*.zone)");
-            filter_zone.add_pattern ("*.zone");
-
-            var filters = new GLib.ListStore (typeof (Gtk.FileFilter));
-            filters.append (filter_json);
-            filters.append (filter_csv);
-            filters.append (filter_txt);
-            filters.append (filter_zone);
-            file_dialog.filters = filters;
-            file_dialog.default_filter = filter_json;
-
-            var suggested_name = @"$(current_result.domain)-$(current_result.query_type.to_string ()).json";
-            file_dialog.initial_name = suggested_name;
+            var file_dialog = UiUtils.create_file_dialog (
+                "Export DNS Query Results",
+                @"$(current_result.domain)-$(current_result.query_type.to_string ()).json",
+                { "JSON (*.json)", "CSV (*.csv)", "Plain Text (*.txt)", "DNS Zone File (*.zone)" },
+                { "*.json", "*.csv", "*.txt", "*.zone" }
+            );
 
             file_dialog.save.begin (this.get_root () as Gtk.Window, null, (obj, res) => {
                 try {
@@ -215,39 +186,9 @@ namespace Digger {
             var success = yield export_manager.export_result (current_result, file, format);
 
             if (success) {
-                show_export_success_toast ();
+                UiUtils.show_toast (this, "Results exported successfully", 3);
             } else {
-                show_export_error_toast ();
-            }
-        }
-
-        private void show_export_success_toast () {
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast ("Results exported successfully") {
-                    timeout = 3
-                };
-                toast_overlay.add_toast (toast);
-            }
-        }
-
-        private void show_export_error_toast () {
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast ("Failed to export results") {
-                    timeout = 3
-                };
-                toast_overlay.add_toast (toast);
+                UiUtils.show_toast (this, "Failed to export results", 3);
             }
         }
 
@@ -289,65 +230,29 @@ namespace Digger {
             return info.str;
         }
         
+        private void add_status_page (string icon_name, string title, string description) {
+            var status_page = new Adw.StatusPage () {
+                icon_name = icon_name,
+                title = title,
+                description = description,
+                vexpand = true
+            };
+            content_box.append (status_page);
+        }
+
         private void show_welcome_message () {
             clear_content ();
-            
-            var welcome_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12) {
-                valign = Gtk.Align.CENTER,
-                halign = Gtk.Align.CENTER
-            };
-            
-            var icon = new Gtk.Image.from_icon_name ("network-workgroup-symbolic") {
-                pixel_size = 64
-            };
-            icon.add_css_class ("dim-label");
-            
-            var title_label = new Gtk.Label ("DNS Lookup Tool") {
-                halign = Gtk.Align.CENTER
-            };
-            title_label.add_css_class ("title-1");
-            
-            var subtitle_label = new Gtk.Label ("Enter a domain name and select a record type to begin") {
-                halign = Gtk.Align.CENTER
-            };
-            subtitle_label.add_css_class ("dim-label");
-            
-            welcome_box.append (icon);
-            welcome_box.append (title_label);
-            welcome_box.append (subtitle_label);
-            
-            content_box.append (welcome_box);
+
+            add_status_page ("network-workgroup-symbolic",
+                             "DNS Lookup Tool",
+                             "Enter a domain name and select a record type to begin");
             summary_label.label = "";
         }
         
         private void show_error_message (QueryResult result) {
-            var error_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12) {
-                valign = Gtk.Align.CENTER,
-                halign = Gtk.Align.CENTER
-            };
-            
-            var icon = new Gtk.Image.from_icon_name ("dialog-error-symbolic") {
-                pixel_size = 64
-            };
-            icon.add_css_class ("error");
-            
-            var title_label = new Gtk.Label ("Query Failed") {
-                halign = Gtk.Align.CENTER
-            };
-            title_label.add_css_class ("title-2");
-            
-            var error_label = new Gtk.Label (get_error_description (result.status)) {
-                halign = Gtk.Align.CENTER,
-                wrap = true,
-                justify = Gtk.Justification.CENTER
-            };
-            error_label.add_css_class ("dim-label");
-            
-            error_box.append (icon);
-            error_box.append (title_label);
-            error_box.append (error_label);
-            
-            content_box.append (error_box);
+            add_status_page ("dialog-error-symbolic",
+                             "Query Failed",
+                             get_error_description (result.status));
         }
         
         private string get_error_description (QueryStatus status) {
@@ -372,33 +277,9 @@ namespace Digger {
         }
         
         private void show_no_results_message (QueryResult result) {
-            var no_results_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12) {
-                valign = Gtk.Align.CENTER,
-                halign = Gtk.Align.CENTER
-            };
-            
-            var icon = new Gtk.Image.from_icon_name ("dialog-information-symbolic") {
-                pixel_size = 64
-            };
-            icon.add_css_class ("dim-label");
-            
-            var title_label = new Gtk.Label ("No Records Found") {
-                halign = Gtk.Align.CENTER
-            };
-            title_label.add_css_class ("title-2");
-            
-            var info_label = new Gtk.Label ("The query completed successfully but returned no DNS records") {
-                halign = Gtk.Align.CENTER,
-                wrap = true,
-                justify = Gtk.Justification.CENTER
-            };
-            info_label.add_css_class ("dim-label");
-            
-            no_results_box.append (icon);
-            no_results_box.append (title_label);
-            no_results_box.append (info_label);
-            
-            content_box.append (no_results_box);
+            add_status_page ("dialog-information-symbolic",
+                             "No Records Found",
+                             "The query completed successfully but returned no DNS records");
         }
         
         private void add_enhanced_results_section (string section_title, Gee.ArrayList<DnsRecord> records, string style_class) {
@@ -448,12 +329,7 @@ namespace Digger {
 
             if (show_detailed_ttl) {
                 string ttl_text = @"TTL: $(record.ttl)s";
-                
-                // If expiration is available (for RRSIG), show it too
-                if (record.record_type == RecordType.RRSIG && record.rrsig_expiration != null) {
-                    // Logic to calculate remaining time could be added here
-                }
-                
+
                 var ttl_label = new Gtk.Label (ttl_text);
                 ttl_label.add_css_class ("caption");
                 ttl_label.add_css_class ("dim-label");
@@ -481,18 +357,10 @@ namespace Digger {
                 max_width_chars = 80
             };
             value_label.add_css_class ("monospace");
-            
+
             // Copy button
-            var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
-                valign = Gtk.Align.CENTER,
-                halign = Gtk.Align.CENTER,
-                tooltip_text = "Copy to clipboard"
-            };
-            copy_button.add_css_class ("flat");
-            copy_button.clicked.connect (() => {
-                copy_to_clipboard (record.get_copyable_value ());
-            });
-            
+            var copy_button = make_copy_button (record.get_display_value ());
+
             row.add_suffix (value_label);
             row.add_suffix (copy_button);
             row.activatable_widget = copy_button;
@@ -542,24 +410,48 @@ namespace Digger {
         private void copy_to_clipboard (string text) {
             var clipboard = Gdk.Display.get_default ().get_clipboard ();
             clipboard.set_text (text);
-            
-            show_copy_toast ();
+
+            UiUtils.show_toast (this, "Copied to clipboard");
         }
-        
-        private void show_copy_toast () {
-            // Find the parent AdwToastOverlay if available
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
+
+        /**
+         * Create a flat copy button that copies the given text to the clipboard
+         */
+        private Gtk.Button make_copy_button (string text_to_copy) {
+            var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
+                valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.CENTER,
+                tooltip_text = "Copy to clipboard"
+            };
+            copy_button.add_css_class ("flat");
+            copy_button.clicked.connect (() => {
+                copy_to_clipboard (text_to_copy);
+            });
+            return copy_button;
+        }
+
+        /**
+         * Create an expander row containing one ActionRow per item
+         */
+        private Adw.ExpanderRow make_expander_row (string title, string subtitle,
+                                                   Gee.Collection<string> items, bool monospace_with_copy) {
+            var expander = new Adw.ExpanderRow () {
+                title = title,
+                subtitle = subtitle
+            };
+
+            foreach (var item in items) {
+                var row = new Adw.ActionRow () {
+                    title = item
+                };
+                if (monospace_with_copy) {
+                    row.add_css_class ("monospace");
+                    row.add_suffix (make_copy_button (item));
+                }
+                expander.add_row (row);
             }
 
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast ("Copied to clipboard") {
-                    timeout = 2
-                };
-                toast_overlay.add_toast (toast);
-            }
+            return expander;
         }
 
         private void add_whois_section (WhoisData whois) {
@@ -578,87 +470,34 @@ namespace Digger {
                     title = "Registrar",
                     subtitle = whois.registrar
                 };
-                var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
-                    valign = Gtk.Align.CENTER,
-                    tooltip_text = "Copy to clipboard"
-                };
-                copy_button.add_css_class ("flat");
-                copy_button.clicked.connect (() => {
-                    copy_to_clipboard (whois.registrar);
-                });
-                registrar_row.add_suffix (copy_button);
+                registrar_row.add_suffix (make_copy_button (whois.registrar));
                 whois_group.add (registrar_row);
             }
 
-            // Created date
-            if (whois.created_date != null) {
-                var created_row = new Adw.ActionRow () {
-                    title = "Created",
-                    subtitle = whois.created_date
-                };
-                whois_group.add (created_row);
-            }
-
-            // Updated date
-            if (whois.updated_date != null) {
-                var updated_row = new Adw.ActionRow () {
-                    title = "Last Updated",
-                    subtitle = whois.updated_date
-                };
-                whois_group.add (updated_row);
-            }
-
-            // Expires date
-            if (whois.expires_date != null) {
-                var expires_row = new Adw.ActionRow () {
-                    title = "Expires",
-                    subtitle = whois.expires_date
-                };
-                whois_group.add (expires_row);
-            }
-
-            // Nameservers
-            if (whois.nameservers.size > 0) {
-                var ns_expander = new Adw.ExpanderRow () {
-                    title = "Nameservers",
-                    subtitle = @"$(whois.nameservers.size) server(s)"
-                };
-
-                foreach (var ns in whois.nameservers) {
-                    var ns_row = new Adw.ActionRow () {
-                        title = ns
-                    };
-                    ns_row.add_css_class ("monospace");
-                    var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
-                        valign = Gtk.Align.CENTER,
-                        tooltip_text = "Copy to clipboard"
-                    };
-                    copy_button.add_css_class ("flat");
-                    copy_button.clicked.connect (() => {
-                        copy_to_clipboard (ns);
+            // Date fields
+            string?[,] date_fields = {
+                { "Created", whois.created_date },
+                { "Last Updated", whois.updated_date },
+                { "Expires", whois.expires_date }
+            };
+            for (int i = 0; i < date_fields.length[0]; i++) {
+                if (date_fields[i, 1] != null) {
+                    whois_group.add (new Adw.ActionRow () {
+                        title = (!) date_fields[i, 0],
+                        subtitle = (!) date_fields[i, 1]
                     });
-                    ns_row.add_suffix (copy_button);
-                    ns_expander.add_row (ns_row);
                 }
-
-                whois_group.add (ns_expander);
             }
 
-            // Domain status
+            // Nameservers (with copy buttons) and domain status
+            if (whois.nameservers.size > 0) {
+                whois_group.add (make_expander_row ("Nameservers",
+                    @"$(whois.nameservers.size) server(s)", whois.nameservers, true));
+            }
+
             if (whois.status.size > 0) {
-                var status_expander = new Adw.ExpanderRow () {
-                    title = "Domain Status",
-                    subtitle = @"$(whois.status.size) status code(s)"
-                };
-
-                foreach (var status in whois.status) {
-                    var status_row = new Adw.ActionRow () {
-                        title = status
-                    };
-                    status_expander.add_row (status_row);
-                }
-
-                whois_group.add (status_expander);
+                whois_group.add (make_expander_row ("Domain Status",
+                    @"$(whois.status.size) status code(s)", whois.status, false));
             }
 
             // Privacy protection notice
@@ -752,23 +591,7 @@ namespace Digger {
             var clipboard = this.get_clipboard ();
             clipboard.set_text (command);
 
-            show_command_copy_toast ();
-        }
-
-        private void show_command_copy_toast () {
-            // Find the parent AdwToastOverlay if available
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast ("Command copied to clipboard") {
-                    timeout = 2
-                };
-                toast_overlay.add_toast (toast);
-            }
+            UiUtils.show_toast (this, "Command copied to clipboard");
         }
 
         public void clear_results () {
@@ -785,30 +608,22 @@ namespace Digger {
         }
         
         private void clear_content () {
-            var child = content_box.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                content_box.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (content_box);
         }
+
         private string format_rrsig_date (string? date_str) {
             if (date_str == null || date_str.length < 14) return date_str ?? "";
-            
+
             // Format: YYYYMMDDHHmmss
             // Return: YYYY-MM-DD HH:mm:ss
-            try {
-                string year = date_str.substring (0, 4);
-                string month = date_str.substring (4, 2);
-                string day = date_str.substring (6, 2);
-                string hour = date_str.substring (8, 2);
-                string minute = date_str.substring (10, 2);
-                string second = date_str.substring (12, 2);
-                
-                return @"$year-$month-$day $hour:$minute:$second";
-            } catch (Error e) {
-                return date_str;
-            }
+            string year = date_str.substring (0, 4);
+            string month = date_str.substring (4, 2);
+            string day = date_str.substring (6, 2);
+            string hour = date_str.substring (8, 2);
+            string minute = date_str.substring (10, 2);
+            string second = date_str.substring (12, 2);
+
+            return @"$year-$month-$day $hour:$minute:$second";
         }
     }
 }

@@ -16,11 +16,7 @@ namespace Digger {
         private Gee.ArrayList<QueryResult> history;
         private string history_file_path;
 
-        // Lazy loading flag - only load history when actually needed
-        private bool history_loaded = false;
-
         public signal void history_updated ();
-        public signal void error_occurred (string error_message);
 
         public QueryHistory () {
             history = new Gee.ArrayList<QueryResult> ();
@@ -37,19 +33,14 @@ namespace Digger {
                 }
             } catch (Error e) {
                 warning (@"Failed to create data directory: $(e.message)");
-                error_occurred ("Failed to initialize query history storage");
             }
-            
+
             history_file_path = Path.build_filename (app_data_dir, HISTORY_FILE);
 
-            // Don't load history in constructor - lazy load on first access
-            // This improves startup time by 200-500ms
+            load_history ();
         }
 
         public void add_query (QueryResult result) {
-            // Ensure history is loaded before adding
-            ensure_history_loaded ();
-
             // Add to beginning of history
             history.insert (0, result);
 
@@ -63,8 +54,6 @@ namespace Digger {
         }
 
         public QueryResult? get_last_query () {
-            ensure_history_loaded ();
-
             if (history.size > 0) {
                 return history[0];
             }
@@ -72,13 +61,10 @@ namespace Digger {
         }
 
         public Gee.List<QueryResult> get_history () {
-            ensure_history_loaded ();
             return history.read_only_view;
         }
 
         public Gee.List<QueryResult> search_history (string query) {
-            ensure_history_loaded ();
-
             var results = new Gee.ArrayList<QueryResult> ();
             string lower_query = query.down ();
             
@@ -94,24 +80,9 @@ namespace Digger {
         }
 
         public void clear_history () {
-            // No need to load history just to clear it
             history.clear ();
-            history_loaded = true; // Mark as loaded (empty state is valid)
             save_history ();
             history_updated ();
-        }
-        
-        /**
-         * Ensures history is loaded before use (lazy loading)
-         * This is called by all public methods that access history data
-         */
-        private void ensure_history_loaded () {
-            if (history_loaded) {
-                return; // Already loaded
-            }
-
-            load_history ();
-            history_loaded = true;
         }
 
         private void load_history () {

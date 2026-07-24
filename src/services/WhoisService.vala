@@ -13,9 +13,6 @@ namespace Digger {
         private const string WHOIS_COMMAND = "whois";
         private const int DEFAULT_TIMEOUT = 30;
 
-        // Cached whois availability check
-        private static bool? whois_available_cache = null;
-
         private GLib.Settings settings;
         private WhoisCache cache;
 
@@ -46,7 +43,8 @@ namespace Digger {
             }
 
             // Check if whois command exists
-            if (!yield check_whois_available_async ()) {
+            if (GLib.Environment.find_program_in_path (WHOIS_COMMAND) == null) {
+                warning ("whois command not found");
                 query_failed ("whois command not found. Please install whois package.");
                 return null;
             }
@@ -89,17 +87,8 @@ namespace Digger {
         }
 
         private string[] build_whois_command (string domain) {
-            var args = new Gee.ArrayList<string> ();
-            args.add (WHOIS_COMMAND);
-            args.add ("--");  // stop option parsing; domain can't be read as a flag
-            args.add (domain);
-
-            // Convert to string array
-            string[] result_args = new string[args.size];
-            for (int i = 0; i < args.size; i++) {
-                result_args[i] = args[i];
-            }
-            return result_args;
+            // "--" stops option parsing so the domain can't be read as a flag
+            return { WHOIS_COMMAND, "--", domain };
         }
 
         private async bool run_command_async (string[] command_args, out string standard_output,
@@ -244,40 +233,6 @@ namespace Digger {
                 }
             }
             return null;
-        }
-
-        private async bool check_whois_available_async () {
-            // Check cache first
-            if (whois_available_cache != null) {
-                return whois_available_cache;
-            }
-
-            // Perform async check
-            try {
-                string standard_output;
-                string standard_error;
-                int exit_status;
-
-                yield run_command_async ({"which", WHOIS_COMMAND},
-                                        out standard_output,
-                                        out standard_error,
-                                        out exit_status);
-
-                // Cache the result
-                whois_available_cache = (exit_status == 0);
-
-                if (whois_available_cache) {
-                    message ("whois command found and cached");
-                } else {
-                    warning ("whois command not found");
-                }
-
-                return whois_available_cache;
-            } catch (Error e) {
-                whois_available_cache = false;
-                warning ("Error checking whois availability: %s", e.message);
-                return false;
-            }
         }
 
         public void clear_cache () {

@@ -30,13 +30,11 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Button clear_results_button;
 
         private BatchLookupManager batch_manager;
-        private DnsPresets dns_presets;
         private Gtk.StringList domains_model;
         private GLib.ListStore results_model;
 
         public BatchLookupDialog () {
             batch_manager = BatchLookupManager.get_instance ();
-            dns_presets = DnsPresets.get_instance ();
         }
 
         construct {
@@ -134,14 +132,7 @@ namespace Digger {
         }
 
         private void setup_record_type_dropdown () {
-            var model = new Gtk.StringList (null);
-            model.append ("A - IPv4 Address");
-            model.append ("AAAA - IPv6 Address");
-            model.append ("MX - Mail Exchange");
-            model.append ("TXT - Text Record");
-            model.append ("NS - Name Server");
-            model.append ("CNAME - Canonical Name");
-            record_type_dropdown.model = model;
+            record_type_dropdown.model = UiUtils.create_common_record_type_model ();
             record_type_dropdown.selected = 0;
         }
 
@@ -166,19 +157,12 @@ namespace Digger {
         }
 
         private void import_from_file () {
-            var file_dialog = new Gtk.FileDialog () {
-                title = "Import Domains",
-                modal = true
-            };
-
-            var filter = new Gtk.FileFilter ();
-            filter.set_filter_name ("Text and CSV files");
-            filter.add_pattern ("*.txt");
-            filter.add_pattern ("*.csv");
-
-            var filters = new GLib.ListStore (typeof (Gtk.FileFilter));
-            filters.append (filter);
-            file_dialog.filters = filters;
+            var file_dialog = UiUtils.create_file_dialog (
+                "Import Domains",
+                null,
+                { "Text and CSV files" },
+                { "*.txt;*.csv" }
+            );
 
             file_dialog.open.begin (this as Gtk.Window, null, (obj, res) => {
                 try {
@@ -311,41 +295,22 @@ namespace Digger {
         }
 
         private RecordType get_selected_record_type () {
-            var selected_text = ((Gtk.StringList) record_type_dropdown.model).get_string (record_type_dropdown.selected);
-            var type_code = selected_text.split (" - ")[0];
-            return RecordType.from_string (type_code);
+            return UiUtils.get_selected_record_type (record_type_dropdown);
         }
 
         private string? get_selected_dns_server () {
-            var selected = dns_server_dropdown.selected;
-            if (selected == 0) return null;
-
-            var text = ((Gtk.StringList) dns_server_dropdown.model).get_string (selected);
-            if (text.contains ("8.8.8.8")) return "8.8.8.8";
-            if (text.contains ("1.1.1.1")) return "1.1.1.1";
-            if (text.contains ("9.9.9.9")) return "9.9.9.9";
-            return null;
+            // Parallel to the dropdown model built in setup_dns_server_dropdown
+            string?[] server_addresses = { null, "8.8.8.8", "1.1.1.1", "9.9.9.9" };
+            return server_addresses[dns_server_dropdown.selected];
         }
 
         private void export_results () {
-            var file_dialog = new Gtk.FileDialog () {
-                title = "Export Batch Results",
-                modal = true,
-                initial_name = "batch-results.json"
-            };
-
-            var filter_json = new Gtk.FileFilter ();
-            filter_json.set_filter_name ("JSON (*.json)");
-            filter_json.add_pattern ("*.json");
-
-            var filter_csv = new Gtk.FileFilter ();
-            filter_csv.set_filter_name ("CSV (*.csv)");
-            filter_csv.add_pattern ("*.csv");
-
-            var filters = new GLib.ListStore (typeof (Gtk.FileFilter));
-            filters.append (filter_json);
-            filters.append (filter_csv);
-            file_dialog.filters = filters;
+            var file_dialog = UiUtils.create_file_dialog (
+                "Export Batch Results",
+                "batch-results.json",
+                { "JSON (*.json)", "CSV (*.csv)" },
+                { "*.json", "*.csv" }
+            );
 
             file_dialog.save.begin (this as Gtk.Window, null, (obj, res) => {
                 try {

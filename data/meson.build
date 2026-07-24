@@ -78,7 +78,6 @@ blueprint_files = [
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',
   'ui/widgets/autocomplete-dropdown.blp',
-  'ui/widgets/history-popover.blp',
 ]
 
 # Compile blueprint files to UI files

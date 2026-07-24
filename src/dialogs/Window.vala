@@ -28,8 +28,6 @@ namespace Digger {
         private DnsQuery dns_query;
         private WhoisService whois_service;
         private QueryHistory query_history;
-        private DnsPresets dns_presets;
-        private ThemeManager theme_manager;
         private bool query_in_progress = false;
 
         // Mobile bottom sheet support
@@ -40,16 +38,13 @@ namespace Digger {
             Object (application: app);
             query_history = history;
 
-            // Initialize enhanced components
-            dns_presets = DnsPresets.get_instance ();
-            theme_manager = ThemeManager.get_instance ();
+            UiUtils.apply_color_scheme (new GLib.Settings (Config.APP_ID).get_string ("color-scheme"));
 
             setup_ui ();
             setup_actions ();
             connect_signals ();
 
             dns_query = new DnsQuery ();
-            dns_query.query_completed.connect (on_query_completed);
             dns_query.query_failed.connect (on_query_failed);
 
             whois_service = new WhoisService ();
@@ -57,11 +52,6 @@ namespace Digger {
             whois_service.query_failed.connect (on_whois_failed);
 
             // Connect error signals from managers (SEC-009: Enhanced Error Handling)
-            query_history.error_occurred.connect ((error_message) => {
-                warning ("QueryHistory error: %s", error_message);
-                show_error_toast (error_message);
-            });
-
             var favorites_manager = FavoritesManager.get_instance ();
             favorites_manager.error_occurred.connect ((error_message) => {
                 warning ("FavoritesManager error: %s", error_message);
@@ -132,13 +122,7 @@ namespace Digger {
          * Populate a history listbox (shared between dialog and popover)
          */
         private void populate_history_listbox (Gtk.ListBox listbox, string search_text) {
-            // Remove existing rows
-            var child = listbox.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                listbox.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (listbox);
 
             // Get filtered history
             var history_items = query_history.get_history ();
@@ -183,33 +167,23 @@ namespace Digger {
         }
 
         private void setup_ui () {
-            // Initialize the enhanced query form with DNS presets
-            query_form.set_dns_presets (dns_presets);
-            
             // Connect query history to enhanced form for autocomplete
             query_form.set_query_history (query_history);
-            
+
             // Use custom symbolic icon with proper naming for theme support
             history_button.icon_name = Config.APP_ID + "-history-symbolic";
-            
+
             // Connect button click to show popover or dialog based on width
             history_button.clicked.connect (show_history);
 
             // Monitor window width changes for mobile detection
             this.notify["default-width"].connect (check_mobile_width);
             check_mobile_width ();
-            
+
             // Fix popover focus issues
             history_popover.autohide = true;
             history_popover.can_focus = false;
-            
-            // Ensure history components are sensitive and enabled
-            history_button.sensitive = true;
-            history_popover.sensitive = true;
-            history_listbox.sensitive = true;
-            history_search_entry.sensitive = true;
-            clear_button.sensitive = true;
-            
+
             // Ensure result view shows welcome message initially
             result_view.clear_results ();
         }
@@ -248,95 +222,11 @@ namespace Digger {
             clear_button.clicked.connect (on_clear_history);
             
             query_history.history_updated.connect (update_history_list);
-            
-            // Connect to popover show signal to ensure widgets are enabled
-            history_popover.show.connect (() => {
-                debug ("Popover shown - forcing widget sensitivity");
-                
-                // Force enable immediately when shown
-                Idle.add (() => {
-                    force_enable_history_components ();
-                    
-                    // Additional debugging
-                    debug ("SearchEntry sensitive: %s, can_focus: %s", 
-                           history_search_entry.sensitive.to_string(),
-                           history_search_entry.can_focus.to_string());
-                    debug ("ListBox sensitive: %s, can_focus: %s", 
-                           history_listbox.sensitive.to_string(),
-                           history_listbox.can_focus.to_string());
-                    debug ("Clear button sensitive: %s, can_focus: %s", 
-                           clear_button.sensitive.to_string(),
-                           clear_button.can_focus.to_string());
-                    
-                    // Allow natural focus flow instead of forcing focus
-                    // history_search_entry.grab_focus ();
-                    
-                    return false;
-                });
-            });
-            
+
             // Update history list initially
             update_history_list ();
-            
-            // Force enable history components after everything is connected
-            force_enable_history_components ();
-            
-            // Also try after a short delay to ensure UI is fully loaded
-            Timeout.add (100, () => {
-                force_enable_history_components ();
-                return false;
-            });
         }
-        
-        private void force_enable_history_components () {
-            // Force enable all history-related widgets
-            history_button.set_sensitive (true);
-            history_popover.set_sensitive (true);
-            
-            // Ensure popover handles focus correctly
-            history_popover.autohide = true;
-            history_popover.can_focus = false;
-            
-            // Enable the history box container
-            var history_box = history_popover.get_child ();
-            if (history_box != null) {
-                history_box.set_sensitive (true);
-                history_box.can_focus = true;
-            }
-            
-            history_listbox.set_sensitive (true);
-            history_search_entry.set_sensitive (true);
-            clear_button.set_sensitive (true);
-            
-            // Also try setting can_focus to ensure they're interactive
-            history_search_entry.can_focus = true;
-            history_listbox.can_focus = true;
-            clear_button.can_focus = true;
-            
-            // Enable the ListBox selection and activation
-            history_listbox.selection_mode = Gtk.SelectionMode.SINGLE;
-            history_listbox.activate_on_single_click = true;
-            
-            // Make sure all existing rows are also enabled
-            var child = history_listbox.get_first_child ();
-            while (child != null) {
-                if (child is Gtk.ListBoxRow) {
-                    var row = child as Gtk.ListBoxRow;
-                    row.set_sensitive (true);
-                    row.set_activatable (true);
-                    row.set_selectable (true);
-                    row.can_focus = true;
-                }
-                child = child.get_next_sibling ();
-            }
-            
-            // Print debug info
-            debug ("History button sensitive: %s", history_button.sensitive.to_string ());
-            debug ("History popover sensitive: %s", history_popover.sensitive.to_string ());
-            debug ("History search sensitive: %s", history_search_entry.sensitive.to_string ());
-            debug ("History listbox sensitive: %s", history_listbox.sensitive.to_string ());
-        }
-        
+
         private void on_clear_history () {
             query_history.clear_history ();
             history_popover.popdown ();
@@ -437,10 +327,6 @@ namespace Digger {
             debug ("WHOIS query failed: %s", error_message);
         }
 
-        private void on_query_completed (QueryResult result) {
-            // This is handled in perform_query now
-        }
-
         private void on_query_failed (string error_message) {
             show_toast (error_message);
         }
@@ -463,13 +349,7 @@ namespace Digger {
         }
 
         private void update_history_list () {
-            // Clear existing items
-            var child = history_listbox.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                history_listbox.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (history_listbox);
 
             // Get filtered history
             var history_items = history_search_entry.text.length > 0 
@@ -494,18 +374,13 @@ namespace Digger {
                 var row = create_history_row (result);
                 history_listbox.append (row);
             }
-            
-            // Force enable components after adding new rows
-            force_enable_history_components ();
         }
 
         private Gtk.ListBoxRow create_history_row (QueryResult result) {
             var row = new Gtk.ListBoxRow ();
             row.selectable = true;
             row.activatable = true;
-            row.sensitive = true;
-            row.can_focus = true;
-            
+
             var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 3) {
                 margin_top = 6,
                 margin_bottom = 6,

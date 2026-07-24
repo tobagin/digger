@@ -77,12 +77,7 @@ namespace Digger {
         private Gee.ArrayList<string> common_tlds;
         private Gee.ArrayList<string> popular_domains;
         private QueryHistory? query_history;
-        
-        // Configuration
-        private int max_suggestions = 10;
-        private int min_input_length = 2;
-        private bool enable_typo_correction = true;
-        
+
         private DomainSuggestionEngine () {
             domain_cache = new Gee.HashMap<string, DomainSuggestion> ();
             common_tlds = new Gee.ArrayList<string> ();
@@ -107,27 +102,28 @@ namespace Digger {
          * Get domain suggestions based on input text
          */
         public Gee.List<DomainSuggestion> get_suggestions (string input) {
+            const int MAX_SUGGESTIONS = 10;
+            const int MIN_INPUT_LENGTH = 2;
+
             var suggestions = new Gee.ArrayList<DomainSuggestion> ();
-            
-            if (input.length < min_input_length) {
+
+            if (input.length < MIN_INPUT_LENGTH) {
                 return suggestions;
             }
-            
+
             string lower_input = input.down ().strip ();
-            
+
             // 1. History-based suggestions
             add_history_suggestions (suggestions, lower_input);
-            
+
             // 2. Common TLD suggestions
             add_tld_suggestions (suggestions, lower_input);
-            
+
             // 3. Popular domain suggestions
             add_popular_suggestions (suggestions, lower_input);
-            
+
             // 4. Typo correction suggestions
-            if (enable_typo_correction) {
-                add_typo_corrections (suggestions, lower_input);
-            }
+            add_typo_corrections (suggestions, lower_input);
             
             // Sort by relevance and frequency
             suggestions.sort ((a, b) => {
@@ -152,7 +148,7 @@ namespace Digger {
             });
             
             // Limit results
-            while (suggestions.size > max_suggestions) {
+            while (suggestions.size > MAX_SUGGESTIONS) {
                 suggestions.remove_at (suggestions.size - 1);
             }
             
@@ -296,17 +292,7 @@ namespace Digger {
         }
         
         private bool is_ip_address (string input) {
-            // Simple check for IPv4
-            if (Regex.match_simple ("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", input)) {
-                return true;
-            }
-            
-            // Simple check for IPv6 (contains colons)
-            if (input.contains (":")) {
-                return true;
-            }
-            
-            return false;
+            return GLib.Hostname.is_ip_address (input);
         }
         
         private int edit_distance (string a, string b) {

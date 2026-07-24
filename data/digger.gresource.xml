@@ -21,6 +21,5 @@
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">enhanced-result-view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">autocomplete-dropdown.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">history-popover.ui</file>
   </gresource>
 </gresources>

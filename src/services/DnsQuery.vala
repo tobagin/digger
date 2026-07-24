@@ -11,24 +11,11 @@
 namespace Digger {
     public class DnsQuery : Object {
         private const string DIG_COMMAND = "dig";
-        private const int DEFAULT_TIMEOUT = Constants.DEFAULT_QUERY_TIMEOUT_SECONDS;
-
-        // Cached dig availability check (SEC-003 Performance)
-        private static bool? dig_available_cache = null;
 
         private GLib.Settings settings;
-        
+
         public signal void query_completed (QueryResult result);
         public signal void query_failed (string error_message);
-        
-        private static DnsQuery? instance = null;
-
-        public static DnsQuery get_instance () {
-            if (instance == null) {
-                instance = new DnsQuery ();
-            }
-            return instance;
-        }
 
         public DnsQuery () {
             settings = new GLib.Settings (Config.APP_ID);
@@ -55,8 +42,8 @@ namespace Digger {
                 return result;
             }
 
-            // Check if dig command exists (with caching)
-            if (!yield check_dig_available_async ()) {
+            // Check if dig command exists
+            if (!is_dig_available ()) {
                 var result = new QueryResult ();
                 result.domain = domain;
                 result.query_type = record_type;
@@ -133,7 +120,7 @@ namespace Digger {
                 result.status = QueryStatus.NETWORK_ERROR;
                 // SEC-009: Log full error, send sanitized message
                 critical ("Error executing query for %s: %s", domain, e.message);
-                query_failed (ValidationUtils.get_user_friendly_error (e));
+                query_failed ("DNS query failed. Please check your input and try again.");
                 return result;
             }
         }
@@ -178,12 +165,7 @@ namespace Digger {
             var timeout_seconds = (settings != null) ? settings.get_int ("query-timeout") : 10;
             args.add (@"+time=$timeout_seconds");
 
-            // Convert to string array safely
-            string[] result_args = new string[args.size];
-            for (int i = 0; i < args.size; i++) {
-                result_args[i] = args[i];
-            }
-            return result_args;
+            return args.to_array ();
         }
 
         private async bool run_command_async (string[] command_args, out string standard_output,
@@ -197,97 +179,6 @@ namespace Digger {
             exit_status = process.get_exit_status ();
 
             return true;
-        }
-
-        /**
-         * Synchronous version for use in background threads
-         * This blocks but that's OK since it runs in a separate thread
-         */
-        private bool run_command_sync (string[] command_args, out string standard_output,
-                                       out string standard_error, out int exit_status) throws Error {
-            Process.spawn_sync (null, command_args, null,
-                              SpawnFlags.SEARCH_PATH,
-                              null,
-                              out standard_output,
-                              out standard_error,
-                              out exit_status);
-            return true;
-        }
-
-        /**
-         * Synchronous query for use in background threads
-         * Does NOT use async/yield so it can run in a thread without event loop
-         */
-        public QueryResult? perform_query_sync (string domain, RecordType record_type,
-                                                string? dns_server = null,
-                                                bool reverse_lookup = false,
-                                                bool trace_path = false,
-                                                bool short_output = false,
-                                                bool request_dnssec = false) {
-            var result = new QueryResult ();
-            result.domain = domain;
-            result.query_type = record_type;
-            result.dns_server = dns_server ?? "System default";
-            result.reverse_lookup = reverse_lookup;
-            result.trace_path = trace_path;
-            result.short_output = short_output;
-            result.request_dnssec = request_dnssec;
-
-            // Same validation as the async path: block flag/injection input
-            // before it reaches dig's argv (this path is fed by batch imports).
-            bool input_valid = reverse_lookup
-                ? (ValidationUtils.is_valid_ipv4 (domain) || ValidationUtils.is_valid_ipv6 (domain))
-                : is_valid_domain (domain);
-            if (!input_valid) {
-                result.status = QueryStatus.INVALID_DOMAIN;
-                return result;
-            }
-
-            var timer = new Timer ();
-            timer.start ();
-
-            try {
-                // Ensure we use the Punycode version for the actual command execution
-                string domain_for_command = domain;
-                string? ascii_domain = GLib.Hostname.to_ascii (domain);
-                if (ascii_domain != null) {
-                    domain_for_command = ascii_domain;
-                }
-
-                string[] command_args = build_dig_command (domain_for_command, record_type, dns_server,
-                                                         reverse_lookup, trace_path, short_output, request_dnssec);
-
-                string standard_output;
-                string standard_error;
-                int exit_status;
-
-                bool success = run_command_sync (command_args, out standard_output,
-                                                out standard_error, out exit_status);
-
-                timer.stop ();
-                result.query_time_ms = timer.elapsed () * 1000;
-                result.raw_output = standard_output;
-
-                if (!success) {
-                    result.status = QueryStatus.NETWORK_ERROR;
-                    return result;
-                }
-
-                if (exit_status != 0) {
-                    result.status = QueryStatus.NETWORK_ERROR;
-                    return result;
-                }
-
-                parse_dig_output (standard_output, result);
-                return result;
-
-            } catch (Error e) {
-                timer.stop ();
-                result.query_time_ms = timer.elapsed () * 1000;
-                result.status = QueryStatus.NETWORK_ERROR;
-                warning ("Error executing sync query for %s: %s", domain, e.message);
-                return result;
-            }
         }
 
         private void parse_dig_output (string output, QueryResult result) {
@@ -419,12 +310,7 @@ namespace Digger {
                 }
             }
 
-            // Convert to string array safely
-            string[] value_array = new string[value_parts.size];
-            for (int i = 0; i < value_parts.size; i++) {
-                value_array[i] = value_parts[i];
-            }
-            string value = string.joinv (" ", value_array);
+            string value = string.joinv (" ", value_parts.to_array ());
 
             // SEC-004: Handle MX records specially for priority with bounds checking
             int priority = -1;
@@ -438,12 +324,7 @@ namespace Digger {
                         for (int i = 5; i < clean_parts.size; i++) {
                             value_parts.add (clean_parts[i]);
                         }
-                        // Convert to string array safely
-                        string[] mx_value_array = new string[value_parts.size];
-                        for (int i = 0; i < value_parts.size; i++) {
-                            mx_value_array[i] = value_parts[i];
-                        }
-                        value = string.joinv (" ", mx_value_array);
+                        value = string.joinv (" ", value_parts.to_array ());
                     } else {
                         // Malformed MX record - has priority but no hostname
                         warning ("Skipping malformed MX record (missing hostname): %s", line);
@@ -462,12 +343,8 @@ namespace Digger {
             if (record_type == RecordType.RRSIG && value_parts.size >= 8) {
                 record.rrsig_type_covered = value_parts[0];
                 record.rrsig_algorithm = value_parts[1];
-                record.rrsig_labels = value_parts[2];
-                record.rrsig_original_ttl = value_parts[3];
                 record.rrsig_expiration = value_parts[4];
-                record.rrsig_inception = value_parts[5];
                 record.rrsig_key_tag = value_parts[6];
-                record.rrsig_signer_name = value_parts[7];
                 // Signature is in value_parts[8] and onwards
             }
 
@@ -539,43 +416,8 @@ namespace Digger {
             }
         }
 
-        /**
-         * Checks if dig command is available with session-level caching
-         * Performance: Eliminates repeated 'which' system calls
-         */
-        private async bool check_dig_available_async () {
-            // Check cache first - O(1) return if already checked
-            if (dig_available_cache != null) {
-                return dig_available_cache;
-            }
-
-            // Perform async check if cache is empty
-            try {
-                string standard_output;
-                string standard_error;
-                int exit_status;
-
-                yield run_command_async ({"which", DIG_COMMAND},
-                                        out standard_output,
-                                        out standard_error,
-                                        out exit_status);
-
-                // Cache the result for session lifetime
-                dig_available_cache = (exit_status == 0);
-
-                if (dig_available_cache) {
-                    message ("dig command found and cached");
-                } else {
-                    warning ("dig command not found");
-                }
-
-                return dig_available_cache;
-            } catch (Error e) {
-                // Cache negative result
-                dig_available_cache = false;
-                warning ("Error checking dig availability: %s", e.message);
-                return false;
-            }
+        private bool is_dig_available () {
+            return GLib.Environment.find_program_in_path (DIG_COMMAND) != null;
         }
 
         private bool is_valid_domain (string domain) {
@@ -588,31 +430,8 @@ namespace Digger {
             // This handles IDN and basic length checks implicit in the conversion
             string? ascii_domain = GLib.Hostname.to_ascii (domain);
             if (ascii_domain == null) {
-                // Fallback: If GLib conversion fails (e.g. missing locales in Flatpak), 
-                // we perform a "permissive but safe" check to allow the query to proceed.
-                // We let 'dig' determine validity, but we MUST prevent command injection.
-                
-                // 1. Check for command injection/flag indicators
-                if (domain.has_prefix ("-")) {
-                    message ("Rejected domain '%s': starts with hyphen", domain);
-                    return false;
-                }
-                
-                // 2. Check for whitespace (domains cannot have spaces)
-                if (Regex.match_simple ("\\s", domain)) {
-                     message ("Rejected domain '%s': contains whitespace", domain);
-                     return false;
-                }
-
-                // 3. Check for shell meta-characters forbidden in strict mode
-                // (Though we use exec array which avoids shell, it's good practice)
-                if (Regex.match_simple ("[;&|`$]", domain)) {
-                     message ("Rejected domain '%s': contains shell meta-characters", domain);
-                     return false;
-                }
-                
-                message ("Warning: GLib.Hostname.to_ascii failed for '%s'. Allowing permissive fallback.", domain);
-                return true;
+                message ("Rejected domain '%s': GLib.Hostname.to_ascii failed", domain);
+                return false;
             }
 
             // Prevent command injection (dig flags start with -)

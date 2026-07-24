@@ -88,12 +88,7 @@ namespace Digger {
         }
 
         private void clear_results () {
-            var child = results_box.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                results_box.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (results_box);
         }
     }
 }

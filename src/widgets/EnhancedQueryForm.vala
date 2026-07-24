@@ -36,7 +36,6 @@ namespace Digger {
         private FavoritesManager favorites_manager;
         private PresetManager preset_manager;
         private string current_dns_server = "";
-        private bool signals_connected = false;
         private bool _query_in_progress = false;
         private GLib.Settings settings;
         private QueryPreset? active_preset = null;
@@ -63,54 +62,31 @@ namespace Digger {
             }
         }
         
-        public EnhancedQueryForm () {
-            // dns_presets will be set via set_dns_presets() after construction
-        }
-        
         construct {
             settings = new GLib.Settings(Config.APP_ID);
+            dns_presets = DnsPresets.get_instance ();
             favorites_manager = FavoritesManager.get_instance ();
             preset_manager = PresetManager.get_instance ();
             query_button.sensitive = false;
 
-            if (dns_presets != null) {
-                setup_ui ();
-                connect_signals ();
-            }
+            setup_ui ();
+            connect_signals ();
+            validate_input ();
 
             update_favorite_button_state ();
         }
-        
-        public void set_dns_presets (DnsPresets presets) {
-            dns_presets = presets;
-            setup_ui ();
-            if (!signals_connected) {
-                connect_signals ();
-                signals_connected = true;
-                // Initial validation after signals are connected
-                validate_input ();
-            }
-        }
-        
+
         public void set_query_history (QueryHistory history) {
             query_history = history;
-            
+
             // Connect autocomplete to query history
             autocomplete_dropdown.set_query_history (history);
-            
-            setup_domain_suggestions ();
         }
-        
+
         private void setup_ui () {
-            if (dns_presets == null) {
-                return; // Cannot setup UI without presets
-            }
-            
             // Initialize autocomplete dropdown with domain entry from template
-            if (autocomplete_dropdown == null) {
-                autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
-            }
-            
+            autocomplete_dropdown = new AutocompleteDropdown (domain_entry);
+
             setup_record_type_dropdown ();
             setup_dns_server_dropdown ();
             setup_preset_dropdown ();
@@ -120,50 +96,16 @@ namespace Digger {
         
         private void setup_record_type_dropdown () {
             var model = new Gtk.StringList (null);
-            var record_types = dns_presets.get_all_record_types ();
-            
-            // Sort by type name for consistent display
-            var sorted_types = new Gee.ArrayList<RecordTypeInfo> ();
-            sorted_types.add_all (record_types);
-            sorted_types.sort ((a, b) => {
-                // Put common types first
-                string[] common_order = {"A", "AAAA", "CNAME", "MX", "NS", "TXT"};
-                int pos_a = -1, pos_b = -1;
-                for (int i = 0; i < common_order.length; i++) {
-                    if (a.record_type == common_order[i]) pos_a = i;
-                    if (b.record_type == common_order[i]) pos_b = i;
-                }
-                
-                if (pos_a >= 0 && pos_b >= 0) return pos_a - pos_b;
-                if (pos_a >= 0) return -1;
-                if (pos_b >= 0) return 1;
-                return strcmp (a.record_type, b.record_type);
-            });
-            
-            foreach (var record_type in sorted_types) {
+
+            foreach (var record_type in dns_presets.get_sorted_record_types ()) {
                 model.append (record_type.get_display_name ());
             }
-            
+
             // Set up the dropdown model (template widget is already created)
             record_type_dropdown.model = model;
-            
-            // Load default record type from settings and find its index
-            var default_record_type = settings.get_string ("default-record-type");
-            if (default_record_type == "") {
-                default_record_type = "A"; // fallback to A if empty
-            }
-            int selected_index = 0; // fallback to first item
-            
-            for (uint i = 0; i < model.get_n_items (); i++) {
-                var display_name = model.get_string (i);
-                var type_code = display_name.split (" - ")[0];
-                if (type_code == default_record_type) {
-                    selected_index = (int)i;
-                    break;
-                }
-            }
-            record_type_dropdown.selected = selected_index;
-            
+
+            select_default_record_type ();
+
             // Add tooltips based on selection
             record_type_dropdown.notify["selected"].connect (() => {
                 var selected_name = model.get_string (record_type_dropdown.selected);
@@ -200,27 +142,12 @@ namespace Digger {
             model.append ("Custom DNS Server...");
             
             dns_server_dropdown.model = model;
-            
-            // Load default DNS server from settings and find its index
-            var default_dns_server = settings.get_string ("default-dns-server");
-            int selected_index = 0; // fallback to System Default
-            
-            if (default_dns_server != "") {
-                // Look for matching DNS server
-                for (int i = 0; i < all_servers.size; i++) {
-                    var server = all_servers.get (i);
-                    if (server.primary == default_dns_server || server.name == default_dns_server) {
-                        selected_index = i + 1; // +1 because System Default is at index 0
-                        break;
-                    }
-                }
-            }
-            
-            dns_server_dropdown.selected = selected_index;
-            
+
             // Store the dns_servers list for quick access
             dns_server_dropdown.set_data ("dns_servers", dns_servers);
-            
+
+            select_default_dns_server ();
+
             // Add tooltips and handle selection changes
             dns_server_dropdown.notify["selected"].connect (() => {
                 var current_selected_index = dns_server_dropdown.selected;
@@ -242,7 +169,54 @@ namespace Digger {
             });
         }
         
-        private void setup_preset_dropdown () {
+        /**
+         * Select the default record type from settings in the dropdown
+         */
+        private void select_default_record_type () {
+            var default_record_type = settings.get_string ("default-record-type");
+            if (default_record_type == "") {
+                default_record_type = "A"; // fallback to A if empty
+            }
+
+            var model = (Gtk.StringList) record_type_dropdown.model;
+            int selected_index = 0; // fallback to first item
+
+            for (uint i = 0; i < model.get_n_items (); i++) {
+                var display_name = model.get_string (i);
+                var type_code = display_name.split (" - ")[0];
+                if (type_code == default_record_type) {
+                    selected_index = (int)i;
+                    break;
+                }
+            }
+
+            record_type_dropdown.selected = selected_index;
+        }
+
+        /**
+         * Select the default DNS server from settings in the dropdown
+         */
+        private void select_default_dns_server () {
+            var default_dns_server = settings.get_string ("default-dns-server");
+            int selected_index = 0; // fallback to System Default
+
+            if (default_dns_server != "") {
+                var dns_servers = dns_server_dropdown.get_data<Gee.ArrayList<DnsServer>> ("dns_servers");
+                if (dns_servers != null) {
+                    for (int i = 0; i < dns_servers.size; i++) {
+                        var server = dns_servers.get (i);
+                        if (server.primary == default_dns_server || server.name == default_dns_server) {
+                            selected_index = i + 1; // +1 because System Default is at index 0
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dns_server_dropdown.selected = selected_index;
+        }
+
+        private Gtk.StringList build_preset_model () {
             var model = new Gtk.StringList (null);
 
             // Add "No preset" option
@@ -263,7 +237,11 @@ namespace Digger {
                 }
             }
 
-            preset_dropdown.model = model;
+            return model;
+        }
+
+        private void setup_preset_dropdown () {
+            preset_dropdown.model = build_preset_model ();
             preset_dropdown.selected = 0; // Start with "No preset selected"
 
             // Handle preset selection
@@ -271,32 +249,8 @@ namespace Digger {
 
             // Listen for preset updates
             preset_manager.presets_updated.connect (() => {
-                refresh_preset_dropdown ();
+                preset_dropdown.model = build_preset_model ();
             });
-        }
-
-        private void refresh_preset_dropdown () {
-            var model = new Gtk.StringList (null);
-
-            // Add "No preset" option
-            model.append ("No preset selected");
-
-            // Add system presets
-            var system_presets = preset_manager.get_system_presets ();
-            foreach (var preset in system_presets) {
-                model.append (preset.get_display_name ());
-            }
-
-            // Add user presets under a divider if any exist
-            var user_presets = preset_manager.get_user_presets ();
-            if (user_presets.size > 0) {
-                model.append ("─ Custom Presets ─");
-                foreach (var preset in user_presets) {
-                    model.append (preset.get_display_name ());
-                }
-            }
-
-            preset_dropdown.model = model;
         }
 
         private void on_preset_selected () {
@@ -357,32 +311,16 @@ namespace Digger {
             applying_preset = false;
 
             // Show a toast notification
-            show_preset_applied_toast (preset.name);
+            show_toast (@"Applied preset: $(preset.name)");
         }
 
-        private void show_preset_applied_toast (string preset_name) {
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast (@"Applied preset: $preset_name") {
-                    timeout = Constants.TOAST_TIMEOUT_SECONDS
-                };
-                toast_overlay.add_toast (toast);
-            }
+        private void show_toast (string message, int timeout = Constants.TOAST_TIMEOUT_SECONDS) {
+            UiUtils.show_toast (this, message, timeout);
         }
 
         private void setup_quick_presets () {
             // Clear any existing preset buttons first
-            var child = quick_presets_box.get_first_child ();
-            while (child != null) {
-                var next = child.get_next_sibling ();
-                quick_presets_box.remove (child);
-                child = next;
-            }
+            UiUtils.clear_children (quick_presets_box);
 
             // quick_presets_box is from template, just add buttons to it
 
@@ -409,13 +347,6 @@ namespace Digger {
             quick_presets_box.append (preset_button);
         }
         
-        private void setup_domain_suggestions () {
-            if (query_history == null) return;
-            
-            // Autocomplete system is already set up through the AutocompleteDropdown
-            // The dropdown will automatically use the query history for suggestions
-        }
-        
         private void connect_signals () {
             favorite_button.clicked.connect (on_favorite_clicked);
             paste_button.clicked.connect (paste_from_clipboard);
@@ -427,11 +358,6 @@ namespace Digger {
                 validate_input ();
                 update_favorite_button_state ();
             });
-
-            // Connect autocomplete signals if dropdown exists
-            if (autocomplete_dropdown != null) {
-                autocomplete_dropdown.suggestion_selected.connect (on_autocomplete_selected);
-            }
         }
         
         public bool get_reverse_lookup () {
@@ -456,10 +382,6 @@ namespace Digger {
         
         public void set_short_output (bool value) {
             short_output_switch.active = value;
-        }
-
-        public bool get_request_dnssec () {
-            return dnssec_switch.active;
         }
 
         public void set_request_dnssec (bool value) {
@@ -493,29 +415,8 @@ namespace Digger {
         }
         
         private bool is_valid_domain_or_ip (string input) {
-            // Trim whitespace
-            string domain_to_check = input.strip ();
-            
             // Auto-strip URL components for validation check
-            if (domain_to_check.has_prefix ("http://") || domain_to_check.has_prefix ("https://")) {
-                try {
-                    // Use Uri to parse and extract host
-                    var uri = GLib.Uri.parse (domain_to_check, GLib.UriFlags.NONE);
-                    if (uri.get_host () != null) {
-                        domain_to_check = uri.get_host ();
-                    }
-                } catch (Error e) {
-                    // Fallback to manual stripping if Uri parsing fails
-                    int schema_end = domain_to_check.index_of ("://");
-                    if (schema_end != -1) {
-                        domain_to_check = domain_to_check.substring (schema_end + 3);
-                    }
-                    int path_start = domain_to_check.index_of ("/");
-                    if (path_start != -1) {
-                        domain_to_check = domain_to_check.substring (0, path_start);
-                    }
-                }
-            }
+            string domain_to_check = ValidationUtils.strip_url (input);
 
             if (domain_to_check.length == 0 || domain_to_check.length > 253) {
                 return false;
@@ -625,7 +526,7 @@ namespace Digger {
         }
 
         private void show_dns_validation_error (string invalid_server) {
-            var error_message = ValidationUtils.get_dns_server_error_message (invalid_server);
+            var error_message = "Invalid DNS server address.\nAccepted formats:\n• IPv4: 8.8.8.8\n• IPv6: 2001:4860:4860::8888\n• Hostname: dns.example.com";
             var window = get_root () as Gtk.Window;
             if (window == null) {
                 warning ("Cannot show error dialog: no parent window found");
@@ -707,30 +608,15 @@ namespace Digger {
             
             string domain = domain_entry.text.strip ();
             if (domain.length == 0) return;
-            
+
             // Strip URL components if present
-            if (domain.has_prefix ("http://") || domain.has_prefix ("https://")) {
-                try {
-                    var uri = GLib.Uri.parse (domain, GLib.UriFlags.NONE);
-                    if (uri.get_host () != null) {
-                        domain = uri.get_host ();
-                    }
-                } catch (Error e) {
-                    // Fallback manual strip
-                    int schema_end = domain.index_of ("://");
-                    if (schema_end != -1) {
-                        domain = domain.substring (schema_end + 3);
-                    }
-                    int path_start = domain.index_of ("/");
-                    if (path_start != -1) {
-                        domain = domain.substring (0, path_start);
-                    }
-                }
-                
+            var stripped = ValidationUtils.strip_url (domain);
+            if (stripped != domain) {
+                domain = stripped;
                 // Update the entry to show the cleaned domain
                 domain_entry.text = domain;
             }
-            
+
             var selected_text = ((Gtk.StringList) record_type_dropdown.model).get_string (record_type_dropdown.selected);
             string record_type_str = selected_text.split (" - ")[0];
             RecordType record_type = RecordType.from_string (record_type_str);
@@ -740,21 +626,13 @@ namespace Digger {
             query_requested (domain, record_type, dns_server, dnssec_switch.active);
         }
         
-        public string get_domain () {
-            return domain_entry.text.strip ();
-        }
-        
         public void set_domain (string domain) {
             domain_entry.text = domain;
             validate_input ();
         }
         
         public void set_domain_from_history (string domain) {
-            if (autocomplete_dropdown != null) {
-                autocomplete_dropdown.set_domain_without_autocomplete (domain);
-            } else {
-                domain_entry.text = domain;
-            }
+            autocomplete_dropdown.set_domain_without_autocomplete (domain);
             validate_input ();
         }
         
@@ -776,10 +654,6 @@ namespace Digger {
             }
         }
         
-        public string? get_dns_server () {
-            return current_dns_server.length > 0 ? current_dns_server : null;
-        }
-        
         public void set_dns_server (string server) {
             if (server.length == 0) {
                 dns_server_dropdown.selected = 0; // System default
@@ -794,45 +668,11 @@ namespace Digger {
         
         public void clear_form () {
             domain_entry.text = "";
-            
-            // Reset record type to default from settings
-            var default_record_type = settings.get_string ("default-record-type");
-            if (default_record_type == "") {
-                default_record_type = "A"; // fallback
-            }
-            var model = (Gtk.StringList) record_type_dropdown.model;
-            int selected_index = 0; // fallback to first item
-            
-            for (uint i = 0; i < model.get_n_items (); i++) {
-                var display_name = model.get_string (i);
-                var type_code = display_name.split (" - ")[0];
-                if (type_code == default_record_type) {
-                    selected_index = (int)i;
-                    break;
-                }
-            }
-            
-            record_type_dropdown.selected = selected_index;
-            
-            // Reset DNS server to default from settings
-            var default_dns_server = settings.get_string ("default-dns-server");
-            int dns_selected_index = 0; // fallback to System Default
-            
-            if (default_dns_server != "") {
-                var dns_servers = dns_server_dropdown.get_data<Gee.ArrayList<DnsServer>> ("dns_servers");
-                if (dns_servers != null) {
-                    for (int i = 0; i < dns_servers.size; i++) {
-                        var server = dns_servers.get (i);
-                        if (server.primary == default_dns_server || server.name == default_dns_server) {
-                            dns_selected_index = i + 1; // +1 because System Default is at index 0
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            dns_server_dropdown.selected = dns_selected_index;
-            
+
+            // Reset record type and DNS server to defaults from settings
+            select_default_record_type ();
+            select_default_dns_server ();
+
             // Reset switches to default preferences
             reverse_lookup_switch.active = settings.get_boolean ("default-reverse-lookup");
             trace_path_switch.active = settings.get_boolean ("default-trace-path");
@@ -852,32 +692,6 @@ namespace Digger {
         public void trigger_query () {
             on_query_requested ();
         }
-        
-        /**
-         * Handle autocomplete suggestion selection
-         */
-        private void on_autocomplete_selected (string domain) {
-            // The domain is already set in the entry by the autocomplete dropdown
-            // Just validate the input
-            validate_input ();
-            
-            // Optionally trigger query immediately if user preference is set
-            // For now, just focus remains on the domain entry for user confirmation
-        }
-        
-        /**
-         * Show autocomplete suggestions programmatically
-         */
-        public void show_suggestions () {
-            autocomplete_dropdown.trigger_suggestions ();
-        }
-        
-        /**
-         * Hide autocomplete suggestions
-         */
-        public void hide_suggestions () {
-            autocomplete_dropdown.clear_suggestions ();
-        }
 
         private void on_favorite_clicked () {
             var domain = domain_entry.text.strip ();
@@ -892,14 +706,14 @@ namespace Digger {
                 var entry = favorites_manager.get_favorite (domain, record_type);
                 if (entry != null) {
                     favorites_manager.remove_favorite (entry);
-                    show_favorite_removed_toast (domain);
+                    show_toast (@"Removed $domain from favorites");
                 }
             } else {
                 var entry = new FavoriteEntry (domain, record_type);
                 entry.label = domain;
                 entry.dns_server = current_dns_server.length > 0 ? current_dns_server : null;
                 favorites_manager.add_favorite (entry);
-                show_favorite_added_toast (domain);
+                show_toast (@"Added $domain to favorites");
             }
 
             update_favorite_button_state ();
@@ -924,34 +738,5 @@ namespace Digger {
             }
         }
 
-        private void show_favorite_added_toast (string domain) {
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast (@"Added $domain to favorites") {
-                    timeout = Constants.TOAST_TIMEOUT_SECONDS
-                };
-                toast_overlay.add_toast (toast);
-            }
-        }
-
-        private void show_favorite_removed_toast (string domain) {
-            var parent = get_parent ();
-            while (parent != null && !(parent is Adw.ToastOverlay)) {
-                parent = parent.get_parent ();
-            }
-
-            if (parent is Adw.ToastOverlay) {
-                var toast_overlay = (Adw.ToastOverlay) parent;
-                var toast = new Adw.Toast (@"Removed $domain from favorites") {
-                    timeout = Constants.TOAST_TIMEOUT_SECONDS
-                };
-                toast_overlay.add_toast (toast);
-            }
-        }
     }
 }
