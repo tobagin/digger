@@ -1,6 +1,6 @@
 /*
  * digger-vala - DNS lookup tool with GTK interface
- * Copyright (C) 2024 tobagin
+ * Copyright (C) 2024-2026 Thiago Fernandes
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

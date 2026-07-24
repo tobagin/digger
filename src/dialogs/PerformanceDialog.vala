@@ -1,6 +1,6 @@
 /*
  * digger-vala - DNS lookup tool with GTK interface
- * Copyright (C) 2024 tobagin
+ * Copyright (C) 2024-2026 Thiago Fernandes
  */
 
 using Gtk;
