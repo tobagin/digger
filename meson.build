@@ -81,6 +81,7 @@ executable('digger-vala',
   'src/widgets/EnhancedResultView.vala',
   'src/widgets/AutocompleteDropdown.vala',
   'src/widgets/PerformanceGraph.vala',
+  'src/dialogs/ThreatCheckDialog.vala',
   'src/dialogs/DnsblDialog.vala',
   'src/dialogs/PerformanceDialog.vala',
   'src/dialogs/PropagationDialog.vala',
@@ -88,6 +89,7 @@ executable('digger-vala',
   'src/dialogs/DnssecDialog.vala',
   'src/dialogs/MonitorDialog.vala',
   'src/services/DnsblService.vala',
+  'src/services/ThreatIntelService.vala',
   'src/services/PropagationService.vala',
   'src/services/SubdomainService.vala',
   'src/services/MonitorService.vala',
@@ -111,6 +113,8 @@ executable('digger-vala',
   install: true,
   install_dir: get_option('bindir')
 )
+
+subdir('tests')
 
 # Po files
 subdir('po')

@@ -27,6 +27,7 @@ namespace Digger {
         
         private DnsQuery dns_query;
         private WhoisService whois_service;
+        private ThreatIntelService threat_service;
         private QueryHistory query_history;
         private DnsPresets dns_presets;
         private ThemeManager theme_manager;
@@ -55,6 +56,10 @@ namespace Digger {
             whois_service = new WhoisService ();
             whois_service.query_completed.connect (on_whois_completed);
             whois_service.query_failed.connect (on_whois_failed);
+
+            threat_service = new ThreatIntelService ();
+            threat_service.check_completed.connect (on_threat_completed);
+            threat_service.check_failed.connect (on_threat_failed);
 
             // Connect error signals from managers (SEC-009: Enhanced Error Handling)
             query_history.error_occurred.connect ((error_message) => {
@@ -405,6 +410,9 @@ namespace Digger {
                     // Fetch WHOIS data asynchronously (don't block on it)
                     fetch_whois_data.begin (result);
                 }
+                if (settings.get_boolean ("threat-intel-enabled")) {
+                    fetch_threat_data.begin (result);
+                }
 
                 result_view.show_result (result);
                 query_history.add_query (result);
@@ -435,6 +443,22 @@ namespace Digger {
         private void on_whois_failed (string error_message) {
             // Silently log WHOIS failures - they're optional
             debug ("WHOIS query failed: %s", error_message);
+        }
+
+        private async void fetch_threat_data (QueryResult result) {
+            var threat_data = yield threat_service.perform_check (result.domain);
+            if (threat_data != null) {
+                result.threat_intel_data = threat_data;
+                result_view.show_result (result);
+            }
+        }
+
+        private void on_threat_completed (ThreatIntelData data) {
+            debug ("Threat check completed for %s: %s", data.target, data.get_verdict_label ());
+        }
+
+        private void on_threat_failed (string error_message) {
+            debug ("Threat check failed: %s", error_message);
         }
 
         private void on_query_completed (QueryResult result) {

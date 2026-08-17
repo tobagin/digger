@@ -146,4 +146,21 @@ namespace Digger.Constants {
      * Used for actual file size validation
      */
     public const int MAX_BATCH_FILE_SIZE_BYTES = MAX_BATCH_FILE_SIZE_MB * 1024 * 1024;
+
+    // ==================== Threat Intelligence Constants ====================
+
+    /**
+     * VirusTotal API query timeout in seconds
+     */
+    public const int VT_QUERY_TIMEOUT_SECONDS = 30;
+
+    /**
+     * Default threat intel cache TTL in seconds (1 hour)
+     */
+    public const int THREAT_INTEL_CACHE_TTL_SECONDS = 3600;
+
+    /**
+     * Maximum threat intel cache entries
+     */
+    public const int THREAT_INTEL_CACHE_MAX_ENTRIES = 100;
 }

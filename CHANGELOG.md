@@ -5,6 +5,12 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Malware Domain Checking**: VirusTotal (domains + IPs) + Spamhaus DBL threat intelligence, deterministic 0-100 safety scoring with worst-of verdict aggregation, historical submission dates, LRU+TTL caching, rate-limit cooldown handling, dedicated "Malware Domain Check" dialog (Ctrl+Shift+T) and opt-in Threat Intelligence section in query results, JSON/CSV/TXT export support, and GSettings keys (threat-intel-enabled, virustotal-api-key, threat-intel-cache-ttl).
+- **Automated Test Suite**: First GLib.Test harness (`tests/test-threat-intel.vala`) covering scoring, DBL codes, aggregation, parsing, display helpers, cache, and rate limiting; wired into `meson test` and CI.
+
 ## [2.8.0] - 2026-07-17
 
 ### Added

@@ -132,13 +132,13 @@ Educational feature helping users learn command-line equivalents.
 - [ ] Alert on suspicious responses
 
 ### Malware Domain Checking
-**Impact**: High | **Effort**: Medium | **Status**: Not Started
+**Impact**: High | **Effort**: Medium | **Status**: Completed ✅
 
-- [ ] VirusTotal API integration
-- [ ] Threat intelligence feed integration
-- [ ] Reputation display in results
-- [ ] Domain safety scoring
-- [ ] Historical threat data
+- [x] VirusTotal API integration
+- [x] Threat intelligence feed integration
+- [x] Reputation display in results
+- [x] Domain safety scoring
+- [x] Historical threat data
 
 ### DNS Tunneling Detection
 **Impact**: Low | **Effort**: High | **Status**: Not Started
@@ -588,4 +588,4 @@ Interested in implementing any of these features? Check out [CONTRIBUTING.md](CO
 
 Have ideas for features not listed here? Open an issue on GitHub or contact the maintainer!
 
-**Last Updated**: 2026-01-07
+**Last Updated**: 2026-08-17

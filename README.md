@@ -22,6 +22,7 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 - **🔍 Advanced DNS Queries**: Support for all major DNS record types with DNSSEC validation.
 - **🌍 Propagation Check**: Compare a record across eight public resolvers to see how far it has propagated.
 - **🛡️ DNS Blacklist Checking**: Check IPs against multiple RBL providers in parallel.
+- **🔒 Malware Domain Checking**: VirusTotal + Spamhaus DBL threat intel with safety scoring (Ctrl+Shift+T).
 - **📊 Performance Monitor**: Real-time DNS latency visualization for major providers.
 - **🌐 WHOIS Integration**: Domain registration lookup with intelligent caching.
 - **📱 Responsive Design**: Beautiful adaptive layout for all screen sizes.
@@ -52,6 +53,7 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Domain Monitoring**: Watch domains and get notified when their records change.
 - **Batch Lookup**: Query multiple domains at once from CSV/TXT files.
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
+- **Malware Domain Checking**: VirusTotal + Spamhaus DBL reputation, safety scoring, and historical threat data — opt-in in Preferences, also available as a dedicated dialog (Ctrl+Shift+T).
 - **History & Favorites**: Keep track of your queries and save important domains.
 
 ### User Experience
@@ -115,6 +117,8 @@ flatpak run io.github.tobagin.digger
 - `Ctrl+R` - Repeat last query
 - `Ctrl+B` - Batch lookup
 - `Ctrl+M` - Compare servers
+- `Ctrl+Shift+T` - Malware Domain Check
+- `Ctrl+Shift+B` - DNS Blacklist Check
 - `Ctrl+,` - Preferences
 - `F1` - About Digger
 

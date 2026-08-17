@@ -68,6 +68,7 @@ blueprint_files = [
   'ui/dialogs/batch-lookup-dialog.blp',
   'ui/dialogs/comparison-dialog.blp',
   'ui/dialogs/history-dialog.blp',
+  'ui/dialogs/threat-check-dialog.blp',
   'ui/dialogs/dnsbl-dialog.blp',
   'ui/dialogs/performance-dialog.blp',
   'ui/dialogs/propagation-dialog.blp',
