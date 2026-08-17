@@ -78,6 +78,15 @@ namespace Digger {
         [GtkChild]
         private unowned Adw.ActionRow clear_whois_cache_row;
 
+        [GtkChild]
+        private unowned Adw.SwitchRow threat_intel_enabled_row;
+
+        [GtkChild]
+        private unowned Adw.EntryRow virustotal_api_key_row;
+
+        [GtkChild]
+        private unowned Adw.SpinRow threat_intel_cache_ttl_row;
+
         private GLib.Settings settings;
         private ThemeManager theme_manager;
         private WhoisService? whois_service = null;
@@ -444,6 +453,26 @@ namespace Digger {
             custom_doh_row.visible = (doh_provider_row.selected == 3);
 
             // WHOIS settings
+            // Threat Intelligence settings
+            if (threat_intel_enabled_row != null && virustotal_api_key_row != null && threat_intel_cache_ttl_row != null) {
+                threat_intel_enabled_row.active = settings.get_boolean ("threat-intel-enabled");
+                virustotal_api_key_row.text = settings.get_string ("virustotal-api-key");
+                threat_intel_cache_ttl_row.value = settings.get_int ("threat-intel-cache-ttl") / 3600.0;
+                threat_intel_cache_ttl_row.adjustment = new Gtk.Adjustment (1, 1, 168, 1, 12, 0);
+
+                threat_intel_enabled_row.notify["active"].connect (() => {
+                    settings.set_boolean ("threat-intel-enabled", threat_intel_enabled_row.active);
+                });
+
+                virustotal_api_key_row.notify["text"].connect (() => {
+                    settings.set_string ("virustotal-api-key", virustotal_api_key_row.text.strip ());
+                });
+
+                threat_intel_cache_ttl_row.notify["value"].connect (() => {
+                    settings.set_int ("threat-intel-cache-ttl", (int)(threat_intel_cache_ttl_row.value * 3600));
+                });
+            }
+
             if (auto_whois_lookup_row != null && whois_timeout_row != null && whois_cache_ttl_row != null) {
                 auto_whois_lookup_row.active = settings.get_boolean("auto-whois-lookup");
                 whois_timeout_row.value = settings.get_int("whois-timeout");

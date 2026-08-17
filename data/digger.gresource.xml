@@ -10,6 +10,7 @@
     <file compressed="true" preprocess="xml-stripblanks">batch-lookup-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">comparison-dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">history-dialog.ui</file>
+    <file preprocess="xml-stripblanks">threat-check-dialog.ui</file>
     <file preprocess="xml-stripblanks">dnsbl-dialog.ui</file>
     <file preprocess="xml-stripblanks">performance-dialog.ui</file>
     <file preprocess="xml-stripblanks">propagation-dialog.ui</file>

@@ -136,5 +136,20 @@
       <summary>Domain monitoring interval in minutes</summary>
       <description>How often watched domains are re-checked for record changes while the app is running</description>
     </key>
+    <key name="threat-intel-enabled" type="b">
+      <default>false</default>
+      <summary>Enable Threat Intelligence</summary>
+      <description>Whether to automatically fetch threat intelligence when performing DNS queries (sends domain to VirusTotal/Spamhaus)</description>
+    </key>
+    <key name="virustotal-api-key" type="s">
+      <default>""</default>
+      <summary>VirusTotal API key</summary>
+      <description>VirusTotal API key for malware domain checking (get one at https://www.virustotal.com/gui/my-apikey)</description>
+    </key>
+    <key name="threat-intel-cache-ttl" type="i">
+      <default>3600</default>
+      <summary>Threat intel cache TTL in seconds</summary>
+      <description>How long to cache threat intelligence results before fetching fresh data (default: 1 hour)</description>
+    </key>
   </schema>
 </schemalist>

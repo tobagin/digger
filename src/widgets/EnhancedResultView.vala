@@ -148,6 +148,11 @@ namespace Digger {
                 add_whois_section (current_result.whois_data);
             }
 
+            // Add Threat Intelligence if available
+            if (current_result.threat_intel_data != null) {
+                add_threat_section (current_result.threat_intel_data);
+            }
+
             // Add query statistics
             add_query_statistics (current_result);
         }
@@ -684,6 +689,119 @@ namespace Digger {
             }
 
             content_box.append (whois_group);
+        }
+
+        private void add_threat_section (ThreatIntelData threat) {
+            var threat_group = new Adw.PreferencesGroup () {
+                title = "Threat Intelligence",
+                description = threat.from_cache ? "Cached data" : "Fresh data",
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            var verdict_row = new Adw.ActionRow () {
+                title = threat.get_verdict_label ()
+            };
+            if (threat.safety_score >= 0) {
+                verdict_row.subtitle = "Safety score: %d/100".printf (threat.safety_score);
+            } else if (threat.error_message != null) {
+                verdict_row.subtitle = threat.error_message;
+            } else {
+                verdict_row.subtitle = "No threat data available";
+            }
+            string css = threat.get_verdict_css_class ();
+            if (css.length > 0) verdict_row.add_css_class (css);
+            threat_group.add (verdict_row);
+
+            if (threat.level == ThreatLevel.ERROR || threat.level == ThreatLevel.RATE_LIMITED) {
+                var err_row = new Adw.ActionRow () {
+                    title = threat.level == ThreatLevel.RATE_LIMITED ? "Rate limited" : "Error",
+                    subtitle = threat.error_message ?? "Check failed"
+                };
+                threat_group.add (err_row);
+            }
+
+            bool has_vt = (threat.vt_harmless > 0 || threat.vt_malicious > 0 || threat.vt_suspicious > 0 || threat.vt_undetected > 0 || threat.vt_reputation != null);
+            if (has_vt) {
+                var vt_row = new Adw.ActionRow () {
+                    title = "VirusTotal detections",
+                    subtitle = "Harmless: %d, Malicious: %d, Suspicious: %d, Undetected: %d".printf (threat.vt_harmless, threat.vt_malicious, threat.vt_suspicious, threat.vt_undetected)
+                };
+                threat_group.add (vt_row);
+
+                if (threat.vt_reputation != null) {
+                    var rep_row = new Adw.ActionRow () {
+                        title = "Community reputation"
+                    };
+                    string votes = "";
+                    if (threat.vt_votes_harmless != null || threat.vt_votes_malicious != null) {
+                        votes = " (votes: %d harmless, %d malicious)".printf (threat.vt_votes_harmless ?? 0, threat.vt_votes_malicious ?? 0);
+                    }
+                    rep_row.subtitle = @"$(threat.vt_reputation)$(votes)";
+                    var copy_btn = new Gtk.Button.from_icon_name ("edit-copy-symbolic") { valign = Gtk.Align.CENTER };
+                    copy_btn.add_css_class ("flat");
+                    copy_btn.tooltip_text = "Copy to clipboard";
+                    string rep_val = @"$(threat.vt_reputation)";
+                    copy_btn.clicked.connect (() => copy_to_clipboard (rep_val));
+                    rep_row.add_suffix (copy_btn);
+                    threat_group.add (rep_row);
+                }
+
+                if (threat.vt_categories.size > 0) {
+                    var cat_row = new Adw.ActionRow () {
+                        title = "Categories",
+                        subtitle = string.joinv (", ", threat.vt_categories.to_array ())
+                    };
+                    threat_group.add (cat_row);
+                }
+
+                if (threat.vt_first_seen != null) {
+                    var fs_row = new Adw.ActionRow () { title = "First seen", subtitle = threat.vt_first_seen.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (fs_row);
+                }
+                if (threat.vt_last_seen != null) {
+                    var ls_row = new Adw.ActionRow () { title = "Last seen", subtitle = threat.vt_last_seen.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (ls_row);
+                }
+                if (threat.vt_last_analyzed != null) {
+                    var la_row = new Adw.ActionRow () { title = "Last analyzed", subtitle = threat.vt_last_analyzed.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (la_row);
+                }
+
+                if (threat.vt_detections.size > 0) {
+                    var exp = new Adw.ExpanderRow () { title = "Detections (%d)".printf (threat.vt_detections.size) };
+                    foreach (string det in threat.vt_detections) {
+                        var det_row = new Adw.ActionRow () { title = det };
+                        string det_copy = det;
+                        var cbtn = new Gtk.Button.from_icon_name ("edit-copy-symbolic") { valign = Gtk.Align.CENTER };
+                        cbtn.add_css_class ("flat");
+                        cbtn.clicked.connect (() => copy_to_clipboard (det_copy));
+                        det_row.add_suffix (cbtn);
+                        exp.add_row (det_row);
+                    }
+                    threat_group.add (exp);
+                }
+            }
+
+            var dbl_row = new Adw.ActionRow ();
+            if (threat.is_ip) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Not applicable for IP addresses";
+            } else if (threat.dbl_error != null) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = threat.dbl_error;
+            } else if (threat.dbl_listed) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Listed (%s)".printf (threat.dbl_category ?? "listed") + (threat.dbl_return_code != null ? " - " + threat.dbl_return_code : "");
+            } else {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Not listed";
+            }
+            threat_group.add (dbl_row);
+
+            content_box.append (threat_group);
         }
 
         private void add_dnssec_validation (string domain) {
