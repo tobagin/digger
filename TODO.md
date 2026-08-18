@@ -295,11 +295,14 @@ Educational feature helping users learn command-line equivalents.
 - [ ] Best practices guidance
 
 ### DNS Record Validator
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
+**Impact**: Medium | **Effort**: Low | **Status**: Completed ✅
 
-- [ ] Syntax validation before deployment
-- [ ] RFC compliance checking
-- [ ] Warning for common mistakes
+- [x] Syntax validation before deployment
+- [x] RFC compliance checking
+- [x] Warning for common mistakes
+- [x] Structured errors/warnings with RFC citations (CNAME co-existence RFC 1034, MX target RFC 2181, SOA RFC 1035, TXT RFC 1035/RFC 4408)
+- [x] Non-blocking, pure synchronous validator
+- [x] Unit tests per record type + set-level compliance tests
 
 ### REST API Endpoint
 **Impact**: Low | **Effort**: High | **Status**: Not Started

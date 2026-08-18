@@ -53,6 +53,7 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Domain Monitoring**: Watch domains and get notified when their records change.
 - **Batch Lookup**: Query multiple domains at once from CSV/TXT files.
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
+- **DNS Record Validator**: RFC syntax + compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA with structured errors/warnings (CNAME co-existence, MX target, SOA, TXT length); pure, synchronous, never blocks the query path.
 - **Malware Domain Checking**: VirusTotal + Spamhaus DBL reputation, safety scoring, and historical threat data — opt-in in Preferences, also available as a dedicated dialog (Ctrl+Shift+T).
 - **History & Favorites**: Keep track of your queries and save important domains.
 

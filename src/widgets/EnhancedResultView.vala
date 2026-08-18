@@ -137,6 +137,14 @@ namespace Digger {
             if (current_result.additional_section.size > 0) {
                 add_enhanced_results_section ("Additional Section", current_result.additional_section, "info");
             }
+
+            // DNS Record Validator is opt-in and never blocks DnsQuery — call after parse_dig_output
+            // e.g. var vr = DnsRecordValidator.validate_record_set (result.answer_section);
+            // Rendered via show_validation() below when provided.
+            if (current_result.answer_section.size > 0) {
+                var vr = DnsRecordValidator.validate_record_set (current_result.answer_section);
+                show_validation (vr);
+            }
             
             // Add DNSSEC validation status if enabled
             if (settings != null && settings.get_boolean ("enable-dnssec")) {
@@ -505,6 +513,34 @@ namespace Digger {
             return row;
         }
         
+        /**
+         * Optional validation banner — additive only, never blocks query path.
+         * DNS Record Validator is pure, synchronous, side-effect-free.
+         */
+        public void show_validation (ValidationResult vr) {
+            if (vr == null || vr.issues.size == 0) return;
+            var group = new Adw.PreferencesGroup () {
+                title = "DNS Validation",
+                description = vr.get_summary (),
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12
+            };
+            foreach (var issue in vr.issues) {
+                string icon_name = issue.severity == ValidationSeverity.ERROR ? "dialog-error-symbolic" : "dialog-warning-symbolic";
+                var row = new Adw.ActionRow () {
+                    title = issue.message,
+                    subtitle = @"$(issue.code.to_string ()) • $(issue.severity.to_string ())"
+                };
+                var icon = new Gtk.Image.from_icon_name (icon_name) { pixel_size = 16 };
+                row.add_prefix (icon);
+                if (issue.severity == ValidationSeverity.ERROR) row.add_css_class ("error");
+                else row.add_css_class ("warning");
+                group.add (row);
+            }
+            content_box.append (group);
+        }
+
         private void add_query_statistics (QueryResult result) {
             var stats_group = new Adw.PreferencesGroup () {
                 title = "Query Statistics",

@@ -139,6 +139,11 @@ namespace Digger.Constants {
      */
     public const int MIN_DNS_RECORD_FIELDS_BASIC = 4;
 
+    /**
+     * Maximum TXT chunk length per RFC 1035 section 3.3.14 (255 bytes)
+     */
+    public const int MAX_TXT_CHUNK_LENGTH = 255;
+
     // ==================== File I/O Constants ====================
 
     /**

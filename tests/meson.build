@@ -17,3 +17,19 @@ threat_test_exe = executable('test-threat-intel',
 )
 
 test('threat-intel', threat_test_exe)
+
+validator_test_exe = executable('test-dns-record-validator',
+  'test-dns-record-validator.vala',
+  project_root / 'src/models/DnsRecord.vala',
+  project_root / 'src/utils/DnsRecordValidator.vala',
+  project_root / 'src/utils/ValidationUtils.vala',
+  project_root / 'src/utils/Constants.vala',
+  config_vala,
+  dependencies: [
+    gio_dep,
+    gee_dep,
+    json_glib_dep,
+  ],
+)
+
+test('dns-record-validator', validator_test_exe)
