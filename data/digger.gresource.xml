@@ -17,6 +17,8 @@
     <file preprocess="xml-stripblanks">subdomain-dialog.ui</file>
     <file preprocess="xml-stripblanks">dnssec-dialog.ui</file>
     <file preprocess="xml-stripblanks">monitor-dialog.ui</file>
+    <file preprocess="xml-stripblanks">template-dialog.ui</file>
+    <file preprocess="xml-stripblanks">template-library-dialog.ui</file>
 
     <!-- Widgets -->
     <file compressed="true" preprocess="xml-stripblanks">enhanced-query-form.ui</file>

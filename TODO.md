@@ -98,12 +98,12 @@ Educational feature helping users learn command-line equivalents.
 - [ ] Quick clear recent domains
 
 ### Query Templates & Macros
-**Impact**: Medium | **Effort**: Medium | **Status**: Not Started
+**Impact**: Medium | **Effort**: Medium | **Status**: Completed ✅ — v2.11 — DIGG-003
 
-- [ ] Template creation UI
-- [ ] Save complex query configurations
-- [ ] Parameter substitution support
-- [ ] Template library
+- [x] Template creation UI
+- [x] Save complex query configurations
+- [x] Parameter substitution support
+- [x] Template library
 
 ### Keyboard Shortcut for Export
 **Impact**: Low | **Effort**: Low | **Status**: Not Started

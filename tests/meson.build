@@ -33,3 +33,15 @@ validator_test_exe = executable('test-dns-record-validator',
 )
 
 test('dns-record-validator', validator_test_exe)
+
+template_test_exe = executable('test-template-manager',
+  'test-template-manager.vala',
+  project_root / 'src/managers/TemplateManager.vala',
+  project_root / 'src/models/DnsRecord.vala',
+  project_root / 'src/utils/ValidationUtils.vala',
+  project_root / 'src/utils/Constants.vala',
+  project_root / 'src/utils/DnsRecordValidator.vala',
+  config_vala,
+  dependencies: [ gio_dep, gee_dep, json_glib_dep ],
+)
+test('template-manager', template_test_exe)

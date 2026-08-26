@@ -35,6 +35,9 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 - **Domain Monitoring**: Get desktop notifications when a watched domain's records change.
 - **Security Hardening**: Fixed a DNS-over-HTTPS parser out-of-bounds read and tightened input validation and exports.
 
+### 🆕 What's New in 2.11 (Unreleased)
+- **Query Templates & Macros**: Create, save, load, and delete templates with `{{param}}` substitution; persisted across restarts and applies directly to the query form (DIGG-003).
+
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
@@ -55,6 +58,7 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
 - **DNS Record Validator**: RFC syntax + compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA with structured errors/warnings (CNAME co-existence, MX target, SOA, TXT length); pure, synchronous, never blocks the query path.
 - **Malware Domain Checking**: VirusTotal + Spamhaus DBL reputation, safety scoring, and historical threat data — opt-in in Preferences, also available as a dedicated dialog (Ctrl+Shift+T).
+- **Query Templates**: Persisted library of named, parameterised templates (e.g., `{{subdomain}}.example.com` MX @ 1.1.1.1) with `{{param}}` substitution — Save Current as Template & Template Library (Ctrl+Shift+L).
 - **History & Favorites**: Keep track of your queries and save important domains.
 
 ### User Experience
@@ -119,6 +123,7 @@ flatpak run io.github.tobagin.digger
 - `Ctrl+B` - Batch lookup
 - `Ctrl+M` - Compare servers
 - `Ctrl+Shift+T` - Malware Domain Check
+- `Ctrl+Shift+L` - Template Library
 - `Ctrl+Shift+B` - DNS Blacklist Check
 - `Ctrl+,` - Preferences
 - `F1` - About Digger

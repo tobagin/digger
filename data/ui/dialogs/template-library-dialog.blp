@@ -1,0 +1,51 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerTemplateLibraryDialog : Adw.Dialog {
+  title: "Template Library";
+  content-width: 420;
+  content-height: 600;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: true;
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      SearchEntry search_entry {
+        placeholder-text: "Search templates...";
+      }
+
+      Label empty_label {
+        label: "No templates yet — create one from current query.";
+        wrap: true;
+        halign: center;
+        styles ["dim-label"]
+      }
+
+      ScrolledWindow {
+        hscrollbar-policy: never;
+        vscrollbar-policy: automatic;
+        vexpand: true;
+
+        ListBox listbox {
+          styles ["boxed-list"]
+        }
+      }
+
+      Button close_button {
+        label: "Close";
+        halign: center;
+        styles ["pill"]
+      }
+    };
+  }
+}

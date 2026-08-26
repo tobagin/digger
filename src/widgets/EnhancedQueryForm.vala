@@ -939,6 +939,39 @@ namespace Digger {
             }
         }
 
+        public void apply_template (QueryTemplate template, Gee.HashMap<string,string>? values = null) {
+            var tm = TemplateManager.get_instance ();
+            string domain = template.domain_template;
+            if (values != null) {
+                domain = tm.substitute_template (template, values);
+            } else if (tm.extract_placeholders (template.domain_template).size > 0) {
+                // Use defaults where available, otherwise keep literal
+                var defaults = new Gee.HashMap<string,string> ();
+                foreach (var e in template.param_defaults.entries) defaults[e.key]=e.value;
+                domain = tm.substitute_parameters (template.domain_template, defaults);
+            }
+            set_domain (domain);
+            set_record_type (template.record_type);
+            if (template.dns_server != null && template.dns_server.length>0) set_dns_server (template.dns_server); else set_dns_server ("");
+            reverse_lookup_switch.active = template.reverse_lookup;
+            trace_path_switch.active = template.trace_path;
+            short_output_switch.active = template.short_output;
+            dnssec_switch.active = template.dnssec;
+            // Populate-only application: focus the domain so Enter runs the query
+            focus_domain_entry ();
+        }
+
+        public QueryTemplate create_template_from_current (string name) {
+            var t = new QueryTemplate (name, get_domain (), get_record_type ());
+            var srv = get_dns_server ();
+            t.dns_server = srv;
+            t.reverse_lookup = get_reverse_lookup ();
+            t.trace_path = get_trace_path ();
+            t.short_output = get_short_output ();
+            t.dnssec = get_request_dnssec ();
+            return t;
+        }
+
         private void show_favorite_removed_toast (string domain) {
             var parent = get_parent ();
             while (parent != null && !(parent is Adw.ToastOverlay)) {

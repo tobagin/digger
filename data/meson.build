@@ -75,6 +75,8 @@ blueprint_files = [
   'ui/dialogs/subdomain-dialog.blp',
   'ui/dialogs/dnssec-dialog.blp',
   'ui/dialogs/monitor-dialog.blp',
+  'ui/dialogs/template-dialog.blp',
+  'ui/dialogs/template-library-dialog.blp',
   # Widgets
   'ui/widgets/enhanced-query-form.blp',
   'ui/widgets/enhanced-result-view.blp',

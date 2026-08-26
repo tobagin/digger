@@ -72,6 +72,11 @@ namespace Digger {
                 warning ("FavoritesManager error: %s", error_message);
                 show_error_toast (error_message);
             });
+            var template_manager = TemplateManager.get_instance ();
+            template_manager.error_occurred.connect ((error_message) => {
+                warning ("TemplateManager error: %s", error_message);
+                show_error_toast (error_message);
+            });
         }
 
         /**
@@ -241,6 +246,14 @@ namespace Digger {
             var compare_servers_action = new SimpleAction ("compare-servers", null);
             compare_servers_action.activate.connect (show_comparison_dialog);
             action_group.add_action (compare_servers_action);
+
+            var templates_action = new SimpleAction ("templates", null);
+            templates_action.activate.connect (show_template_library);
+            action_group.add_action (templates_action);
+
+            var save_template_action = new SimpleAction ("save-template", null);
+            save_template_action.activate.connect (show_save_template);
+            action_group.add_action (save_template_action);
 
             insert_action_group ("win", action_group);
         }
@@ -595,6 +608,28 @@ namespace Digger {
         private void show_comparison_dialog () {
             var dialog = new ComparisonDialog ();
             dialog.set_query_history (query_history);
+            dialog.present (this);
+        }
+
+        private void show_template_library () {
+            var dialog = new TemplateLibraryDialog ();
+            dialog.template_selected.connect ((t) => {
+                var tm = TemplateManager.get_instance ();
+                var values = new Gee.HashMap<string,string> ();
+                foreach (var e in t.param_defaults.entries) values[e.key]=e.value;
+                query_form.apply_template (t, values);
+                if (tm.has_unresolved_placeholders (query_form.get_domain ())) {
+                    show_error_toast ("Template has unresolved placeholders — please edit domain");
+                }
+            });
+            dialog.present (this);
+        }
+
+        private void show_save_template () {
+            var domain = query_form.get_domain ();
+            if (domain.length==0) { show_error_toast ("Enter a domain before saving as template"); return; }
+            var t = query_form.create_template_from_current (domain);
+            var dialog = new TemplateDialog.with_initial (t);
             dialog.present (this);
         }
     }

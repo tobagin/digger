@@ -1,0 +1,95 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DiggerTemplateDialog : Adw.Dialog {
+  title: "Query Template";
+  content-width: 420;
+  content-height: 560;
+
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      show-end-title-buttons: true;
+    }
+
+    content: Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      Adw.PreferencesGroup {
+        title: "Template Details";
+
+        Adw.EntryRow name_row {
+          title: "Name *";
+        }
+
+        Adw.EntryRow description_row {
+          title: "Description";
+        }
+
+        Adw.EntryRow domain_template_row {
+          title: "Domain Template *";
+        }
+      }
+
+      Adw.PreferencesGroup {
+        title: "Query Settings";
+
+        Adw.ActionRow {
+          title: "Record Type";
+          DropDown record_type_dropdown {
+            valign: center;
+          }
+        }
+
+        Adw.ActionRow {
+          title: "DNS Server";
+          DropDown dns_server_dropdown {
+            valign: center;
+          }
+        }
+
+        Adw.SwitchRow reverse_row {
+          title: "Reverse Lookup";
+        }
+
+        Adw.SwitchRow trace_row {
+          title: "Trace Path";
+        }
+
+        Adw.SwitchRow short_row {
+          title: "Short Output";
+        }
+
+        Adw.SwitchRow dnssec_row {
+          title: "DNSSEC";
+        }
+      }
+
+      Label error_label {
+        halign: start;
+        wrap: true;
+        styles ["error"]
+      }
+
+      Box {
+        orientation: horizontal;
+        spacing: 12;
+        halign: center;
+
+        Button cancel_button {
+          label: "Cancel";
+        }
+
+        Button save_button {
+          label: "Save";
+          styles ["suggested-action"]
+        }
+      }
+    };
+  }
+}

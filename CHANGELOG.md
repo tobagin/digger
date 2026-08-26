@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Query Templates & Macros**: Persisted Template Library to create/save/load/delete named query templates with `{{param}}` substitution (e.g., `{{subdomain}}.example.com` MX @ 1.1.1.1), file-backed `templates.json` with restart survival, apply populates domain/record type/DNS server/flags and can execute immediately, 26 GLib.Test cases covering CRUD and substitution — DIGG-003.
 - **DNS Record Validator**: RFC syntax + compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA, structured result with errors vs warnings (CNAME co-existence RFC 1034, MX target RFC 2181, SOA RFC 1035, TXT RFC 1035/RFC 4408), pure synchronous non-blocking validator, per-type and set-level unit tests — DIGG-002.
 - **Malware Domain Checking**: VirusTotal (domains + IPs) + Spamhaus DBL threat intelligence, deterministic 0-100 safety scoring with worst-of verdict aggregation, historical submission dates, LRU+TTL caching, rate-limit cooldown handling, dedicated "Malware Domain Check" dialog (Ctrl+Shift+T) and opt-in Threat Intelligence section in query results, JSON/CSV/TXT export support, and GSettings keys (threat-intel-enabled, virustotal-api-key, threat-intel-cache-ttl).
 - **Automated Test Suite**: First GLib.Test harness (`tests/test-threat-intel.vala`) covering scoring, DBL codes, aggregation, parsing, display helpers, cache, and rate limiting; wired into `meson test` and CI.

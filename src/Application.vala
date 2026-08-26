@@ -102,6 +102,8 @@ namespace Digger {
             set_accels_for_action ("app.domain-monitor", monitor_accels);
             string[] threat_accels = {"<primary><shift>t"};
             set_accels_for_action ("app.threat-check", threat_accels);
+            string[] templates_accels = {"<primary><shift>l"};
+            set_accels_for_action ("win.templates", templates_accels);
         }
         
         private void register_resources () {
