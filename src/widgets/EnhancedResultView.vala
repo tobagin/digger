@@ -25,6 +25,8 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Button clear_button;
         
         private QueryResult? current_result = null;
+        private Ipv6TestResult? current_ipv6_result = null;
+        private Ipv6Service ipv6_service;
         
         private DnsPresets dns_presets;
         private GLib.Settings settings;
@@ -34,6 +36,7 @@ namespace Digger {
         public EnhancedResultView () {
             settings = new GLib.Settings (Config.APP_ID);
             dns_presets = DnsPresets.get_instance ();
+            ipv6_service = Ipv6Service.get_instance ();
             print (@"EnhancedResultView: dns_presets is $(dns_presets != null ? "not null" : "null")\n");
         }
         
@@ -159,6 +162,11 @@ namespace Digger {
             // Add Threat Intelligence if available
             if (current_result.threat_intel_data != null) {
                 add_threat_section (current_result.threat_intel_data);
+            }
+
+            // Add IPv6 connectivity if available (non-blocking, guard null)
+            if (current_ipv6_result != null) {
+                add_ipv6_section (current_ipv6_result);
             }
 
             // Add query statistics
@@ -925,8 +933,175 @@ namespace Digger {
             }
         }
 
+        public void show_ipv6_result (Ipv6TestResult result) {
+            current_ipv6_result = result;
+            // Re-render if a main result is already shown; otherwise just store for next refresh
+            if (current_result != null) {
+                refresh_display ();
+            }
+        }
+
+        public void show_ipv6_testing () {
+            var testing = new Ipv6TestResult ();
+            testing.status = Ipv6ProbeStatus.UNKNOWN;
+            testing.ipv6_available = false;
+            testing.error_message = "Testing IPv6 reachability...";
+            current_ipv6_result = testing;
+            if (current_result != null) {
+                refresh_display ();
+            }
+        }
+
+        public void clear_ipv6_result () {
+            current_ipv6_result = null;
+        }
+
+        private void add_ipv6_section (Ipv6TestResult ipv6) {
+            // Guard: never render empty shell — if UNKNOWN and no message, skip
+            if (ipv6 == null) return;
+
+            var ipv6_group = new Adw.PreferencesGroup () {
+                title = "IPv6 Connectivity",
+                description = ipv6.from_cache ? "Cached" : null,
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            bool is_testing = (ipv6.status == Ipv6ProbeStatus.UNKNOWN && ipv6.error_message != null && ipv6.error_message.contains ("Testing"));
+
+            if (is_testing) {
+                var testing_row = new Adw.ActionRow () {
+                    title = "Testing IPv6 reachability...",
+                    subtitle = "Probing via " + ipv6.resolver_used
+                };
+                var spinner = new Gtk.Spinner () {
+                    spinning = true,
+                    valign = Gtk.Align.CENTER
+                };
+                spinner.set_size_request (44, 44);
+                testing_row.add_suffix (spinner);
+                var icon = new Gtk.Image.from_icon_name ("network-workgroup-symbolic") { pixel_size = 16 };
+                testing_row.add_prefix (icon);
+                ipv6_group.add (testing_row);
+                content_box.append (ipv6_group);
+                return;
+            }
+
+            // Row 1: Capability
+            var cap_title = ipv6.ipv6_available ? "IPv6 Available" : "IPv6 Unavailable";
+            var cap_subtitle = ipv6.ipv6_available ? "System supports IPv6" : (ipv6.error_message ?? "No IPv6 stack detected");
+            var cap_row = new Adw.ActionRow () {
+                title = cap_title,
+                subtitle = cap_subtitle
+            };
+            var cap_icon = new Gtk.Image.from_icon_name ("network-workgroup-symbolic") { pixel_size = 16 };
+            cap_row.add_prefix (cap_icon);
+            if (ipv6.ipv6_available) cap_row.add_css_class ("success"); else cap_row.add_css_class ("error");
+            ipv6_group.add (cap_row);
+
+            // Row 2: Reachability
+            if (ipv6.ipv6_available) {
+                string reach_title;
+                string reach_subtitle;
+                string reach_class = "";
+                if (ipv6.reachable == true) {
+                    reach_title = "Reachable";
+                    reach_subtitle = "%d ms via %s".printf (ipv6.probe_latency_ms, ipv6.resolver_used);
+                    reach_class = "success";
+                } else if (ipv6.reachable == false) {
+                    if (ipv6.status == Ipv6ProbeStatus.TIMEOUT) {
+                        reach_title = "Timeout";
+                        reach_subtitle = ipv6.error_message ?? "Probe timed out";
+                        reach_class = "warning";
+                    } else if (ipv6.status == Ipv6ProbeStatus.UNREACHABLE) {
+                        reach_title = "Unreachable";
+                        reach_subtitle = ipv6.error_message ?? "No route to IPv6 resolver";
+                        reach_class = "error";
+                    } else {
+                        reach_title = ipv6.status.to_string ();
+                        reach_subtitle = ipv6.error_message ?? "Probe failed";
+                        reach_class = "error";
+                    }
+                } else {
+                    reach_title = "Not tested";
+                    reach_subtitle = ipv6.error_message ?? "";
+                }
+                var reach_row = new Adw.ActionRow () {
+                    title = reach_title,
+                    subtitle = reach_subtitle
+                };
+                if (reach_class.length > 0) reach_row.add_css_class (reach_class);
+                ipv6_group.add (reach_row);
+            }
+
+            // Row 3: Resolver response / error
+            if (ipv6.status == Ipv6ProbeStatus.NXDOMAIN || ipv6.status == Ipv6ProbeStatus.SERVFAIL) {
+                var err_row = new Adw.ActionRow () {
+                    title = ipv6.status.to_string (),
+                    subtitle = ipv6.error_message ?? "Resolver error"
+                };
+                err_row.add_css_class ("error");
+                ipv6_group.add (err_row);
+            } else if (ipv6.status == Ipv6ProbeStatus.ERROR && ipv6.error_message != null) {
+                var err_row = new Adw.ActionRow () {
+                    title = "Error",
+                    subtitle = ipv6.error_message
+                };
+                err_row.add_css_class ("error");
+                ipv6_group.add (err_row);
+            }
+
+            // Row 4: AAAA records (reuse pattern similar to enhanced results)
+            if (ipv6.aaaa_records != null && ipv6.aaaa_records.size > 0) {
+                var aaaa_expander = new Adw.ExpanderRow () {
+                    title = "AAAA Records",
+                    subtitle = @"$(ipv6.aaaa_records.size) record(s) via $(ipv6.resolver_used)"
+                };
+                foreach (var rec in ipv6.aaaa_records) {
+                    string display_val = rec.value;
+                    if (display_val.length > Constants.MAX_RECORD_DATA_DISPLAY_LENGTH) {
+                        display_val = display_val.substring (0, Constants.MAX_RECORD_DATA_DISPLAY_LENGTH) + "...";
+                    }
+                    var rec_row = new Adw.ActionRow () {
+                        title = rec.name,
+                        subtitle = display_val
+                    };
+                    rec_row.add_css_class ("monospace");
+                    var label = new Gtk.Label (display_val) {
+                        selectable = true,
+                        halign = Gtk.Align.END,
+                        ellipsize = Pango.EllipsizeMode.END,
+                        max_width_chars = 40
+                    };
+                    label.add_css_class ("monospace");
+                    var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
+                        valign = Gtk.Align.CENTER,
+                        tooltip_text = "Copy to clipboard"
+                    };
+                    copy_button.add_css_class ("flat");
+                    string copy_val = rec.value;
+                    copy_button.clicked.connect (() => { copy_to_clipboard (copy_val); });
+                    rec_row.add_suffix (label);
+                    rec_row.add_suffix (copy_button);
+                    aaaa_expander.add_row (rec_row);
+                }
+                ipv6_group.add (aaaa_expander);
+            } else if (ipv6.reachable == true && ipv6.status == Ipv6ProbeStatus.SUCCESS) {
+                var no_aaaa_row = new Adw.ActionRow () {
+                    title = "No AAAA records",
+                    subtitle = @"No IPv6 addresses for this domain (via $(ipv6.resolver_used))"
+                };
+                ipv6_group.add (no_aaaa_row);
+            }
+
+            content_box.append (ipv6_group);
+        }
+
         public void clear_results () {
             current_result = null;
+            current_ipv6_result = null;
             progress_bar.visible = false;
 
             // Hide action buttons when clearing results

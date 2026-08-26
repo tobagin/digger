@@ -28,6 +28,9 @@ namespace Digger {
         private DnsQuery dns_query;
         private WhoisService whois_service;
         private ThreatIntelService threat_service;
+        private Ipv6Service ipv6_service;
+        private int ipv6_request_seq = 0;
+        private Cancellable? ipv6_cancellable = null;
         private QueryHistory query_history;
         private DnsPresets dns_presets;
         private ThemeManager theme_manager;
@@ -60,6 +63,10 @@ namespace Digger {
             threat_service = new ThreatIntelService ();
             threat_service.check_completed.connect (on_threat_completed);
             threat_service.check_failed.connect (on_threat_failed);
+
+            ipv6_service = Ipv6Service.get_instance ();
+            ipv6_service.probe_completed.connect (on_ipv6_completed);
+            ipv6_service.probe_failed.connect (on_ipv6_failed);
 
             // Connect error signals from managers (SEC-009: Enhanced Error Handling)
             query_history.error_occurred.connect ((error_message) => {
@@ -430,6 +437,10 @@ namespace Digger {
                 result_view.show_result (result);
                 query_history.add_query (result);
 
+                // Start non-blocking IPv6 probe (does not hold query_in_progress)
+                result_view.show_ipv6_testing ();
+                fetch_ipv6_data.begin (result, ++ipv6_request_seq);
+
                 // Auto-clear form if preference is enabled
                 if (settings.get_boolean ("auto-clear-form")) {
                     query_form.clear_domain_only ();
@@ -472,6 +483,36 @@ namespace Digger {
 
         private void on_threat_failed (string error_message) {
             debug ("Threat check failed: %s", error_message);
+        }
+
+        private async void fetch_ipv6_data (QueryResult result, int seq) {
+            // Cancel previous probe if any
+            if (ipv6_cancellable != null) {
+                ipv6_cancellable.cancel ();
+            }
+            ipv6_cancellable = new Cancellable ();
+            var ipv6_result = yield ipv6_service.verify_aaaa_async (result.domain, ipv6_cancellable);
+            // Stale check via sequence token
+            if (seq != ipv6_request_seq) {
+                debug ("IPv6 probe stale (seq %d != %d), ignoring", seq, ipv6_request_seq);
+                return;
+            }
+            if (ipv6_cancellable != null && ipv6_cancellable.is_cancelled ()) {
+                debug ("IPv6 probe cancelled for %s", result.domain);
+                return;
+            }
+            if (ipv6_result != null) {
+                ipv6_service.probe_completed (ipv6_result);
+                result_view.show_ipv6_result (ipv6_result);
+            }
+        }
+
+        private void on_ipv6_completed (Ipv6TestResult data) {
+            debug ("IPv6 probe completed: available=%s reachable=%s status=%s", data.ipv6_available.to_string (), (data.reachable != null ? data.reachable.to_string () : "null"), data.status.to_string ());
+        }
+
+        private void on_ipv6_failed (string error_message) {
+            debug ("IPv6 probe failed: %s", error_message);
         }
 
         private void on_query_completed (QueryResult result) {

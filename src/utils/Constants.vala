@@ -168,4 +168,41 @@ namespace Digger.Constants {
      * Maximum threat intel cache entries
      */
     public const int THREAT_INTEL_CACHE_MAX_ENTRIES = 100;
+
+    // ==================== IPv6 Connectivity Testing Constants (DIGG-004) ====================
+
+    /**
+     * IPv6 probe timeout in seconds (snappy to keep UI responsive)
+     */
+    public const int IPV6_PROBE_TIMEOUT_SECONDS = 5;
+
+    /**
+     * IPv6 AAAA query timeout in seconds
+     */
+    public const int IPV6_AAAA_TIMEOUT_SECONDS = 10;
+
+    /**
+     * Default IPv6 resolver for probe (Cloudflare)
+     */
+    public const string IPV6_PROBE_RESOLVER = "2606:4700:4700::1111";
+
+    /**
+     * Fallback IPv6 resolver (Google)
+     */
+    public const string IPV6_FALLBACK_RESOLVER = "2001:4860:4860::8888";
+
+    /**
+     * Domain used for IPv6 reachability probe
+     */
+    public const string IPV6_PROBE_DOMAIN = "google.com";
+
+    /**
+     * IPv6 cache TTL in seconds (10 minutes)
+     */
+    public const int IPV6_CACHE_TTL_SECONDS = 600;
+
+    /**
+     * Maximum IPv6 cache entries
+     */
+    public const int IPV6_CACHE_MAX_ENTRIES = 50;
 }

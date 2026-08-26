@@ -58,6 +58,7 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
 - **DNS Record Validator**: RFC syntax + compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA with structured errors/warnings (CNAME co-existence, MX target, SOA, TXT length); pure, synchronous, never blocks the query path.
 - **Malware Domain Checking**: VirusTotal + Spamhaus DBL reputation, safety scoring, and historical threat data — opt-in in Preferences, also available as a dedicated dialog (Ctrl+Shift+T).
+- **IPv6 Connectivity Testing**: Dual-stack detection, IPv6 reachability probe, and AAAA resolution over IPv6 with non-blocking results — DIGG-004.
 - **Query Templates**: Persisted library of named, parameterised templates (e.g., `{{subdomain}}.example.com` MX @ 1.1.1.1) with `{{param}}` substitution — Save Current as Template & Template Library (Ctrl+Shift+L).
 - **History & Favorites**: Keep track of your queries and save important domains.
 

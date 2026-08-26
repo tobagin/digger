@@ -45,3 +45,20 @@ template_test_exe = executable('test-template-manager',
   dependencies: [ gio_dep, gee_dep, json_glib_dep ],
 )
 test('template-manager', template_test_exe)
+ipv6_test_exe = executable('test-ipv6',
+  'test-ipv6.vala',
+  project_root / 'src/models/DnsRecord.vala',
+  project_root / 'src/services/Ipv6Service.vala',
+  project_root / 'src/utils/ValidationUtils.vala',
+  project_root / 'src/utils/Constants.vala',
+  project_root / 'src/services/DnsQuery.vala',
+  config_vala,
+  dependencies: [
+    gio_dep,
+    gee_dep,
+    json_glib_dep,
+    soup_dep,
+  ],
+)
+
+test('ipv6', ipv6_test_exe)
