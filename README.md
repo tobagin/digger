@@ -45,7 +45,7 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 ### Core Features
 - **Comprehensive DNS Support**: A, AAAA, MX, TXT, NS, CNAME, SOA, SRV, PTR, and more.
 - **Advanced Options**: Reverse lookup, trace queries, custom servers, and short output.
-- **Secure DNS**: DNS-over-HTTPS (DoH) support for Cloudflare, Google, and Quad9.
+- **Threat Intelligence**: Check domains against VirusTotal and Spamhaus DBL with safety scoring.
 - **DNSSEC Validation**: Verify chain of trust with visual indicators.
 
 ### Productivity Tools

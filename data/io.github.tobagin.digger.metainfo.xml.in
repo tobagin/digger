@@ -16,7 +16,7 @@
       <li>Support for all major DNS record types (A, AAAA, MX, TXT, NS, etc.)</li>
       <li>Advanced options like reverse lookups, trace options, and custom servers</li>
       <li>DNS Blacklist (DNSBL) checking and performance monitoring</li>
-      <li>Secure DNS-over-HTTPS (DoH) support</li>
+      <li>Malware domain checking and DNSSEC chain-of-trust validation</li>
       <li>History with search and favorites management</li>
       <li>Batch lookup and server comparison tools</li>
     </ul>

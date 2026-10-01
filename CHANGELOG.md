@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependencies**: libgee is now taken from the GNOME runtime instead of being built from source.
 - **Cleanup**: Removed dead code and deduplicated toast/dialog boilerplate.
 
+### Removed
+- **DNS-over-HTTPS**: Dropped the unused DoH implementation and removed it from the feature list. The code was never wired into the UI, so the advertised DoH support was never reachable; plain DNS and DNSSEC validation are unaffected.
+
 ### Fixed
 - **DNSSEC**: `dig` is now built with OpenSSL, so DNSSEC signatures are actually validated. The previous build disabled crypto entirely, which left the AD flag unset on signed responses.
 

@@ -11,7 +11,7 @@
 namespace Digger {
     /**
      * Utility class for generating command-line equivalents of DNS queries
-     * Supports dig commands and DoH curl commands
+     * Supports dig commands
      */
     public class CommandGenerator : Object {
         private static CommandGenerator? instance = null;
