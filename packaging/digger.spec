@@ -27,7 +27,7 @@ Requires:       %{_bindir}/dig
 A powerful and modern DNS lookup tool built with Vala, GTK4, and libadwaita.
 Digger provides an intuitive interface for performing DNS queries with
 advanced features including batch lookups, server comparison, DNSSEC validation,
-and DNS-over-HTTPS support.
+propagation and blacklist checks, WHOIS lookups and domain monitoring.
 
 %prep
 %autosetup

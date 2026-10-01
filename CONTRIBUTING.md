@@ -131,7 +131,7 @@ data/ui/
 - **DnsQuery.vala**: Core DNS query execution using embedded `dig` command
 - **ComparisonManager.vala**: Multi-server DNS comparison logic
 - **BatchLookupManager.vala**: Batch DNS lookup orchestration
-- **SecureDns.vala**: DNS-over-HTTPS implementation
+- **ThreatIntelService.vala**: VirusTotal and Spamhaus DBL threat intelligence
 - **DnssecValidator.vala**: DNSSEC validation logic
 - **QueryHistory.vala**: Query history persistence and search
 

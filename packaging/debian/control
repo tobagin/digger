@@ -20,5 +20,5 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, bind9-dnsutils
 Description: Modern DNS lookup tool for GNOME
  A powerful and modern DNS lookup tool built with Vala, GTK4 and
  libadwaita. Digger provides an intuitive interface for DNS queries
- with batch lookups, server comparison, DNSSEC validation and
- DNS-over-HTTPS support.
+ with batch lookups, server comparison, DNSSEC validation, propagation
+ and blacklist checks, WHOIS lookups and domain monitoring.
