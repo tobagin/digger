@@ -43,12 +43,12 @@ Educational feature helping users learn command-line equivalents.
 - [ ] Quick clear recent domains
 
 ### Query Templates & Macros
-**Impact**: Medium | **Effort**: Medium | **Status**: Not Started
+**Impact**: Medium | **Effort**: Medium | **Status**: Completed ✅ — v2.11 — DIGG-003
 
-- [ ] Template creation UI
-- [ ] Save complex query configurations
-- [ ] Parameter substitution support
-- [ ] Template library
+- [x] Template creation UI
+- [x] Save complex query configurations
+- [x] Parameter substitution support
+- [x] Template library
 
 ### Keyboard Shortcut for Export
 **Impact**: Low | **Effort**: Low | **Status**: Not Started
@@ -77,13 +77,13 @@ Educational feature helping users learn command-line equivalents.
 - [ ] Alert on suspicious responses
 
 ### Malware Domain Checking
-**Impact**: High | **Effort**: Medium | **Status**: Not Started
+**Impact**: High | **Effort**: Medium | **Status**: Completed ✅
 
-- [ ] VirusTotal API integration
-- [ ] Threat intelligence feed integration
-- [ ] Reputation display in results
-- [ ] Domain safety scoring
-- [ ] Historical threat data
+- [x] VirusTotal API integration
+- [x] Threat intelligence feed integration
+- [x] Reputation display in results
+- [x] Domain safety scoring
+- [x] Historical threat data
 
 ### DNS Tunneling Detection
 **Impact**: Low | **Effort**: High | **Status**: Not Started
@@ -247,11 +247,14 @@ Wordlist-based discovery shipped; certificate-transparency and export still open
 - [ ] Best practices guidance
 
 ### DNS Record Validator
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
+**Impact**: Medium | **Effort**: Low | **Status**: Completed ✅
 
-- [ ] Syntax validation before deployment
-- [ ] RFC compliance checking
-- [ ] Warning for common mistakes
+- [x] Syntax validation before deployment
+- [x] RFC compliance checking
+- [x] Warning for common mistakes
+- [x] Structured errors/warnings with RFC citations (CNAME co-existence RFC 1034, MX target RFC 2181, SOA RFC 1035, TXT RFC 1035/RFC 4408)
+- [x] Non-blocking, pure synchronous validator
+- [x] Unit tests per record type + set-level compliance tests
 
 ### REST API Endpoint
 **Impact**: Low | **Effort**: High | **Status**: Not Started
@@ -267,11 +270,11 @@ Wordlist-based discovery shipped; certificate-transparency and export still open
 ## 📱 IPv6 Enhanced Features
 
 ### IPv6 Connectivity Testing
-**Impact**: Medium | **Effort**: Low | **Status**: Not Started
+**Impact**: Medium | **Effort**: Low | **Status**: Completed ✅
 
-- [ ] Verify IPv6 DNS resolution works
-- [ ] IPv6 reachability testing
-- [ ] Dual-stack capability detection
+- [x] Verify IPv6 DNS resolution works
+- [x] IPv6 reachability testing
+- [x] Dual-stack capability detection
 
 ### Dual-Stack Comparison
 **Impact**: Medium | **Effort**: Medium | **Status**: Not Started
@@ -562,4 +565,4 @@ Interested in implementing any of these features? Check out [CONTRIBUTING.md](CO
 
 Have ideas for features not listed here? Open an issue on GitHub or contact the maintainer!
 
-**Last Updated**: 2026-07-24
+**Last Updated**: 2026-10-01

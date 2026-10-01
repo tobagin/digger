@@ -19,6 +19,11 @@ menu main_menu {
     }
 
     item {
+      label: "Malware Domain Check";
+      action: "app.threat-check";
+    }
+
+    item {
       label: "DNS Performance Monitor";
       action: "app.performance-monitor";
     }
@@ -43,6 +48,17 @@ menu main_menu {
     item {
       label: "Domain Monitoring";
       action: "app.domain-monitor";
+    }
+  }
+
+  section {
+    item {
+      label: "Save as Template";
+      action: "win.save-template";
+    }
+    item {
+      label: "Template Library";
+      action: "win.templates";
     }
   }
 

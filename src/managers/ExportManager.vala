@@ -113,7 +113,7 @@ namespace Digger {
                     break;
 
                 case ExportFormat.CSV:
-                    builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires\n");
+                    builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires,Threat Verdict,Threat Score\n");
                     foreach (var result in results) {
                         builder.append (generate_csv_rows (result));
                     }
@@ -167,8 +167,56 @@ namespace Digger {
                 append_whois_json (builder, result.whois_data);
             }
 
+            // Add Threat Intel data if available
+            if (result.threat_intel_data != null) {
+                builder.append (",\n");
+                append_threat_json (builder, result.threat_intel_data);
+            }
+
             builder.append ("\n}");
             return builder.str;
+        }
+
+        private void append_threat_json (StringBuilder builder, ThreatIntelData threat) {
+            builder.append ("  \"threat\": {\n");
+            builder.append_printf ("    \"verdict\": \"%s\",\n", escape_json_string (threat.get_verdict_label ()));
+            builder.append_printf ("    \"safetyScore\": %d,\n", threat.safety_score);
+            builder.append_printf ("    \"level\": \"%s\",\n", threat.level.to_string ());
+            builder.append_printf ("    \"target\": \"%s\",\n", escape_json_string (threat.target));
+            builder.append_printf ("    \"vtHarmless\": %d,\n", threat.vt_harmless);
+            builder.append_printf ("    \"vtMalicious\": %d,\n", threat.vt_malicious);
+            builder.append_printf ("    \"vtSuspicious\": %d,\n", threat.vt_suspicious);
+            builder.append_printf ("    \"vtUndetected\": %d,\n", threat.vt_undetected);
+            if (threat.vt_reputation != null) {
+                builder.append_printf ("    \"vtReputation\": %d,\n", threat.vt_reputation);
+            }
+            if (threat.vt_votes_harmless != null) {
+                builder.append_printf ("    \"vtVotesHarmless\": %d,\n", threat.vt_votes_harmless);
+            }
+            if (threat.vt_votes_malicious != null) {
+                builder.append_printf ("    \"vtVotesMalicious\": %d,\n", threat.vt_votes_malicious);
+            }
+            if (threat.vt_first_seen != null) {
+                builder.append_printf ("    \"firstSeen\": \"%s\",\n", threat.vt_first_seen.format ("%Y-%m-%d %H:%M:%S"));
+            }
+            if (threat.vt_last_seen != null) {
+                builder.append_printf ("    \"lastSeen\": \"%s\",\n", threat.vt_last_seen.format ("%Y-%m-%d %H:%M:%S"));
+            }
+            if (threat.vt_last_analyzed != null) {
+                builder.append_printf ("    \"lastAnalyzed\": \"%s\",\n", threat.vt_last_analyzed.format ("%Y-%m-%d %H:%M:%S"));
+            }
+            builder.append_printf ("    \"dblListed\": %s,\n", threat.dbl_listed ? "true" : "false");
+            if (threat.dbl_return_code != null) {
+                builder.append_printf ("    \"dblReturnCode\": \"%s\",\n", escape_json_string (threat.dbl_return_code));
+            }
+            if (threat.dbl_category != null) {
+                builder.append_printf ("    \"dblCategory\": \"%s\",\n", escape_json_string (threat.dbl_category));
+            }
+            if (threat.dbl_error != null) {
+                builder.append_printf ("    \"dblError\": \"%s\",\n", escape_json_string (threat.dbl_error));
+            }
+            builder.append_printf ("    \"fromCache\": %s\n", threat.from_cache ? "true" : "false");
+            builder.append ("  }");
         }
 
         private void append_whois_json (StringBuilder builder, WhoisData whois) {
@@ -245,7 +293,7 @@ namespace Digger {
 
         private string generate_csv (QueryResult result) {
             var builder = new StringBuilder ();
-            builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires\n");
+            builder.append ("Domain,Record Type,Status,Query Time (ms),DNS Server,Timestamp,Record Name,TTL,Type,Value,WHOIS Registrar,WHOIS Created,WHOIS Expires,Threat Verdict,Threat Score\n");
             builder.append (generate_csv_rows (result));
             return builder.str;
         }
@@ -261,18 +309,23 @@ namespace Digger {
             string whois_expires = result.whois_data != null && result.whois_data.expires_date != null ?
                                     result.whois_data.expires_date : "N/A";
 
+            string threat_verdict = result.threat_intel_data != null ? result.threat_intel_data.get_verdict_label () : "N/A";
+            string threat_score = result.threat_intel_data != null ? result.threat_intel_data.safety_score.to_string () : "N/A";
+
             var base_info = @"\"$(escape_csv (result.domain))\",\"$(result.query_type.to_string ())\",\"$(result.status.to_string ())\",\"$(result.query_time_ms)\",\"$(escape_csv (result.dns_server))\",\"$(result.timestamp.format ("%Y-%m-%d %H:%M:%S"))\"";
 
             foreach (var record in result.answer_section) {
                 builder.append (base_info);
-                builder.append_printf (",\"%s\",%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                builder.append_printf (",\"%s\",%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
                     escape_csv (record.name),
                     record.ttl,
                     record.record_type.to_string (),
                     escape_csv (record.value),
                     escape_csv (whois_registrar),
                     escape_csv (whois_created),
-                    escape_csv (whois_expires));
+                    escape_csv (whois_expires),
+                    escape_csv (threat_verdict),
+                    escape_csv (threat_score));
             }
 
             return builder.str;
@@ -324,7 +377,34 @@ namespace Digger {
                 append_whois_text (builder, result.whois_data);
             }
 
+            // Add Threat Intelligence if available
+            if (result.threat_intel_data != null) {
+                append_threat_text (builder, result.threat_intel_data);
+            }
+
             return builder.str;
+        }
+
+        private void append_threat_text (StringBuilder builder, ThreatIntelData threat) {
+            builder.append ("Threat Intelligence");
+            if (threat.from_cache) builder.append (" (Cached)");
+            builder.append ("\n");
+            builder.append (string.nfill (60, '=') + "\n\n");
+            builder.append_printf ("Verdict: %s\n", threat.get_verdict_label ());
+            if (threat.safety_score >= 0) builder.append_printf ("Safety Score: %d/100\n", threat.safety_score);
+            builder.append_printf ("VT: harmless=%d malicious=%d suspicious=%d undetected=%d\n", threat.vt_harmless, threat.vt_malicious, threat.vt_suspicious, threat.vt_undetected);
+            if (threat.vt_reputation != null) builder.append_printf ("Reputation: %d\n", threat.vt_reputation);
+            if (threat.vt_first_seen != null) builder.append_printf ("First Seen: %s\n", threat.vt_first_seen.format ("%Y-%m-%d %H:%M:%S"));
+            if (threat.vt_last_seen != null) builder.append_printf ("Last Seen: %s\n", threat.vt_last_seen.format ("%Y-%m-%d %H:%M:%S"));
+            if (threat.vt_last_analyzed != null) builder.append_printf ("Last Analyzed: %s\n", threat.vt_last_analyzed.format ("%Y-%m-%d %H:%M:%S"));
+            if (threat.dbl_listed) {
+                builder.append_printf ("DBL: Listed (%s) %s\n", threat.dbl_category ?? "", threat.dbl_return_code ?? "");
+            } else if (threat.dbl_error != null) {
+                builder.append_printf ("DBL: %s\n", threat.dbl_error);
+            } else {
+                builder.append ("DBL: Not listed\n");
+            }
+            builder.append ("\n");
         }
 
         private void append_whois_text (StringBuilder builder, WhoisData whois) {

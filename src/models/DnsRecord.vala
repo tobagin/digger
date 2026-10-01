@@ -198,6 +198,88 @@ namespace Digger {
         }
     }
 
+    public enum ThreatLevel {
+        SAFE,
+        SUSPICIOUS,
+        MALICIOUS,
+        UNKNOWN,
+        RATE_LIMITED,
+        ERROR;
+
+        public string to_string () {
+            switch (this) {
+                case SAFE: return "Safe";
+                case SUSPICIOUS: return "Suspicious";
+                case MALICIOUS: return "Malicious";
+                case UNKNOWN: return "Unknown";
+                case RATE_LIMITED: return "Rate Limited";
+                case ERROR: return "Error";
+                default: return "Unknown";
+            }
+        }
+    }
+
+    public class ThreatIntelData : Object {
+        public string target { get; set; default = ""; }
+        public bool is_ip { get; set; default = false; }
+        public ThreatLevel level { get; set; default = ThreatLevel.UNKNOWN; }
+        public int safety_score { get; set; default = -1; }
+        public bool from_cache { get; set; default = false; }
+        public DateTime timestamp { get; set; }
+        public string? error_message { get; set; default = null; }
+
+        // VirusTotal fields
+        public int vt_harmless { get; set; default = 0; }
+        public int vt_malicious { get; set; default = 0; }
+        public int vt_suspicious { get; set; default = 0; }
+        public int vt_undetected { get; set; default = 0; }
+        public int vt_timeout { get; set; default = 0; }
+        public int? vt_reputation = null;
+        public int? vt_votes_harmless = null;
+        public int? vt_votes_malicious = null;
+        public Gee.ArrayList<string> vt_categories { get; set; }
+        public Gee.ArrayList<string> vt_detections { get; set; }
+        public DateTime? vt_first_seen { get; set; default = null; }
+        public DateTime? vt_last_seen { get; set; default = null; }
+        public DateTime? vt_last_analyzed { get; set; default = null; }
+
+        // DBL fields
+        public bool dbl_listed { get; set; default = false; }
+        public string? dbl_return_code { get; set; default = null; }
+        public string? dbl_category { get; set; default = null; }
+        public string? dbl_error { get; set; default = null; }
+
+        public ThreatIntelData () {
+            vt_categories = new Gee.ArrayList<string> ();
+            vt_detections = new Gee.ArrayList<string> ();
+            timestamp = new DateTime.now_local ();
+        }
+
+        public string get_verdict_label () {
+            switch (level) {
+                case ThreatLevel.MALICIOUS: return "Malicious";
+                case ThreatLevel.SUSPICIOUS: return "Suspicious";
+                case ThreatLevel.SAFE: return "Clean";
+                case ThreatLevel.UNKNOWN: return "Unknown";
+                case ThreatLevel.RATE_LIMITED: return "Rate limited";
+                case ThreatLevel.ERROR: return "Error";
+                default: return "Unknown";
+            }
+        }
+
+        public string get_verdict_css_class () {
+            switch (level) {
+                case ThreatLevel.MALICIOUS: return "error";
+                case ThreatLevel.SUSPICIOUS: return "warning";
+                case ThreatLevel.SAFE: return "success";
+                case ThreatLevel.UNKNOWN: return "";
+                case ThreatLevel.RATE_LIMITED: return "warning";
+                case ThreatLevel.ERROR: return "error";
+                default: return "";
+            }
+        }
+    }
+
     public class QueryResult : Object {
         public string domain { get; set; }
         public RecordType query_type { get; set; }
@@ -222,6 +304,9 @@ namespace Digger {
 
         // WHOIS data
         public WhoisData? whois_data { get; set; default = null; }
+
+        // Threat intelligence data
+        public ThreatIntelData? threat_intel_data { get; set; default = null; }
 
         public QueryResult () {
             answer_section = new Gee.ArrayList<DnsRecord> ();

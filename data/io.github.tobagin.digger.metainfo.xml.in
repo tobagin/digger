@@ -68,11 +68,14 @@
   <releases>
     <release version="2.9.0" date="2026-10-01">
       <description>
-        <p>Maintenance release updating the runtime and bundled dependencies</p>
+        <p>Feature release with new DNS tools, plus a runtime and dependency refresh</p>
         <ul>
+          <li>Malware Domain Check - VirusTotal and Spamhaus DBL threat intelligence with safety scoring (Ctrl+Shift+T)</li>
+          <li>Query Templates - save and reuse named query templates with {{param}} macros (Ctrl+Shift+L)</li>
+          <li>DNS Record Validator - RFC syntax and compliance checks for common record types</li>
+          <li>IPv6 Connectivity Testing - dual-stack detection and AAAA reachability over IPv6</li>
           <li>Updated to the GNOME 51 runtime</li>
           <li>Bundled BIND updated to 9.20.29, replacing the end-of-life 9.16 branch</li>
-          <li>Bundled libuv updated to 1.53.0</li>
           <li>DNSSEC signatures are now actually validated; the previous build shipped dig without crypto support</li>
         </ul>
       </description>

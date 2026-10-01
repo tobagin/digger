@@ -131,5 +131,24 @@ template $DiggerPreferencesDialog : Adw.PreferencesDialog {
         activatable: true;
       }
     }
+
+    Adw.PreferencesGroup {
+      title: _("Threat Intelligence");
+      description: _("Malware domain checking via VirusTotal and Spamhaus");
+
+      Adw.SwitchRow threat_intel_enabled_row {
+        title: _("Enable Threat Intelligence");
+        subtitle: _("Fetch threat data when performing DNS queries (sends domain to VirusTotal/Spamhaus)");
+      }
+
+      Adw.EntryRow virustotal_api_key_row {
+        title: _("VirusTotal API Key");
+      }
+
+      Adw.SpinRow threat_intel_cache_ttl_row {
+        title: _("Threat Intel Cache TTL");
+        subtitle: _("How long to cache threat results (hours)");
+      }
+    }
   }
 }

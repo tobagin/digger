@@ -147,4 +147,50 @@ namespace Digger.ValidationUtils {
         string trimmed = url.strip ().down ();
         return trimmed.has_prefix ("https://");
     }
+
+    /**
+     * Sanitizes error messages for user display (SEC-009)
+     * Removes sensitive information like file paths and system details
+     *
+     * @param error_message The original error message
+     * @return Sanitized error message suitable for user display
+     */
+    public string sanitize_error_message (string error_message) {
+        if (error_message == null || error_message.length == 0) {
+            return "An error occurred";
+        }
+
+        string sanitized = error_message;
+
+        // Remove file paths (common patterns)
+        try {
+            // Remove absolute paths starting with /
+            var regex = new Regex ("/[a-zA-Z0-9/_.-]+");
+            sanitized = regex.replace (sanitized, -1, 0, "[path]");
+
+            // Remove Windows-style paths
+            regex = new Regex ("[A-Z]:\\\\[a-zA-Z0-9\\\\._-]+");
+            sanitized = regex.replace (sanitized, -1, 0, "[path]");
+
+            // Remove home directory references
+            sanitized = sanitized.replace (Environment.get_home_dir (), "[home]");
+            sanitized = sanitized.replace ("~", "[home]");
+
+            // Remove specific technical details
+            sanitized = sanitized.replace ("GLib.", "");
+            sanitized = sanitized.replace ("IOError.", "");
+            sanitized = sanitized.replace ("FileError.", "");
+
+        } catch (RegexError e) {
+            // If regex fails, return generic message
+            return "An error occurred. Check logs for details.";
+        }
+
+        // If message is now too short or generic, provide better context
+        if (sanitized.length < 10) {
+            return "Operation failed. Please try again.";
+        }
+
+        return sanitized;
+    }
 }

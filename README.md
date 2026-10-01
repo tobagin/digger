@@ -15,23 +15,28 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 
 ## 🎉 Version 2.9.0 - Latest Release
 
-**Digger 2.9.0** moves to the GNOME 51 runtime and refreshes the bundled DNS tooling.
+**Digger 2.9.0** adds four new DNS tools, moves to the GNOME 51 runtime, and refreshes the bundled DNS tooling.
 
 ### ✨ Key Features
 
 - **🔍 Advanced DNS Queries**: Support for all major DNS record types with DNSSEC validation.
 - **🌍 Propagation Check**: Compare a record across eight public resolvers to see how far it has propagated.
 - **🛡️ DNS Blacklist Checking**: Check IPs against multiple RBL providers in parallel.
+- **🔒 Malware Domain Checking**: VirusTotal + Spamhaus DBL threat intel with safety scoring (Ctrl+Shift+T).
 - **📊 Performance Monitor**: Real-time DNS latency visualization for major providers.
 - **🌐 WHOIS Integration**: Domain registration lookup with intelligent caching.
 - **📱 Responsive Design**: Beautiful adaptive layout for all screen sizes.
 
 ### 🆕 What's New in 2.9.0
 
+- **Malware Domain Checking**: VirusTotal and Spamhaus DBL threat intelligence with 0-100 safety scoring (`Ctrl+Shift+T`).
+- **Query Templates & Macros**: Save and reuse named query templates with `{{param}}` substitution, persisted across restarts (`Ctrl+Shift+L`).
+- **DNS Record Validator**: RFC syntax and compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA records.
+- **IPv6 Connectivity Testing**: Dual-stack detection and AAAA reachability over IPv6 transport.
 - **GNOME 51 Runtime**: Built against the current GNOME platform.
 - **BIND 9.20**: The bundled `dig` moves from the end-of-life 9.16 branch to 9.20.29.
 - **Working DNSSEC Validation**: `dig` is now built with OpenSSL, so signed responses are genuinely verified.
-- **Slimmer Flatpak**: libgee now comes from the runtime instead of being built from source.
+- **Automated Tests**: First `meson test` suite, wired into CI.
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 
@@ -51,6 +56,10 @@ For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md)
 - **Domain Monitoring**: Watch domains and get notified when their records change.
 - **Batch Lookup**: Query multiple domains at once from CSV/TXT files.
 - **Export Manager**: Save results to JSON, CSV, text, or Zone file formats.
+- **DNS Record Validator**: RFC syntax + compliance checks for A/AAAA/CNAME/MX/TXT/NS/SOA with structured errors/warnings (CNAME co-existence, MX target, SOA, TXT length); pure, synchronous, never blocks the query path.
+- **Malware Domain Checking**: VirusTotal + Spamhaus DBL reputation, safety scoring, and historical threat data — opt-in in Preferences, also available as a dedicated dialog (Ctrl+Shift+T).
+- **IPv6 Connectivity Testing**: Dual-stack detection, IPv6 reachability probe, and AAAA resolution over IPv6 with non-blocking results — DIGG-004.
+- **Query Templates**: Persisted library of named, parameterised templates (e.g., `{{subdomain}}.example.com` MX @ 1.1.1.1) with `{{param}}` substitution — Save Current as Template & Template Library (Ctrl+Shift+L).
 - **History & Favorites**: Keep track of your queries and save important domains.
 
 ### User Experience
@@ -114,6 +123,9 @@ flatpak run io.github.tobagin.digger
 - `Ctrl+R` - Repeat last query
 - `Ctrl+B` - Batch lookup
 - `Ctrl+M` - Compare servers
+- `Ctrl+Shift+T` - Malware Domain Check
+- `Ctrl+Shift+L` - Template Library
+- `Ctrl+Shift+B` - DNS Blacklist Check
 - `Ctrl+,` - Preferences
 - `F1` - About Digger
 

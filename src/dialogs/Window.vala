@@ -27,6 +27,10 @@ namespace Digger {
         
         private DnsQuery dns_query;
         private WhoisService whois_service;
+        private ThreatIntelService threat_service;
+        private Ipv6Service ipv6_service;
+        private int ipv6_request_seq = 0;
+        private Cancellable? ipv6_cancellable = null;
         private QueryHistory query_history;
         private bool query_in_progress = false;
 
@@ -51,10 +55,23 @@ namespace Digger {
             whois_service.query_completed.connect (on_whois_completed);
             whois_service.query_failed.connect (on_whois_failed);
 
+            threat_service = new ThreatIntelService ();
+            threat_service.check_completed.connect (on_threat_completed);
+            threat_service.check_failed.connect (on_threat_failed);
+
+            ipv6_service = Ipv6Service.get_instance ();
+            ipv6_service.probe_completed.connect (on_ipv6_completed);
+            ipv6_service.probe_failed.connect (on_ipv6_failed);
+
             // Connect error signals from managers (SEC-009: Enhanced Error Handling)
             var favorites_manager = FavoritesManager.get_instance ();
             favorites_manager.error_occurred.connect ((error_message) => {
                 warning ("FavoritesManager error: %s", error_message);
+                show_error_toast (error_message);
+            });
+            var template_manager = TemplateManager.get_instance ();
+            template_manager.error_occurred.connect ((error_message) => {
+                warning ("TemplateManager error: %s", error_message);
                 show_error_toast (error_message);
             });
         }
@@ -211,6 +228,14 @@ namespace Digger {
             compare_servers_action.activate.connect (show_comparison_dialog);
             action_group.add_action (compare_servers_action);
 
+            var templates_action = new SimpleAction ("templates", null);
+            templates_action.activate.connect (show_template_library);
+            action_group.add_action (templates_action);
+
+            var save_template_action = new SimpleAction ("save-template", null);
+            save_template_action.activate.connect (show_save_template);
+            action_group.add_action (save_template_action);
+
             insert_action_group ("win", action_group);
         }
 
@@ -295,9 +320,16 @@ namespace Digger {
                     // Fetch WHOIS data asynchronously (don't block on it)
                     fetch_whois_data.begin (result);
                 }
+                if (settings.get_boolean ("threat-intel-enabled")) {
+                    fetch_threat_data.begin (result);
+                }
 
                 result_view.show_result (result);
                 query_history.add_query (result);
+
+                // Start non-blocking IPv6 probe (does not hold query_in_progress)
+                result_view.show_ipv6_testing ();
+                fetch_ipv6_data.begin (result, ++ipv6_request_seq);
 
                 // Auto-clear form if preference is enabled
                 if (settings.get_boolean ("auto-clear-form")) {
@@ -325,6 +357,52 @@ namespace Digger {
         private void on_whois_failed (string error_message) {
             // Silently log WHOIS failures - they're optional
             debug ("WHOIS query failed: %s", error_message);
+        }
+
+        private async void fetch_threat_data (QueryResult result) {
+            var threat_data = yield threat_service.perform_check (result.domain);
+            if (threat_data != null) {
+                result.threat_intel_data = threat_data;
+                result_view.show_result (result);
+            }
+        }
+
+        private void on_threat_completed (ThreatIntelData data) {
+            debug ("Threat check completed for %s: %s", data.target, data.get_verdict_label ());
+        }
+
+        private void on_threat_failed (string error_message) {
+            debug ("Threat check failed: %s", error_message);
+        }
+
+        private async void fetch_ipv6_data (QueryResult result, int seq) {
+            // Cancel previous probe if any
+            if (ipv6_cancellable != null) {
+                ipv6_cancellable.cancel ();
+            }
+            ipv6_cancellable = new Cancellable ();
+            var ipv6_result = yield ipv6_service.verify_aaaa_async (result.domain, ipv6_cancellable);
+            // Stale check via sequence token
+            if (seq != ipv6_request_seq) {
+                debug ("IPv6 probe stale (seq %d != %d), ignoring", seq, ipv6_request_seq);
+                return;
+            }
+            if (ipv6_cancellable != null && ipv6_cancellable.is_cancelled ()) {
+                debug ("IPv6 probe cancelled for %s", result.domain);
+                return;
+            }
+            if (ipv6_result != null) {
+                ipv6_service.probe_completed (ipv6_result);
+                result_view.show_ipv6_result (ipv6_result);
+            }
+        }
+
+        private void on_ipv6_completed (Ipv6TestResult data) {
+            debug ("IPv6 probe completed: available=%s reachable=%s status=%s", data.ipv6_available.to_string (), (data.reachable != null ? data.reachable.to_string () : "null"), data.status.to_string ());
+        }
+
+        private void on_ipv6_failed (string error_message) {
+            debug ("IPv6 probe failed: %s", error_message);
         }
 
         private void on_query_failed (string error_message) {
@@ -446,6 +524,28 @@ namespace Digger {
         private void show_comparison_dialog () {
             var dialog = new ComparisonDialog ();
             dialog.set_query_history (query_history);
+            dialog.present (this);
+        }
+
+        private void show_template_library () {
+            var dialog = new TemplateLibraryDialog ();
+            dialog.template_selected.connect ((t) => {
+                var tm = TemplateManager.get_instance ();
+                var values = new Gee.HashMap<string,string> ();
+                foreach (var e in t.param_defaults.entries) values[e.key]=e.value;
+                query_form.apply_template (t, values);
+                if (tm.has_unresolved_placeholders (query_form.get_domain ())) {
+                    show_error_toast ("Template has unresolved placeholders — please edit domain");
+                }
+            });
+            dialog.present (this);
+        }
+
+        private void show_save_template () {
+            var domain = query_form.get_domain ();
+            if (domain.length==0) { show_error_toast ("Enter a domain before saving as template"); return; }
+            var t = query_form.create_template_from_current (domain);
+            var dialog = new TemplateDialog.with_initial (t);
             dialog.present (this);
         }
     }

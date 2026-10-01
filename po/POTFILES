@@ -25,4 +25,5 @@ data/ui/advanced-options.blp
 data/ui/autocomplete-dropdown.blp
 data/ui/enhanced-history-search.blp
 data/io.github.tobagin.digger.desktop.in
+data/ui/dialogs/threat-check-dialog.blp
 data/io.github.tobagin.digger.metainfo.xml.in

@@ -24,6 +24,8 @@ namespace Digger {
         [GtkChild] private unowned Gtk.Button clear_button;
         
         private QueryResult? current_result = null;
+        private Ipv6TestResult? current_ipv6_result = null;
+        private Ipv6Service ipv6_service;
         
         private DnsPresets dns_presets;
         private GLib.Settings settings;
@@ -33,7 +35,7 @@ namespace Digger {
         construct {
             settings = new GLib.Settings (Config.APP_ID);
             dns_presets = DnsPresets.get_instance ();
-
+            ipv6_service = Ipv6Service.get_instance ();
             setup_ui ();
         }
         
@@ -133,6 +135,14 @@ namespace Digger {
             if (current_result.additional_section.size > 0) {
                 add_enhanced_results_section ("Additional Section", current_result.additional_section, "info");
             }
+
+            // DNS Record Validator is opt-in and never blocks DnsQuery — call after parse_dig_output
+            // e.g. var vr = DnsRecordValidator.validate_record_set (result.answer_section);
+            // Rendered via show_validation() below when provided.
+            if (current_result.answer_section.size > 0) {
+                var vr = DnsRecordValidator.validate_record_set (current_result.answer_section);
+                show_validation (vr);
+            }
             
             // Add DNSSEC validation status if enabled
             if (settings != null && settings.get_boolean ("enable-dnssec")) {
@@ -142,6 +152,16 @@ namespace Digger {
             // Add WHOIS information if available
             if (current_result.whois_data != null) {
                 add_whois_section (current_result.whois_data);
+            }
+
+            // Add Threat Intelligence if available
+            if (current_result.threat_intel_data != null) {
+                add_threat_section (current_result.threat_intel_data);
+            }
+
+            // Add IPv6 connectivity if available (non-blocking, guard null)
+            if (current_ipv6_result != null) {
+                add_ipv6_section (current_ipv6_result);
             }
 
             // Add query statistics
@@ -368,6 +388,34 @@ namespace Digger {
             return row;
         }
         
+        /**
+         * Optional validation banner — additive only, never blocks query path.
+         * DNS Record Validator is pure, synchronous, side-effect-free.
+         */
+        public void show_validation (ValidationResult vr) {
+            if (vr == null || vr.issues.size == 0) return;
+            var group = new Adw.PreferencesGroup () {
+                title = "DNS Validation",
+                description = vr.get_summary (),
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12
+            };
+            foreach (var issue in vr.issues) {
+                string icon_name = issue.severity == ValidationSeverity.ERROR ? "dialog-error-symbolic" : "dialog-warning-symbolic";
+                var row = new Adw.ActionRow () {
+                    title = issue.message,
+                    subtitle = @"$(issue.code.to_string ()) • $(issue.severity.to_string ())"
+                };
+                var icon = new Gtk.Image.from_icon_name (icon_name) { pixel_size = 16 };
+                row.add_prefix (icon);
+                if (issue.severity == ValidationSeverity.ERROR) row.add_css_class ("error");
+                else row.add_css_class ("warning");
+                group.add (row);
+            }
+            content_box.append (group);
+        }
+
         private void add_query_statistics (QueryResult result) {
             var stats_group = new Adw.PreferencesGroup () {
                 title = "Query Statistics",
@@ -525,6 +573,119 @@ namespace Digger {
             content_box.append (whois_group);
         }
 
+        private void add_threat_section (ThreatIntelData threat) {
+            var threat_group = new Adw.PreferencesGroup () {
+                title = "Threat Intelligence",
+                description = threat.from_cache ? "Cached data" : "Fresh data",
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            var verdict_row = new Adw.ActionRow () {
+                title = threat.get_verdict_label ()
+            };
+            if (threat.safety_score >= 0) {
+                verdict_row.subtitle = "Safety score: %d/100".printf (threat.safety_score);
+            } else if (threat.error_message != null) {
+                verdict_row.subtitle = threat.error_message;
+            } else {
+                verdict_row.subtitle = "No threat data available";
+            }
+            string css = threat.get_verdict_css_class ();
+            if (css.length > 0) verdict_row.add_css_class (css);
+            threat_group.add (verdict_row);
+
+            if (threat.level == ThreatLevel.ERROR || threat.level == ThreatLevel.RATE_LIMITED) {
+                var err_row = new Adw.ActionRow () {
+                    title = threat.level == ThreatLevel.RATE_LIMITED ? "Rate limited" : "Error",
+                    subtitle = threat.error_message ?? "Check failed"
+                };
+                threat_group.add (err_row);
+            }
+
+            bool has_vt = (threat.vt_harmless > 0 || threat.vt_malicious > 0 || threat.vt_suspicious > 0 || threat.vt_undetected > 0 || threat.vt_reputation != null);
+            if (has_vt) {
+                var vt_row = new Adw.ActionRow () {
+                    title = "VirusTotal detections",
+                    subtitle = "Harmless: %d, Malicious: %d, Suspicious: %d, Undetected: %d".printf (threat.vt_harmless, threat.vt_malicious, threat.vt_suspicious, threat.vt_undetected)
+                };
+                threat_group.add (vt_row);
+
+                if (threat.vt_reputation != null) {
+                    var rep_row = new Adw.ActionRow () {
+                        title = "Community reputation"
+                    };
+                    string votes = "";
+                    if (threat.vt_votes_harmless != null || threat.vt_votes_malicious != null) {
+                        votes = " (votes: %d harmless, %d malicious)".printf (threat.vt_votes_harmless ?? 0, threat.vt_votes_malicious ?? 0);
+                    }
+                    rep_row.subtitle = @"$(threat.vt_reputation)$(votes)";
+                    var copy_btn = new Gtk.Button.from_icon_name ("edit-copy-symbolic") { valign = Gtk.Align.CENTER };
+                    copy_btn.add_css_class ("flat");
+                    copy_btn.tooltip_text = "Copy to clipboard";
+                    string rep_val = @"$(threat.vt_reputation)";
+                    copy_btn.clicked.connect (() => copy_to_clipboard (rep_val));
+                    rep_row.add_suffix (copy_btn);
+                    threat_group.add (rep_row);
+                }
+
+                if (threat.vt_categories.size > 0) {
+                    var cat_row = new Adw.ActionRow () {
+                        title = "Categories",
+                        subtitle = string.joinv (", ", threat.vt_categories.to_array ())
+                    };
+                    threat_group.add (cat_row);
+                }
+
+                if (threat.vt_first_seen != null) {
+                    var fs_row = new Adw.ActionRow () { title = "First seen", subtitle = threat.vt_first_seen.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (fs_row);
+                }
+                if (threat.vt_last_seen != null) {
+                    var ls_row = new Adw.ActionRow () { title = "Last seen", subtitle = threat.vt_last_seen.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (ls_row);
+                }
+                if (threat.vt_last_analyzed != null) {
+                    var la_row = new Adw.ActionRow () { title = "Last analyzed", subtitle = threat.vt_last_analyzed.format ("%Y-%m-%d %H:%M:%S") };
+                    threat_group.add (la_row);
+                }
+
+                if (threat.vt_detections.size > 0) {
+                    var exp = new Adw.ExpanderRow () { title = "Detections (%d)".printf (threat.vt_detections.size) };
+                    foreach (string det in threat.vt_detections) {
+                        var det_row = new Adw.ActionRow () { title = det };
+                        string det_copy = det;
+                        var cbtn = new Gtk.Button.from_icon_name ("edit-copy-symbolic") { valign = Gtk.Align.CENTER };
+                        cbtn.add_css_class ("flat");
+                        cbtn.clicked.connect (() => copy_to_clipboard (det_copy));
+                        det_row.add_suffix (cbtn);
+                        exp.add_row (det_row);
+                    }
+                    threat_group.add (exp);
+                }
+            }
+
+            var dbl_row = new Adw.ActionRow ();
+            if (threat.is_ip) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Not applicable for IP addresses";
+            } else if (threat.dbl_error != null) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = threat.dbl_error;
+            } else if (threat.dbl_listed) {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Listed (%s)".printf (threat.dbl_category ?? "listed") + (threat.dbl_return_code != null ? " - " + threat.dbl_return_code : "");
+            } else {
+                dbl_row.title = "Spamhaus DBL";
+                dbl_row.subtitle = "Not listed";
+            }
+            threat_group.add (dbl_row);
+
+            content_box.append (threat_group);
+        }
+
         private void add_dnssec_validation (string domain) {
             var dnssec_group = new Adw.PreferencesGroup () {
                 title = "DNSSEC Validation",
@@ -594,8 +755,175 @@ namespace Digger {
             UiUtils.show_toast (this, "Command copied to clipboard");
         }
 
+        public void show_ipv6_result (Ipv6TestResult result) {
+            current_ipv6_result = result;
+            // Re-render if a main result is already shown; otherwise just store for next refresh
+            if (current_result != null) {
+                refresh_display ();
+            }
+        }
+
+        public void show_ipv6_testing () {
+            var testing = new Ipv6TestResult ();
+            testing.status = Ipv6ProbeStatus.UNKNOWN;
+            testing.ipv6_available = false;
+            testing.error_message = "Testing IPv6 reachability...";
+            current_ipv6_result = testing;
+            if (current_result != null) {
+                refresh_display ();
+            }
+        }
+
+        public void clear_ipv6_result () {
+            current_ipv6_result = null;
+        }
+
+        private void add_ipv6_section (Ipv6TestResult ipv6) {
+            // Guard: never render empty shell — if UNKNOWN and no message, skip
+            if (ipv6 == null) return;
+
+            var ipv6_group = new Adw.PreferencesGroup () {
+                title = "IPv6 Connectivity",
+                description = ipv6.from_cache ? "Cached" : null,
+                margin_start = 6,
+                margin_end = 6,
+                margin_top = 12,
+                margin_bottom = 12
+            };
+
+            bool is_testing = (ipv6.status == Ipv6ProbeStatus.UNKNOWN && ipv6.error_message != null && ipv6.error_message.contains ("Testing"));
+
+            if (is_testing) {
+                var testing_row = new Adw.ActionRow () {
+                    title = "Testing IPv6 reachability...",
+                    subtitle = "Probing via " + ipv6.resolver_used
+                };
+                var spinner = new Gtk.Spinner () {
+                    spinning = true,
+                    valign = Gtk.Align.CENTER
+                };
+                spinner.set_size_request (44, 44);
+                testing_row.add_suffix (spinner);
+                var icon = new Gtk.Image.from_icon_name ("network-workgroup-symbolic") { pixel_size = 16 };
+                testing_row.add_prefix (icon);
+                ipv6_group.add (testing_row);
+                content_box.append (ipv6_group);
+                return;
+            }
+
+            // Row 1: Capability
+            var cap_title = ipv6.ipv6_available ? "IPv6 Available" : "IPv6 Unavailable";
+            var cap_subtitle = ipv6.ipv6_available ? "System supports IPv6" : (ipv6.error_message ?? "No IPv6 stack detected");
+            var cap_row = new Adw.ActionRow () {
+                title = cap_title,
+                subtitle = cap_subtitle
+            };
+            var cap_icon = new Gtk.Image.from_icon_name ("network-workgroup-symbolic") { pixel_size = 16 };
+            cap_row.add_prefix (cap_icon);
+            if (ipv6.ipv6_available) cap_row.add_css_class ("success"); else cap_row.add_css_class ("error");
+            ipv6_group.add (cap_row);
+
+            // Row 2: Reachability
+            if (ipv6.ipv6_available) {
+                string reach_title;
+                string reach_subtitle;
+                string reach_class = "";
+                if (ipv6.reachable == true) {
+                    reach_title = "Reachable";
+                    reach_subtitle = "%d ms via %s".printf (ipv6.probe_latency_ms, ipv6.resolver_used);
+                    reach_class = "success";
+                } else if (ipv6.reachable == false) {
+                    if (ipv6.status == Ipv6ProbeStatus.TIMEOUT) {
+                        reach_title = "Timeout";
+                        reach_subtitle = ipv6.error_message ?? "Probe timed out";
+                        reach_class = "warning";
+                    } else if (ipv6.status == Ipv6ProbeStatus.UNREACHABLE) {
+                        reach_title = "Unreachable";
+                        reach_subtitle = ipv6.error_message ?? "No route to IPv6 resolver";
+                        reach_class = "error";
+                    } else {
+                        reach_title = ipv6.status.to_string ();
+                        reach_subtitle = ipv6.error_message ?? "Probe failed";
+                        reach_class = "error";
+                    }
+                } else {
+                    reach_title = "Not tested";
+                    reach_subtitle = ipv6.error_message ?? "";
+                }
+                var reach_row = new Adw.ActionRow () {
+                    title = reach_title,
+                    subtitle = reach_subtitle
+                };
+                if (reach_class.length > 0) reach_row.add_css_class (reach_class);
+                ipv6_group.add (reach_row);
+            }
+
+            // Row 3: Resolver response / error
+            if (ipv6.status == Ipv6ProbeStatus.NXDOMAIN || ipv6.status == Ipv6ProbeStatus.SERVFAIL) {
+                var err_row = new Adw.ActionRow () {
+                    title = ipv6.status.to_string (),
+                    subtitle = ipv6.error_message ?? "Resolver error"
+                };
+                err_row.add_css_class ("error");
+                ipv6_group.add (err_row);
+            } else if (ipv6.status == Ipv6ProbeStatus.ERROR && ipv6.error_message != null) {
+                var err_row = new Adw.ActionRow () {
+                    title = "Error",
+                    subtitle = ipv6.error_message
+                };
+                err_row.add_css_class ("error");
+                ipv6_group.add (err_row);
+            }
+
+            // Row 4: AAAA records (reuse pattern similar to enhanced results)
+            if (ipv6.aaaa_records != null && ipv6.aaaa_records.size > 0) {
+                var aaaa_expander = new Adw.ExpanderRow () {
+                    title = "AAAA Records",
+                    subtitle = @"$(ipv6.aaaa_records.size) record(s) via $(ipv6.resolver_used)"
+                };
+                foreach (var rec in ipv6.aaaa_records) {
+                    string display_val = rec.value;
+                    if (display_val.length > Constants.MAX_RECORD_DATA_DISPLAY_LENGTH) {
+                        display_val = display_val.substring (0, Constants.MAX_RECORD_DATA_DISPLAY_LENGTH) + "...";
+                    }
+                    var rec_row = new Adw.ActionRow () {
+                        title = rec.name,
+                        subtitle = display_val
+                    };
+                    rec_row.add_css_class ("monospace");
+                    var label = new Gtk.Label (display_val) {
+                        selectable = true,
+                        halign = Gtk.Align.END,
+                        ellipsize = Pango.EllipsizeMode.END,
+                        max_width_chars = 40
+                    };
+                    label.add_css_class ("monospace");
+                    var copy_button = new Gtk.Button.from_icon_name ("edit-copy-symbolic") {
+                        valign = Gtk.Align.CENTER,
+                        tooltip_text = "Copy to clipboard"
+                    };
+                    copy_button.add_css_class ("flat");
+                    string copy_val = rec.value;
+                    copy_button.clicked.connect (() => { copy_to_clipboard (copy_val); });
+                    rec_row.add_suffix (label);
+                    rec_row.add_suffix (copy_button);
+                    aaaa_expander.add_row (rec_row);
+                }
+                ipv6_group.add (aaaa_expander);
+            } else if (ipv6.reachable == true && ipv6.status == Ipv6ProbeStatus.SUCCESS) {
+                var no_aaaa_row = new Adw.ActionRow () {
+                    title = "No AAAA records",
+                    subtitle = @"No IPv6 addresses for this domain (via $(ipv6.resolver_used))"
+                };
+                ipv6_group.add (no_aaaa_row);
+            }
+
+            content_box.append (ipv6_group);
+        }
+
         public void clear_results () {
             current_result = null;
+            current_ipv6_result = null;
             progress_bar.visible = false;
 
             // Hide action buttons when clearing results

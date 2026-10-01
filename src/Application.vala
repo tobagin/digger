@@ -32,6 +32,7 @@ namespace Digger {
                 { "about", on_about_action },
                 { "preferences", on_preferences_action },
                 { "shortcuts", on_shortcuts_action },
+                { "threat-check", on_threat_check_action },
                 { "dnsbl-check", on_dnsbl_check_action },
                 { "performance-monitor", on_performance_monitor_action },
                 { "propagation-check", on_propagation_check_action },
@@ -57,7 +58,9 @@ namespace Digger {
                 { "app.propagation-check", "<primary><shift>g" },
                 { "app.subdomain-scan", "<primary><shift>e" },
                 { "app.dnssec-chain", "<primary><shift>k" },
-                { "app.domain-monitor", "<primary><shift>w" }
+                { "app.domain-monitor", "<primary><shift>w" },
+                { "app.threat-check", "<primary><shift>t" },
+                { "win.templates", "<primary><shift>l" }
             };
             for (int i = 0; i < accels.length[0]; i++) {
                 string[] accel = { accels[i, 1] };
@@ -122,6 +125,11 @@ namespace Digger {
 
         private void on_shortcuts_action () {
             ShortcutsDialog.present (main_window);
+        }
+
+        private void on_threat_check_action () {
+            var threat_dialog = new ThreatCheckDialog (main_window);
+            threat_dialog.present (main_window);
         }
 
         private void on_dnsbl_check_action () {
