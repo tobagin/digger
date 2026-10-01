@@ -1,6 +1,6 @@
 app-id: io.github.tobagin.digger.Devel
 runtime: org.gnome.Platform
-runtime-version: '50'
+runtime-version: '51'
 sdk: org.gnome.Sdk
 command: digger-vala
 finish-args:
@@ -24,37 +24,38 @@ cleanup:
   - '*.a'
 
 modules:
-  - name: libgee
-    buildsystem: autotools
-    config-opts:
-      - --disable-introspection
-      - --enable-vapi
-    sources:
-      - type: archive
-        url: https://download.gnome.org/sources/libgee/0.20/libgee-0.20.8.tar.xz
-        sha256: 189815ac143d89867193b0c52b7dc31f3aa108a15f04d6b5dca2b6adfad0b0ee
-        x-checker-data:
-          type: gnome
-          name: libgee
-
   # libuv dependency for BIND
   - name: libuv
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://dist.libuv.org/dist/v1.52.1/libuv-v1.52.1.tar.gz
-        sha256: 66d511b9e6e334c0e62279eb234fbfb2b3110b1479c09b95b44c7afca8cff9e7
+        url: https://dist.libuv.org/dist/v1.53.0/libuv-v1.53.0.tar.gz
+        sha256: cb0d6dd2128d5a95bd242c6cc982a24fe608fa93da57b6b4ec763b0018c53e64
     config-opts:
       - --disable-static
       - --enable-shared
 
-  # BIND dig command using older version to avoid crypto issues
+  # liburcu: mandatory dependency of BIND 9.20
+  - name: liburcu
+    buildsystem: autotools
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url: https://lttng.org/files/urcu/userspace-rcu-0.15.7.tar.bz2
+        sha256: 2556b83adc0f9b3ac8024e613e17d014d04c4c49110604ce55fcb14eae32edd3
+        x-checker-data:
+          type: anitya
+          project-id: 5953
+          url-template: https://lttng.org/files/urcu/userspace-rcu-$version.tar.bz2
+
+  # BIND dig command; OpenSSL comes from the runtime
   - name: bind-dig
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.16.48/bind-9.16.48.tar.xz
-        sha256: 8d3814582348f90dead1ad410b1019094cd399d3d83930abebb2b3b1eb0b2bbb
+        url: https://downloads.isc.org/isc/bind9/9.20.29/bind-9.20.29.tar.xz
+        sha256: 587029508b3b1b43229fae416c97e5543aba45809cefaca98a5004a02a5736c1
         x-checker-data:
           type: anitya
           project-id: 1365
@@ -62,47 +63,35 @@ modules:
     config-opts:
       - --disable-static
       - --enable-shared
-      - --without-openssl
-      - --disable-dnssec-tools
-      - --disable-dnssec-validation
-      - --without-gssapi
-      - --without-readline
-      - --without-libedit
-      - --without-libxml2
-      - --without-libjson
-      - --without-zlib
-      - --without-lmdb
-      - --without-libnghttp2
+      - --disable-doh
       - --disable-dnsrps
       - --disable-dnstap
-      - --disable-doh
-      - --disable-backtrace
-      - --disable-symtable
-      - --disable-linux-caps
-      - --without-python
-      - --prefix=/app
-    build-options:
-      env:
-        OPENSSL_CFLAGS: ""
-        OPENSSL_LIBS: ""
-        ac_cv_lib_crypto_EVP_sha256: "no"
-        ac_cv_lib_ssl_SSL_new: "no"
-    build-commands:
-      # Build only what we need for dig
-      - make -C lib/isc
-      - make -C lib/dns
-      - make -C lib/bind9
-      - make -C bin/dig
+      - --disable-geoip
+      - --without-gssapi
+      - --without-jemalloc
+      - --without-json-c
+      - --without-libidn2
+      - --without-libxml2
+      - --without-lmdb
+      - --without-readline
+      - --without-zlib
     cleanup:
       - '*.la'
       - '/share/man'
       - '/lib/pkgconfig'
+      - '/bin/arpaname'
+      - '/bin/ddns-confgen'
       - '/bin/delv'
-      - '/bin/host'
-      - '/bin/nslookup'
-      - '/bin/named*'
-      - '/bin/rndc*'
       - '/bin/dnssec*'
+      - '/bin/dnstap-read'
+      - '/bin/host'
+      - '/bin/mdig'
+      - '/bin/named*'
+      - '/bin/nsec3hash'
+      - '/bin/nslookup'
+      - '/bin/nsupdate'
+      - '/bin/rndc*'
+      - '/bin/tsig-keygen'
       - '/sbin'
 
   # whois command for domain registration lookups

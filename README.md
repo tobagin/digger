@@ -13,9 +13,9 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 
 </div>
 
-## 🎉 Version 2.8.0 - Latest Release
+## 🎉 Version 2.9.0 - Latest Release
 
-**Digger 2.8.0** adds four new DNS tools and hardens security.
+**Digger 2.9.0** moves to the GNOME 51 runtime and refreshes the bundled DNS tooling.
 
 ### ✨ Key Features
 
@@ -26,13 +26,12 @@ A modern, feature-rich DNS lookup tool for the GNOME Desktop.
 - **🌐 WHOIS Integration**: Domain registration lookup with intelligent caching.
 - **📱 Responsive Design**: Beautiful adaptive layout for all screen sizes.
 
-### 🆕 What's New in 2.8.0
+### 🆕 What's New in 2.9.0
 
-- **DNS Propagation Check**: Query a record across eight public resolvers in parallel and spot any that disagree.
-- **Subdomain Enumeration**: Discover live subdomains from a built-in wordlist.
-- **DNSSEC Chain of Trust**: Visualize the chain of trust from the TLD down to your domain.
-- **Domain Monitoring**: Get desktop notifications when a watched domain's records change.
-- **Security Hardening**: Fixed a DNS-over-HTTPS parser out-of-bounds read and tightened input validation and exports.
+- **GNOME 51 Runtime**: Built against the current GNOME platform.
+- **BIND 9.20**: The bundled `dig` moves from the end-of-life 9.16 branch to 9.20.29.
+- **Working DNSSEC Validation**: `dig` is now built with OpenSSL, so signed responses are genuinely verified.
+- **Slimmer Flatpak**: libgee now comes from the runtime instead of being built from source.
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 

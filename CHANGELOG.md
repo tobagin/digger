@@ -5,6 +5,18 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-10-01
+
+### Changed
+- **Runtime**: Updated to the GNOME 51 runtime.
+- **Dependencies**: Bundled BIND updated from 9.16.48 to 9.20.29; the 9.16 branch is end-of-life and no longer published upstream.
+- **Dependencies**: Bundled libuv updated to 1.53.0.
+- **Dependencies**: libgee is now taken from the GNOME runtime instead of being built from source.
+
+### Fixed
+- **DNSSEC**: `dig` is now built with OpenSSL, so DNSSEC signatures are actually validated. The previous build disabled crypto entirely, which left the AD flag unset on signed responses.
+
+
 ## [2.8.0] - 2026-07-17
 
 ### Added
