@@ -304,6 +304,24 @@ void test_probe_status_to_string () {
     assert (Ipv6ProbeStatus.SUCCESS.to_string () == "Success");
 }
 
+// Issue #22: Subprocess.newv walks argv until NULL; 5 args (custom server) used to overrun.
+void test_dig_argv_null_terminated () {
+    string[] argv = Digger.DnsQuery.build_dig_command ("example.com", Digger.RecordType.A, "1.1.1.1",
+                                                       false, false, false, false, 10);
+    assert (argv.length == 5);
+    assert (argv[1] == "@1.1.1.1");
+    assert (((void**) argv)[argv.length] == null);
+    assert (strv_length (argv) == 5);
+}
+
+void test_bytes_to_string () {
+    assert (Digger.ValidationUtils.bytes_to_string (null) == "");
+    assert (Digger.ValidationUtils.bytes_to_string (new Bytes ({})) == "");
+    // Slice of a larger buffer: no NUL after the 5th byte
+    var slice = new Bytes ("helloworld".data).slice (0, 5);
+    assert (Digger.ValidationUtils.bytes_to_string (slice) == "hello");
+}
+
 int main (string[] args) {
     Test.init (ref args);
     Test.add_func ("/ipv6/constants/exist", test_constants_exist);
@@ -327,5 +345,7 @@ int main (string[] args) {
     Test.add_func ("/ipv6/probe/cancellation", test_probe_cancellation);
     Test.add_func ("/ipv6/model/defaults", test_ipv6_test_result_defaults);
     Test.add_func ("/ipv6/status/to_string", test_probe_status_to_string);
+    Test.add_func ("/dns_query/dig_argv_null_terminated", test_dig_argv_null_terminated);
+    Test.add_func ("/validation/bytes_to_string", test_bytes_to_string);
     return Test.run ();
 }

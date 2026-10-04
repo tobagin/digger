@@ -193,4 +193,15 @@ namespace Digger.ValidationUtils {
 
         return sanitized;
     }
+
+    /**
+     * Copy a GLib.Bytes buffer into a string. Bytes from a pipe or HTTP body
+     * carry no trailing NUL, so a bare (string) cast reads past the buffer.
+     */
+    public static string bytes_to_string (Bytes? bytes) {
+        if (bytes == null || bytes.get_size () == 0) {
+            return "";
+        }
+        return ((string) bytes.get_data ()).ndup (bytes.get_size ());
+    }
 }

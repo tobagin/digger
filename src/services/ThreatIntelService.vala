@@ -509,7 +509,7 @@ namespace Digger {
                 uint status = message.status_code;
 
                 if (status == 200) {
-                    string json = (string) bytes.get_data ();
+                    string json = ValidationUtils.bytes_to_string (bytes);
                     bool ok = parse_virustotal_response (json, data);
                     if (!ok) {
                         r.level = ThreatLevel.ERROR;

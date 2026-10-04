@@ -76,8 +76,10 @@ namespace Digger {
                     }
                 }
 
-                string[] command_args = build_dig_command (domain_for_command, record_type, dns_server, 
-                                                         reverse_lookup, trace_path, short_output, request_dnssec);
+                var timeout_seconds = (settings != null) ? settings.get_int ("query-timeout") : 10;
+                string[] command_args = build_dig_command (domain_for_command, record_type, dns_server,
+                                                         reverse_lookup, trace_path, short_output, request_dnssec,
+                                                         timeout_seconds);
                 
                 string standard_output;
                 string standard_error;
@@ -125,47 +127,48 @@ namespace Digger {
             }
         }
 
-        private string[] build_dig_command (string domain, RecordType record_type, string? dns_server,
-                                          bool reverse_lookup, bool trace_path, bool short_output, bool request_dnssec) {
-            var args = new Gee.ArrayList<string> ();
-            args.add (DIG_COMMAND);
+        // internal + static so the tests can check the argv without a GSettings schema
+        internal static string[] build_dig_command (string domain, RecordType record_type, string? dns_server,
+                                          bool reverse_lookup, bool trace_path, bool short_output, bool request_dnssec,
+                                          int timeout_seconds) {
+            // Plain array, not Gee: Gee's to_array () isn't NULL-terminated, which Subprocess.newv needs
+            string[] args = {};
+            args += DIG_COMMAND;
 
             // Add DNS server if specified
             if (dns_server != null && dns_server.length > 0) {
-                args.add (@"@$dns_server");
+                args += @"@$dns_server";
             }
 
             // Add domain
-            args.add (domain);
+            args += domain;
 
             // Add record type
             if (!reverse_lookup) {
-                args.add (record_type.to_string ());
+                args += record_type.to_string ();
             }
 
             // Add options
             if (reverse_lookup) {
-                args.add ("-x");
+                args += "-x";
             }
 
             if (trace_path) {
-                args.add ("+trace");
+                args += "+trace";
             }
 
             if (short_output) {
-                args.add ("+short");
+                args += "+short";
             }
 
             if (request_dnssec) {
-                args.add ("+dnssec");
-                args.add ("+nocrypto");
+                args += "+dnssec";
+                args += "+nocrypto";
             }
 
-            // Timeout from settings
-            var timeout_seconds = (settings != null) ? settings.get_int ("query-timeout") : 10;
-            args.add (@"+time=$timeout_seconds");
+            args += @"+time=$timeout_seconds";
 
-            return args.to_array ();
+            return args;
         }
 
         private async bool run_command_async (string[] command_args, out string standard_output,
@@ -174,8 +177,8 @@ namespace Digger {
 
             Bytes stdout_bytes, stderr_bytes;
             yield process.communicate_async (null, null, out stdout_bytes, out stderr_bytes);
-            standard_output = (string) stdout_bytes.get_data();
-            standard_error = (string) stderr_bytes.get_data();
+            standard_output = ValidationUtils.bytes_to_string (stdout_bytes);
+            standard_error = ValidationUtils.bytes_to_string (stderr_bytes);
             exit_status = process.get_exit_status ();
 
             return true;

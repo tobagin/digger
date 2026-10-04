@@ -121,8 +121,8 @@ namespace Digger {
                 throw e;
             }
 
-            standard_output = (string) stdout_bytes.get_data();
-            standard_error = (string) stderr_bytes.get_data();
+            standard_output = ValidationUtils.bytes_to_string (stdout_bytes);
+            standard_error = ValidationUtils.bytes_to_string (stderr_bytes);
             exit_status = process.get_exit_status ();
 
             return true;

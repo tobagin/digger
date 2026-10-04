@@ -218,7 +218,7 @@ namespace Digger {
                 var proc = new Subprocess.newv (args, SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE);
                 Bytes stdout_bytes, stderr_bytes;
                 yield proc.communicate_async (null, null, out stdout_bytes, out stderr_bytes);
-                stdout_text = (string) stdout_bytes.get_data ();
+                stdout_text = ValidationUtils.bytes_to_string (stdout_bytes);
                 dig_available_cache = proc.get_exit_status () == 0;
                 return dig_available_cache;
             } catch (Error e) {
@@ -261,8 +261,8 @@ namespace Digger {
             var proc = new Subprocess.newv (args, SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE);
             Bytes stdout_bytes, stderr_bytes;
             yield proc.communicate_async (null, null, out stdout_bytes, out stderr_bytes);
-            stdout_text = (string) stdout_bytes.get_data ();
-            stderr_text = (string) stderr_bytes.get_data ();
+            stdout_text = ValidationUtils.bytes_to_string (stdout_bytes);
+            stderr_text = ValidationUtils.bytes_to_string (stderr_bytes);
             exit_status = proc.get_exit_status ();
             return true;
         }
