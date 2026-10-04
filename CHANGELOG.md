@@ -5,6 +5,12 @@ All notable changes to Digger will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.1] - 2026-10-04
+
+### Fixed
+- **Crash with a custom DNS server**: Lookups with any server other than System Default segfaulted, because the `dig` argument list passed to `Subprocess.newv` was not NULL-terminated (#22).
+- **Command output handling**: Output from `dig`, `whois` and the VirusTotal API is now copied by length instead of being read as a NUL-terminated string.
+
 ## [2.9.0] - 2026-10-01
 
 ### Added

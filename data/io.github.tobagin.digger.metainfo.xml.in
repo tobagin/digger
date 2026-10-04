@@ -66,6 +66,15 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.9.1" date="2026-10-04">
+      <description>
+        <p>Bug fix release</p>
+        <ul>
+          <li>Fixed a crash when running a lookup with any DNS server other than System Default</li>
+          <li>Fixed command output from dig and whois being read past its end</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.0" date="2026-10-01">
       <description>
         <p>Feature release with new DNS tools, plus a runtime and dependency refresh</p>

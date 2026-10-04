@@ -1,5 +1,5 @@
 Name:           digger
-Version:        2.9.0
+Version:        2.9.1
 Release:        %autorelease
 Summary:        Advanced DNS Lookup Tool
 
