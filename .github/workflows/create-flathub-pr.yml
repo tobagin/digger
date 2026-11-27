@@ -23,7 +23,7 @@ jobs:
       id: version
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        COMMIT_HASH=$(git rev-parse $TAG_NAME)
+        COMMIT_HASH=$(git rev-parse "${TAG_NAME}^{commit}")
         VERSION=${TAG_NAME#v}
         
         echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -69,7 +69,11 @@ jobs:
         
         # Update the manifest with the correct tag and commit hash (only for digger module)
         sed -i '/- name: digger/,/^  - name:/{s/tag: v.*/tag: ${{ steps.version.outputs.tag_name }}/}' io.github.tobagin.digger.yml
-        sed -i '/- name: digger/,/^  - name:/{s/commit: .*/commit: ${{ steps.version.outputs.commit_hash }}/}' io.github.tobagin.digger.yml
+        if sed -n '/- name: digger/,/^  - name:/p' io.github.tobagin.digger.yml | grep -q '^[[:space:]]*commit:'; then
+          sed -i '/- name: digger/,/^  - name:/{s/commit: .*/commit: ${{ steps.version.outputs.commit_hash }}/}' io.github.tobagin.digger.yml
+        else
+          sed -i '/- name: digger/,/^  - name:/s|\(^[[:space:]]*tag: .*\)|\1\n        commit: ${{ steps.version.outputs.commit_hash }}|' io.github.tobagin.digger.yml
+        fi
         
         echo "📋 Updated manifest with:"
         echo "  Tag: ${{ steps.version.outputs.tag_name }}"

@@ -66,6 +66,14 @@
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <releases>
+    <release version="2.9.3" date="2026-11-27">
+      <description>
+        <p>Maintenance release fixing Flatpak manifest metadata</p>
+        <ul>
+          <li>Corrected Anitya project IDs for bundled liburcu and BIND dependencies</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.2" date="2026-11-27">
       <description>
         <p>Maintenance release with updated bundled BIND</p>
