@@ -82,7 +82,7 @@ flatpak install flathub io.github.tobagin.digger
 sudo dnf install digger
 ```
 
-### Debian (official repositories, currently in unstable/sid)
+### Debian & Ubuntu
 
 ```bash
 sudo apt install digger

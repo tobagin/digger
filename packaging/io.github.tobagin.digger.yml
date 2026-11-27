@@ -53,8 +53,8 @@ modules:
     buildsystem: autotools
     sources:
       - type: archive
-        url: https://downloads.isc.org/isc/bind9/9.20.29/bind-9.20.29.tar.xz
-        sha256: 587029508b3b1b43229fae416c97e5543aba45809cefaca98a5004a02a5736c1
+        url: https://downloads.isc.org/isc/bind9/9.20.31/bind-9.20.31.tar.xz
+        sha256: 9bfecd503ec79209d321053689c794da9f8dba993a24e9cd6bd7aa87cdf4122f
         x-checker-data:
           type: anitya
           project-id: 1365
@@ -109,4 +109,4 @@ modules:
     sources:
       - type: git
         url: https://github.com/tobagin/digger.git
-        tag: v2.9.1
+        tag: v2.9.2

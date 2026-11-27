@@ -32,7 +32,7 @@ jobs:
             libsoup-3.0-dev
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.tag || github.ref_name }}
 
@@ -55,7 +55,7 @@ jobs:
           mv ../digger_*.deb dist/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deb-${{ matrix.arch }}
           path: dist/*.deb
@@ -76,7 +76,7 @@ jobs:
         run: dnf install -y git rpm-build rpmautospec dnf5-plugins
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.tag || github.ref_name }}
 
@@ -98,7 +98,7 @@ jobs:
           mv rpmbuild/RPMS/*/digger-[0-9]*.rpm dist/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rpm-${{ matrix.arch }}
           path: dist/*.rpm
@@ -110,13 +110,13 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
 
       - name: Attach packages to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/*
